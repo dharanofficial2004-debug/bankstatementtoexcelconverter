@@ -5,13 +5,19 @@ import { pathToFileURL } from 'url';
 import path from 'path';
 import fs from 'fs';
 
-// Override the PDF.js worker source immediately using a direct physical file scheme
+// Override the PDF.js worker source immediately using a direct physical file scheme, falling back to CDN on serverless environments like Vercel
 try {
-  console.log("--- WORKER SETUP: Overriding PDF.js worker path to physical node_modules path ---");
+  console.log("--- WORKER SETUP: Overriding PDF.js worker path ---");
   const physicalPath = path.join(process.cwd(), "node_modules", "pdfjs-dist", "legacy", "build", "pdf.worker.mjs");
-  const fileUrl = pathToFileURL(physicalPath).href;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = fileUrl;
-  console.log("--- WORKER SETUP: Successfully overrode workerSrc to physical file URL:", fileUrl);
+  if (fs.existsSync(physicalPath)) {
+    const fileUrl = pathToFileURL(physicalPath).href;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = fileUrl;
+    console.log("--- WORKER SETUP: Successfully overrode workerSrc to local physical file URL:", fileUrl);
+  } else {
+    // Fallback for Vercel Serverless environment where node_modules is not physically at process.cwd()
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.worker.mjs";
+    console.log("--- WORKER SETUP: Local worker not found. Using CDN fallback:", pdfjsLib.GlobalWorkerOptions.workerSrc);
+  }
 } catch (err) {
   console.error("--- WORKER SETUP ERROR: Failed to resolve/set workerSrc:", err);
 }
