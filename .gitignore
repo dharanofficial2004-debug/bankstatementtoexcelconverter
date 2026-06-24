@@ -34,3 +34,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# diagnostics and temp uploads
+fallback_*.txt
+fallback_text.txt
+uploaded_sample.pdf

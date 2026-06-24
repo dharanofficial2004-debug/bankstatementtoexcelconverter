@@ -1,5 +1,5 @@
 import { Transaction } from "./types";
-import { PDFExcavator, detectBorderlessTables } from "pdfexcavator";
+import { PDFExcavator, detectBorderlessTables, extractTablesEnhanced } from "pdfexcavator";
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { pathToFileURL } from 'url';
 import path from 'path';
@@ -624,8 +624,7 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
       };
     }
 
-    // Detect Bank using first page text
-    console.log("--- PARSER: Extracting text from Page 1 to detect bank ---");
+    // Detect Bank (optional metadata check)
     const firstPage = pdf.getPage(0);
     const firstPageText = await firstPage.extractText();
     const bank = detectBank(firstPageText);
@@ -633,221 +632,275 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
 
     const transactions: Transaction[] = [];
     let txId = 1;
-    let lastDate = "";
-    let mapping: ColumnMapping | null = null;
+    let finalHeaders: string[] = [];
+    let colBoundaries: { label: string; x: number; x1: number }[] = [];
+
+    // Dynamic column index maps
+    let dateIdx = -1;
+    let descIdx = -1;
+    let amountIndices: number[] = [];
 
     for (const page of pdf.pages) {
       const pageNum = page.pageNumber;
       console.log(`--- PARSER: Processing Page ${pageNum + 1}/${pageCount} ---`);
       
-      // 1. Try to extract bordered tables
-      console.log(`[Page ${pageNum + 1}] Extracting bordered tables...`);
-      let tables = await page.extractTables();
+      const content = await page.pdfPage.getTextContent();
+      const items = content.items;
       
-      // 2. Fallback to borderless tables using projection profile
-      if (!tables || tables.length === 0) {
-        console.log(`[Page ${pageNum + 1}] No bordered tables found. Running borderless table extraction...`);
-        const chars = await page.chars;
-        tables = detectBorderlessTables(chars, page.pageNumber, {
-          minWordsVertical: 3,
-          minWordsHorizontal: 1
+      // 1. Group items by y-coordinate (tolerance of 8pt to group offset headers like Value Date)
+      const rawRows: { y: number; items: { text: string; x: number; width: number; x1: number }[] }[] = [];
+      items.forEach((item: any) => {
+        if (item.str === undefined) return;
+        const x = item.transform[4];
+        const y = item.transform[5];
+        
+        let added = false;
+        for (const r of rawRows) {
+          if (Math.abs(r.y - y) < 8) {
+            r.items.push({ text: item.str, x, width: item.width, x1: x + item.width });
+            added = true;
+            break;
+          }
+        }
+        if (!added) {
+          rawRows.push({ y, items: [{ text: item.str, x, width: item.width, x1: x + item.width }] });
+        }
+      });
+      
+      // Sort rows from top to bottom (y coordinate descending)
+      rawRows.sort((a, b) => b.y - a.y);
+      
+      // 2. For each row, sort items left-to-right and merge close items (narrow tolerance of 5pt to keep narrow columns separated)
+      const mergedRows: { y: number; items: { text: string; x: number; width: number; x1: number }[] }[] = [];
+      rawRows.forEach(r => {
+        r.items.sort((a, b) => a.x - b.x);
+        
+        const mergedItems: any[] = [];
+        let currentItem: any = null;
+        
+        r.items.forEach(item => {
+          if (!currentItem) {
+            currentItem = { ...item };
+          } else {
+            const gap = item.x - currentItem.x1;
+            const isSpaceWithLargeWidth = (item.text.trim() === "" && item.width > 15) || (currentItem.text.trim() === "" && currentItem.width > 15);
+            
+            if (gap < 5 && !isSpaceWithLargeWidth) {
+              currentItem.text += item.text;
+              currentItem.x1 = Math.max(currentItem.x1, item.x1);
+              currentItem.width = currentItem.x1 - currentItem.x;
+            } else {
+              mergedItems.push(currentItem);
+              currentItem = { ...item };
+            }
+          }
         });
+        if (currentItem) {
+          mergedItems.push(currentItem);
+        }
+        
+        const cleanedItems = mergedItems.map(item => ({
+          ...item,
+          text: item.text.replace(/\s+/g, " ").trim()
+        })).filter(item => item.text !== "");
+        
+        if (cleanedItems.length > 0) {
+          mergedRows.push({ y: r.y, items: cleanedItems });
+        }
+      });
+
+      // 3. Find/Select Header Row if not already determined
+      let headerRow: any = null;
+      let headerRowIdx = -1;
+      
+      if (finalHeaders.length === 0) {
+        for (let i = 0; i < mergedRows.length; i++) {
+          const r = mergedRows[i];
+          if (r.items.length >= 3) {
+            const joined = r.items.map(item => item.text.toLowerCase()).join(" ");
+            if (
+              joined.includes("item") || 
+              joined.includes("description") || 
+              joined.includes("particulars") || 
+              joined.includes("date") || 
+              joined.includes("amount") ||
+              joined.includes("narration") ||
+              joined.includes("balance") ||
+              joined.includes("withdrawal") ||
+              joined.includes("deposit")
+            ) {
+              headerRow = r;
+              headerRowIdx = i;
+              break;
+            }
+          }
+        }
+        
+        // Fallback: use first row with >= 3 items
+        if (!headerRow) {
+          for (let i = 0; i < mergedRows.length; i++) {
+            if (mergedRows[i].items.length >= 3) {
+              headerRow = mergedRows[i];
+              headerRowIdx = i;
+              break;
+            }
+          }
+        }
+        
+        if (headerRow) {
+          finalHeaders = headerRow.items.map((item: any, idx: number) => item.text || `Column ${idx + 1}`);
+          colBoundaries = headerRow.items.map((item: any) => ({
+            label: item.text,
+            x: item.x,
+            x1: item.x1
+          }));
+          console.log("--- PARSER: Dynamic headers extracted:", finalHeaders);
+
+          // Identify key indices dynamically based on header labels
+          descIdx = colBoundaries.findIndex(col => {
+            const lbl = col.label.toLowerCase();
+            return lbl.includes("description") || lbl.includes("particulars") || lbl.includes("narration") || lbl.includes("remarks");
+          });
+          dateIdx = colBoundaries.findIndex(col => {
+            const lbl = col.label.toLowerCase();
+            return lbl.includes("date") && !lbl.includes("value");
+          });
+          amountIndices = colBoundaries.map((col, idx) => {
+            const lbl = col.label.toLowerCase();
+            if (
+              lbl.includes("withdrawal") || 
+              lbl.includes("debit") || 
+              lbl.includes("deposit") || 
+              lbl.includes("credit") || 
+              lbl.includes("balance") || 
+              lbl.includes("amount") ||
+              lbl.includes("payment") ||
+              lbl.includes("charges") ||
+              lbl.includes("receipt")
+            ) {
+              return idx;
+            }
+            return -1;
+          }).filter(idx => idx !== -1);
+        }
       }
       
-      console.log(`[Page ${pageNum + 1}] Extracted tables count:`, tables?.length || 0);
+      // If we still don't have header boundaries, we can't extract the table rows yet, skip this page
+      if (colBoundaries.length === 0) {
+        continue;
+      }
       
-      for (let t = 0; t < tables.length; t++) {
-        const table = tables[t];
-        const rows = table.rows;
-        if (!rows || rows.length === 0) {
-          console.log(`[Page ${pageNum + 1}] Table ${t + 1} has 0 rows, skipping.`);
-          continue;
+      const startIndex = headerRow ? headerRowIdx + 1 : 0;
+      
+      for (let i = startIndex; i < mergedRows.length; i++) {
+        const r = mergedRows[i];
+        
+        // Stop parsing if we hit totals or notes boundaries
+        const rowText = r.items.map(item => item.text.toLowerCase()).join(" ");
+        if (
+          rowText.includes("subtotal") || 
+          rowText.includes("notes") || 
+          rowText.includes("terms") || 
+          rowText.includes("amount paid") ||
+          rowText.includes("carried forward") ||
+          rowText.includes("brought forward") ||
+          rowText.includes("opening balance") ||
+          rowText.includes("closing balance") ||
+          rowText.includes("total ")
+        ) {
+          console.log(`--- PARSER: Stopping page parsing at boundary row: "${rowText}"`);
+          break;
         }
         
-        console.log(`[Page ${pageNum + 1}] Table ${t + 1} rows count:`, rows.length);
+        const rowCells = Array(colBoundaries.length).fill("");
         
-        // Find header row and map column layout
-        if (!mapping) {
-          console.log(`[Page ${pageNum + 1}] Scanning for table header row...`);
-          mapping = findHeaderRow(rows);
-        }
-        
-        const activeMapping = mapping || {
-          dateIndex: 0,
-          descriptionIndex: 1,
-          refIndex: -1,
-          debitIndex: 2,
-          creditIndex: 3,
-          balanceIndex: 4,
-          headerRowIndex: -1,
-          headerLabels: ["Date", "Description", "Ref No.", "Withdrawal", "Deposit", "Balance"]
-        };
-        
-        // Skip headers on the page containing the header row
-        const startIndex = (mapping && mapping.headerRowIndex !== -1 && page.pageNumber === 0) 
-          ? mapping.headerRowIndex + 1 
-          : 0;
+        r.items.forEach(item => {
+          let bestColIdx = 0;
+          let minDistance = Infinity;
           
-        console.log(`[Page ${pageNum + 1}] Processing rows starting at index:`, startIndex);
-        
-        for (let i = startIndex; i < rows.length; i++) {
-          const row = rows[i];
+          colBoundaries.forEach((col, idx) => {
+            const dist = Math.abs(item.x - col.x);
+            if (dist < minDistance) {
+              minDistance = dist;
+              bestColIdx = idx;
+            }
+          });
           
-          if (isSkipRow(row)) {
-            // Log skip for transparency
-            console.log(`[Page ${pageNum + 1}] Skip row:`, row.filter(Boolean).join(" | "));
-            continue;
+          if (rowCells[bestColIdx] !== "") {
+            rowCells[bestColIdx] += " " + item.text;
+          } else {
+            rowCells[bestColIdx] = item.text;
           }
-          
-          // Skip exact header repetitions across page splits
-          const rowJoined = row.filter(Boolean).join(" ").toLowerCase();
-          if (rowJoined.includes("date") && (rowJoined.includes("description") || rowJoined.includes("particulars"))) {
-            console.log(`[Page ${pageNum + 1}] Skipping repeat header row:`, rowJoined);
-            continue;
-          }
-          
-          const rawDate = activeMapping.dateIndex !== -1 ? (row[activeMapping.dateIndex] || "").trim() : "";
-          const rawDesc = activeMapping.descriptionIndex !== -1 ? (row[activeMapping.descriptionIndex] || "").trim() : "";
-          const rawRef = activeMapping.refIndex !== -1 ? (row[activeMapping.refIndex] || "").trim() : "";
-          
-          let debit = "";
-          let credit = "";
-          let balance = "";
-          
-          // Handle Debit and Credit extraction
-          if (activeMapping.debitIndex !== -1) {
-            const rawDebit = row[activeMapping.debitIndex] || "";
-            
-            // Single Amount column handling
-            if (activeMapping.creditIndex === -1) {
-              const num = parseFloat(rawDebit.replace(/[₹$€£\s,]/g, ""));
-              if (!isNaN(num)) {
-                const rowStr = row.join(" ").toUpperCase();
-                const isCredit = rowStr.includes("CR") || rowStr.includes("DEP") || rowStr.includes("IN") || num > 0;
-                if (isCredit) {
-                  credit = cleanAmount(rawDebit);
-                } else {
-                  debit = cleanAmount(rawDebit);
-                }
-              }
-            } else {
-              debit = cleanAmount(rawDebit);
+        });
+        
+        // Check if this row is a description continuation
+        const cellDate = dateIdx !== -1 ? rowCells[dateIdx] : "";
+        const hasDate = isValidDate(cellDate);
+        const hasAmounts = amountIndices.some(idx => {
+          const val = rowCells[idx];
+          if (!val) return false;
+          const cleaned = val.replace(/[₹$€£\s,]/g, "").trim();
+          return cleaned !== "" && !isNaN(parseFloat(cleaned));
+        });
+        
+        if (!hasDate && !hasAmounts && transactions.length > 0) {
+          // Description/row continuation: merge into the previous transaction
+          const lastTx = transactions[transactions.length - 1];
+          if (descIdx !== -1) {
+            const descVal = rowCells[descIdx];
+            if (descVal) {
+              lastTx.description += " " + descVal;
+              lastTx[`col${descIdx}`] = (lastTx[`col${descIdx}`] || "") + " " + descVal;
             }
           }
-          
-          if (activeMapping.creditIndex !== -1) {
-            credit = cleanAmount(row[activeMapping.creditIndex] || "");
-          }
-          
-          if (activeMapping.balanceIndex !== -1) {
-            balance = cleanAmount(row[activeMapping.balanceIndex] || "");
-          }
-          
-          const hasDate = isValidDate(rawDate);
-          if (hasDate) {
-            lastDate = rawDate;
-          }
-          
-          const hasAmounts = debit !== "" || credit !== "" || balance !== "";
-          
-          if (hasDate || hasAmounts) {
-            // Check if this row is a description continuation
-            if (!hasDate && !hasAmounts && transactions.length > 0) {
-              const lastTx = transactions[transactions.length - 1];
-              lastTx.description += " " + rawDesc;
-              if (activeMapping.descriptionIndex !== -1) {
-                lastTx[`col${activeMapping.descriptionIndex}`] = (lastTx[`col${activeMapping.descriptionIndex}`] || "") + " " + rawDesc;
-              }
-              console.log(`[Page ${pageNum + 1}] Description continuation: Appended "${rawDesc}" to tx ID ${lastTx.id}`);
-            } else {
-              const newTx: Transaction = {
-                id: String(txId++),
-                date: hasDate ? rawDate : lastDate,
-                description: rawDesc || `Transaction ${txId - 1}`,
-                chqRefNo: rawRef,
-                debit,
-                credit,
-                balance,
-              };
-              
-              row.forEach((cell, idx) => {
-                newTx[`col${idx}`] = (cell || "").trim();
-              });
-              
-              transactions.push(newTx);
-              console.log(`[Page ${pageNum + 1}] Added Transaction: Date=${newTx.date}, Desc="${newTx.description}", Debit=${newTx.debit}, Credit=${newTx.credit}, Balance=${newTx.balance}`);
+          // Also append text in other columns to their respective locations in the parent transaction
+          rowCells.forEach((cell, idx) => {
+            if (idx !== descIdx && cell) {
+              lastTx[`col${idx}`] = (lastTx[`col${idx}`] || "") + " " + cell;
             }
-          } else if (rawDesc && transactions.length > 0) {
-            // Continuation of description
-            const lastTx = transactions[transactions.length - 1];
-            lastTx.description += " " + rawDesc;
-            if (activeMapping.descriptionIndex !== -1) {
-              lastTx[`col${activeMapping.descriptionIndex}`] = (lastTx[`col${activeMapping.descriptionIndex}`] || "") + " " + rawDesc;
-            }
-            console.log(`[Page ${pageNum + 1}] Description continuation: Appended "${rawDesc}" to tx ID ${lastTx.id}`);
-          }
+          });
+          console.log(`--- PARSER: Appended description continuation to transaction ID ${lastTx.id}`);
+        } else {
+          // Create a new transaction row
+          const newTx: Transaction = {
+            id: String(txId++),
+            date: hasDate ? cellDate : "-",
+            description: descIdx !== -1 && rowCells[descIdx] ? rowCells[descIdx] : `Row ${txId - 1}`,
+            chqRefNo: "-",
+            debit: "",
+            credit: "",
+            balance: "",
+          };
+          
+          rowCells.forEach((cell, idx) => {
+            newTx[`col${idx}`] = cell;
+          });
+          
+          transactions.push(newTx);
+          console.log(`--- PARSER: Added row: ${rowCells.join(" | ")}`);
         }
       }
     }
     
-    console.log("--- PARSER: Finished processing. Total raw transactions parsed:", transactions.length);
-
-    // Fallback: If no transactions were extracted via table tools, run a layout-preserved text extraction fallback
+    // If no transactions could be parsed, run layout text fallback
     if (transactions.length === 0) {
       console.warn("--- PARSER WARNING: Extracted 0 transactions via table tools. Attempting text fallback... ---");
-      
       let allText = "";
-      let t1Accum = "";
-      let t2Accum = "";
-      let t3Accum = "";
-      
       for (const page of pdf.pages) {
-        console.log(`[Fallback] Running extraction tests on Page ${page.pageNumber + 1}:`);
-        const t1 = await page.extractText();
-        const t2 = await page.extractTextWithLayout();
         const t3 = await page.extractTextRaw();
-        
-        console.log(`  - extractText length: ${t1?.length || 0}`);
-        console.log(`  - extractTextWithLayout length: ${t2?.length || 0}`);
-        console.log(`  - extractTextRaw length: ${t3?.length || 0}`);
-        
-        t1Accum += (t1 || "") + "\n--- PAGE BREAK ---\n";
-        t2Accum += (t2 || "") + "\n--- PAGE BREAK ---\n";
-        t3Accum += (t3 || "") + "\n--- PAGE BREAK ---\n";
-        
-        // Fallback hierarchy: prefer layout, then standard, then raw stream order
-        const pageText = t2 || t1 || t3 || "";
-        allText += pageText + "\n";
-      }
-      
-      try {
-        fs.writeFileSync(path.join(process.cwd(), "fallback_t1.txt"), t1Accum, "utf-8");
-        fs.writeFileSync(path.join(process.cwd(), "fallback_t2.txt"), t2Accum, "utf-8");
-        fs.writeFileSync(path.join(process.cwd(), "fallback_t3.txt"), t3Accum, "utf-8");
-        console.log("--- FALLBACK DIAGNOSTICS: Wrote fallback_t1.txt, fallback_t2.txt, fallback_t3.txt ---");
-      } catch (e) {
-        console.error("--- FALLBACK DIAGNOSTICS ERROR: Failed to write files:", e);
+        const t1 = await page.extractText();
+        allText += (t3 || t1 || "") + "\n";
       }
       
       await pdf.close();
-      
-      let result = parseTextFallback(t3Accum, bank, pageCount);
-      if (!result.success || result.transactions.length === 0) {
-        console.log("--- PARSER: Falling back to standard text extraction (t1) ---");
-        result = parseTextFallback(t1Accum, bank, pageCount);
-      }
-      if (!result.success || result.transactions.length === 0) {
-        console.log("--- PARSER: Falling back to layout text extraction (t2) ---");
-        result = parseTextFallback(t2Accum, bank, pageCount);
-      }
+      const result = parseTextFallback(allText, bank, pageCount);
       return result;
     }
 
-    // Clean up headers labels for returning to UI
-    let finalHeaders: string[] = ["Date", "Description", "Chq/Ref. No.", "Withdrawal (Dr.)", "Deposit (Cr.)", "Balance"];
-    if (mapping && mapping.headerLabels && mapping.headerLabels.length >= 3) {
-      finalHeaders = mapping.headerLabels;
+    if (finalHeaders.length === 0) {
+      finalHeaders = ["Column 1", "Column 2", "Column 3", "Column 4", "Column 5", "Column 6"];
     }
+
     console.log("--- PARSER SUCCESS: Sending response with headers:", finalHeaders);
     await pdf.close();
 
@@ -859,7 +912,6 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
       pages: pageCount,
       headers: finalHeaders
     };
-
   } catch (err) {
     console.error("--- PARSER ERROR: Unexpected error during parsing:", err);
     return {

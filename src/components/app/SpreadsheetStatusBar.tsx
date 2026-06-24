@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils";
 interface SpreadsheetStatusBarProps {
   totalRows: number;
   selectedCount: number;
-  selectedDebitSum: number;
-  selectedCreditSum: number;
+  selectedSum: number | null;
   isEdited: boolean;
   isGhostMode: boolean;
 }
@@ -15,8 +14,7 @@ interface SpreadsheetStatusBarProps {
 export default function SpreadsheetStatusBar({
   totalRows,
   selectedCount,
-  selectedDebitSum,
-  selectedCreditSum,
+  selectedSum,
   isEdited,
   isGhostMode,
 }: SpreadsheetStatusBarProps) {
@@ -49,23 +47,13 @@ export default function SpreadsheetStatusBar({
               </span>
             )}
 
-            {selectedDebitSum > 0 && (
+            {selectedSum !== null && (
               <span>
-                Debit Sum:{" "}
-                <span className="text-error-600 font-mono font-medium">
-                  {selectedDebitSum.toLocaleString("en-IN", {
+                Sum:{" "}
+                <span className="text-primary-800 font-mono font-medium bg-slate-100 px-1.5 py-0.5 rounded">
+                  {selectedSum.toLocaleString("en-IN", {
                     minimumFractionDigits: 2,
-                  })}
-                </span>
-              </span>
-            )}
-
-            {selectedCreditSum > 0 && (
-              <span>
-                Credit Sum:{" "}
-                <span className="text-success-600 font-mono font-medium">
-                  {selectedCreditSum.toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </span>
               </span>

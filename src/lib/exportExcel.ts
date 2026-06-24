@@ -14,14 +14,7 @@ export function exportToExcel(transactions: Transaction[], headers?: string[]): 
         "#": i + 1,
       };
       headers.forEach((h, idx) => {
-        const val = t[`col${idx}`] !== undefined ? t[`col${idx}`] : "";
-        // If it looks like a number, parse it
-        const cleaned = val.replace(/,/g, "").trim();
-        if (cleaned && !isNaN(Number(cleaned)) && /^-?\d+(\.\d+)?$/.test(cleaned)) {
-          row[h] = parseFloat(cleaned);
-        } else {
-          row[h] = val;
-        }
+        row[h] = t[`col${idx}`] !== undefined ? t[`col${idx}`] : "";
       });
       return row;
     });

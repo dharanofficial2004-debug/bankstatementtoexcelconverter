@@ -113,33 +113,31 @@ export default function Spreadsheet({
     return rowCount * colCount;
   }, [rangeStart, rangeEnd, selectedCell]);
 
-  // Calculate selected debit/credit sums
-  const { selectedDebitSum, selectedCreditSum } = useMemo(() => {
-    let debitSum = 0;
-    let creditSum = 0;
-    
-    const debitCol = columns.find(c => c.label.toLowerCase().includes("withdrawal") || c.label.toLowerCase().includes("debit") || c.label.toLowerCase().includes("(dr)"));
-    const creditCol = columns.find(c => c.label.toLowerCase().includes("deposit") || c.label.toLowerCase().includes("credit") || c.label.toLowerCase().includes("(cr)"));
-    
+  // Calculate selected cells numeric sum
+  const selectedSum = useMemo(() => {
+    let sum = 0;
+    let hasNumbers = false;
     if (rangeStart && rangeEnd) {
       const minRow = Math.min(rangeStart.row, rangeEnd.row);
       const maxRow = Math.max(rangeStart.row, rangeEnd.row);
+      const minCol = Math.min(rangeStart.col, rangeEnd.col);
+      const maxCol = Math.max(rangeStart.col, rangeEnd.col);
+      
       for (let r = minRow; r <= maxRow; r++) {
-        const row = filteredData[r];
-        if (row) {
-          if (debitCol) {
-            const d = parseFloat((row[debitCol.key] || "").replace(/,/g, ""));
-            if (!isNaN(d)) debitSum += d;
-          }
-          if (creditCol) {
-            const c = parseFloat((row[creditCol.key] || "").replace(/,/g, ""));
-            if (!isNaN(c)) creditSum += c;
+        for (let c = minCol; c <= maxCol; c++) {
+          if (c === 0) continue; // Skip row number column
+          const val = getCellValue(r, c);
+          const cleaned = val.replace(/,/g, "").trim();
+          const num = parseFloat(cleaned);
+          if (cleaned && !isNaN(num)) {
+            sum += num;
+            hasNumbers = true;
           }
         }
       }
     }
-    return { selectedDebitSum: debitSum, selectedCreditSum: creditSum };
-  }, [rangeStart, rangeEnd, filteredData, columns]);
+    return hasNumbers ? sum : null;
+  }, [rangeStart, rangeEnd, getCellValue]);
 
   // Cell selection
   const handleSelect = useCallback((row: number, col: number) => {
@@ -549,8 +547,8 @@ export default function Spreadsheet({
                       isSelected={isSelected}
                       isEditing={isEditingThis}
                       isInRange={isInRange(rowIndex, actualColIndex)}
-                      isDebit={(col.key === "debit" || col.label.toLowerCase().includes("withdrawal") || col.label.toLowerCase().includes("debit") || col.label.toLowerCase().includes("(dr)")) && !!value && value !== "0"}
-                      isCredit={(col.key === "credit" || col.label.toLowerCase().includes("deposit") || col.label.toLowerCase().includes("credit") || col.label.toLowerCase().includes("(cr)")) && !!value && value !== "0"}
+                      isDebit={false}
+                      isCredit={false}
                       isGhost={isGhostMode}
                       onSelect={handleSelect}
                       onDoubleClick={handleDoubleClick}
@@ -572,8 +570,7 @@ export default function Spreadsheet({
       <SpreadsheetStatusBar
         totalRows={filteredData.length}
         selectedCount={selectedCount}
-        selectedDebitSum={selectedDebitSum}
-        selectedCreditSum={selectedCreditSum}
+        selectedSum={selectedSum}
         isEdited={isEdited}
         isGhostMode={isGhostMode}
       />
