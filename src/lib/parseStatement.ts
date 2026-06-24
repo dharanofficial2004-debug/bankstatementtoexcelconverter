@@ -1,3 +1,4 @@
+import "./polyfill";
 import { Transaction } from "./types";
 import { PDFExcavator } from "pdfexcavator";
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
