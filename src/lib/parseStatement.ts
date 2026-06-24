@@ -1,5 +1,5 @@
 import { Transaction } from "./types";
-import { PDFExcavator, detectBorderlessTables, extractTablesEnhanced } from "pdfexcavator";
+import { PDFExcavator } from "pdfexcavator";
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { pathToFileURL } from 'url';
 import path from 'path';
@@ -26,16 +26,6 @@ interface ParseResult {
   error?: string;
 }
 
-interface ColumnMapping {
-  dateIndex: number;
-  descriptionIndex: number;
-  refIndex: number;
-  debitIndex: number;
-  creditIndex: number;
-  balanceIndex: number;
-  headerRowIndex: number;
-  headerLabels: string[];
-}
 
 // Bank detection patterns
 const BANK_PATTERNS: Record<string, RegExp[]> = {
@@ -158,91 +148,7 @@ function isSkipRow(row: (string | null)[]): boolean {
   );
 }
 
-/**
- * Searches the first few rows of a table to identify the header row and map the column indexes.
- */
-function findHeaderRow(rows: (string | null)[][]): ColumnMapping | null {
-  for (let r = 0; r < Math.min(rows.length, 10); r++) {
-    const row = rows[r].map(cell => (cell || "").toLowerCase().trim());
-    
-    let dateIdx = -1;
-    let descIdx = -1;
-    let refIdx = -1;
-    let debitIdx = -1;
-    let creditIdx = -1;
-    let balanceIdx = -1;
-    let amountIdx = -1;
-    let typeIdx = -1;
-    
-    for (let c = 0; c < row.length; c++) {
-      const val = row[c];
-      if (!val) continue;
-      
-      // Match Date
-      if (["date", "txn date", "value date", "tran date", "post date", "booking date", "txndate"].some(k => val.includes(k))) {
-        if (dateIdx === -1) dateIdx = c;
-      }
-      // Match Description
-      else if (["description", "particulars", "narration", "remarks", "details", "transaction details", "transaction remarks"].some(k => val.includes(k))) {
-        if (descIdx === -1) descIdx = c;
-      }
-      // Match Ref
-      else if (["chq", "ref", "instrument", "chq/ref", "ref. no", "reference", "cheque", "chq. no", "doc no", "chq/ref no"].some(k => val.includes(k))) {
-        if (refIdx === -1) refIdx = c;
-      }
-      // Match Debit / Withdrawal
-      else if (["withdrawal", "debit", "dr", "withdraw", "payment", "amount (dr)", "money out", "paid out", "charges"].some(k => val.includes(k))) {
-        if (debitIdx === -1) debitIdx = c;
-      }
-      // Match Credit / Deposit
-      else if (["deposit", "credit", "cr", "dep", "receipt", "amount (cr)", "money in", "paid in", "deposit (cr)"].some(k => val.includes(k))) {
-        if (creditIdx === -1) creditIdx = c;
-      }
-      // Match Balance
-      else if (["balance", "bal", "running balance", "closing balance", "runningbal"].some(k => val.includes(k))) {
-        if (balanceIdx === -1) balanceIdx = c;
-      }
-      // Match Amount (Single column)
-      else if (["amount", "txn amount", "value", "sum"].some(k => val.includes(k))) {
-        if (amountIdx === -1) amountIdx = c;
-      }
-      // Match Type
-      else if (["type", "dr/cr", "d/c", "sign"].some(k => val.includes(k))) {
-        if (typeIdx === -1) typeIdx = c;
-      }
-    }
-    
-    // A valid header row should have at least Date and Description, plus Balance or Debit/Credit/Amount
-    const score = (dateIdx !== -1 ? 1 : 0) + (descIdx !== -1 ? 1 : 0) + (balanceIdx !== -1 ? 1 : 0) + 
-                  (debitIdx !== -1 || creditIdx !== -1 || amountIdx !== -1 ? 1 : 0);
-                  
-    if (score >= 3) {
-      const mapping = {
-        dateIndex: dateIdx,
-        descriptionIndex: descIdx,
-        refIndex: refIdx,
-        debitIndex: debitIdx !== -1 ? debitIdx : (amountIdx !== -1 && typeIdx === -1 ? amountIdx : -1),
-        creditIndex: creditIdx !== -1 ? creditIdx : -1,
-        balanceIndex: balanceIdx,
-        headerRowIndex: r,
-        headerLabels: rows[r].map((h, idx) => {
-          const val = (h || "").trim();
-          if (val) return val;
-          if (idx === dateIdx) return "Date";
-          if (idx === descIdx) return "Description";
-          if (idx === refIdx) return "Chq/Ref. No.";
-          if (idx === debitIdx) return "Withdrawal (Dr.)";
-          if (idx === creditIdx) return "Deposit (Cr.)";
-          if (idx === balanceIdx) return "Balance";
-          return `Column ${idx + 1}`;
-        }),
-      };
-      console.log("--- PARSER: Found table header mapping:", mapping);
-      return mapping;
-    }
-  }
-  return null;
-}
+// Removed unused findHeaderRow function
 
 function isNumericAmount(token: string): boolean {
   if (!token) return false;
@@ -308,7 +214,7 @@ function detectHeaderLabels(lines: string[]): string[] {
     if (matches >= 3) {
       console.log("--- FALLBACK PARSER: Found header row line:", line);
       
-      let candidateLines: string[] = [];
+      const candidateLines: string[] = [];
       if (i > 1) candidateLines.push(lines[i - 2]);
       if (i > 0) candidateLines.push(lines[i - 1]);
       candidateLines.push(line);
@@ -487,8 +393,8 @@ function parseTextFallback(rawText: string, bank: string, pageCount: number): Pa
     const tokens = lastLine.split(/\s+/).filter(Boolean);
     
     // Scan right-to-left for numeric amounts
-    let foundAmounts: string[] = [];
-    let remainingTokensOnLastLine: string[] = [];
+    const foundAmounts: string[] = [];
+    const remainingTokensOnLastLine: string[] = [];
     
     for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i];
@@ -649,8 +555,8 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
       
       // 1. Group items by y-coordinate (tolerance of 8pt to group offset headers like Value Date)
       const rawRows: { y: number; items: { text: string; x: number; width: number; x1: number }[] }[] = [];
-      items.forEach((item: any) => {
-        if (item.str === undefined) return;
+      (items as { str?: string; transform?: number[]; width?: number }[]).forEach((item) => {
+        if (item.str === undefined || !item.transform || item.width === undefined) return;
         const x = item.transform[4];
         const y = item.transform[5];
         
@@ -675,8 +581,8 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
       rawRows.forEach(r => {
         r.items.sort((a, b) => a.x - b.x);
         
-        const mergedItems: any[] = [];
-        let currentItem: any = null;
+        const mergedItems: { text: string; x: number; width: number; x1: number }[] = [];
+        let currentItem: { text: string; x: number; width: number; x1: number } | null = null;
         
         r.items.forEach(item => {
           if (!currentItem) {
@@ -710,7 +616,7 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
       });
 
       // 3. Find/Select Header Row if not already determined
-      let headerRow: any = null;
+      let headerRow: typeof mergedRows[0] | null = null;
       let headerRowIdx = -1;
       
       if (finalHeaders.length === 0) {
@@ -748,8 +654,8 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
         }
         
         if (headerRow) {
-          finalHeaders = headerRow.items.map((item: any, idx: number) => item.text || `Column ${idx + 1}`);
-          colBoundaries = headerRow.items.map((item: any) => ({
+          finalHeaders = headerRow.items.map((item, idx: number) => item.text || `Column ${idx + 1}`);
+          colBoundaries = headerRow.items.map((item) => ({
             label: item.text,
             x: item.x,
             x1: item.x1

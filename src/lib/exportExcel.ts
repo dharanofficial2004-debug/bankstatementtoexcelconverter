@@ -4,13 +4,13 @@ import { Transaction } from "./types";
 export function exportToExcel(transactions: Transaction[], headers?: string[]): Buffer {
   const workbook = XLSX.utils.book_new();
   
-  let data: any[];
+  let data: Record<string, string | number>[];
   let colWidths: { wch: number }[] = [];
 
   if (headers && headers.length > 0) {
     // Dynamic headers mapping
     data = transactions.map((t, i) => {
-      const row: Record<string, any> = {
+      const row: Record<string, string | number> = {
         "#": i + 1,
       };
       headers.forEach((h, idx) => {

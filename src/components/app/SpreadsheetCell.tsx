@@ -42,7 +42,7 @@ const SpreadsheetCell = memo(function SpreadsheetCell({
 }: SpreadsheetCellProps) {
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const cellRef = useRef<HTMLDivElement>(null);
+  const cellRef = useRef<HTMLTableCellElement>(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -116,7 +116,7 @@ const SpreadsheetCell = memo(function SpreadsheetCell({
 
   return (
     <td
-      ref={cellRef as any}
+      ref={cellRef}
       role="gridcell"
       tabIndex={isSelected ? 0 : -1}
       className={cn(

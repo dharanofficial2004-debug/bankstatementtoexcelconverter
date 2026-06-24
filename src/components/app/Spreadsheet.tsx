@@ -240,7 +240,7 @@ export default function Spreadsheet({
           break;
       }
     },
-    [filteredData.length, handleSelect, handleEdit, editingCell, isGhostMode]
+    [filteredData.length, columns.length, handleSelect, handleEdit, editingCell, isGhostMode]
   );
 
   // Drag selection
@@ -298,7 +298,7 @@ export default function Spreadsheet({
     onTransactionsChange(updated);
     setUndoStack((prev) => prev.slice(0, -1));
     setRedoStack((prev) => [...prev, action]);
-  }, [undoStack, transactions, onTransactionsChange]);
+  }, [undoStack, transactions, onTransactionsChange, COL_KEYS]);
 
   const handleRedo = useCallback(() => {
     if (redoStack.length === 0) return;
@@ -309,7 +309,7 @@ export default function Spreadsheet({
     onTransactionsChange(updated);
     setRedoStack((prev) => prev.slice(0, -1));
     setUndoStack((prev) => [...prev, action]);
-  }, [redoStack, transactions, onTransactionsChange]);
+  }, [redoStack, transactions, onTransactionsChange, COL_KEYS]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -424,7 +424,7 @@ export default function Spreadsheet({
       setRangeEnd({ row: rowIndex, col: columns.length - 1 });
       setSelectedCell({ row: rowIndex, col: 0 });
     },
-    []
+    [columns.length]
   );
 
   const currentCellRef = selectedCell
