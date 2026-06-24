@@ -1,0 +1,246 @@
+DDA 20190716 42710540422
+ACCOUNT                  STATEMENT
+BRANCH : Rajaji      Salai
+STATEMENT : 16       Jul       2019 DATE
+MR          SEENIVASAN
+CURRENCY : INR
+SA/11         ANNAMALAI         APARTMENTS
+RAJESHWARI VIRUGAMBAKKAMACCOUNT COLONY : SMART        TYPE BANKING          SAVINGS
+CHENNAI         600092ACCOUNT
+TAMIL         NADUACCOUNT : 42710540422 NO.
+INDIA                                                 NOMINEE          REGISTERED          :          No
+BRANCH          ADDRESS:
+19       Rajaji       Salai       Chennai       600001
+MICR:        600036005        ,        IFSC:        SCBL0036078        ,        PHONE        NO.:        25349005
+Value
+Date Description Cheque Deposit Withdrawal Balance
+Date
+16 16 Jun BALANCE Jun 19 19                            FORWARD 114,453.65
+17 16 Jun ATM Jun 19 WITHDRAWAL 19                                                       SELF-SWITCH1,500.00 112,953.65
+AT        NFS        04:54:54/916704002072
+00000000150000/INR
+4585460013957031/361818
+18 18 Jun ATM Jun 19 WITHDRAWAL 19                                                       SELF-SWITCH1,500.00 111,453.65
+AT        NFS        10:34:49/916910098754
+00000000150000/INR
+4585460013957031/090814
+PURCHASE          ANANDA HOTEL966.00 110,487.65 VILAS
+VIRUDHUNAGAR         IN         13:44:16/369548
+00000000096600/INR
+4585460013957031/916908040420
+CRADJ/UPI/AXB/916616736180/2019-06- 1,035.49 111,523.14
+19 19 Jun ATM Jun 19 WITHDRAWAL 19                                                       SELF-SWITCH2,000.00 109,523.14
+AT        NFS        12:10:47/917012098764
+00000000200000/INR
+4585460013957031/961248
+ATM          WITHDRAWAL SELF-SWITCH1,500.00 108,023.14
+AT        CASHNT        15:38:29/917010593592
+00000000150000/INR
+4585460013957031/192131
+21 21 Jun UPI/917209458811/10.17 Jun 19 19                                                                            108,012.97
+PAYTM/PAYTM@ICICI/ICIC0000555/
+0103SL00IPAY/OID20190621050469855386@ONE9
+7COMMUNIC
+917209458811/
+UPI/917221648564/1,235.49 106,777.48
+LE          TRAVENUES          TECHNOLOGY          PRIVATE
+LTD/IXIGO@AXISBANK
+1000129101465/LE         TRAVENUES         TECHNOLOGY
+PRIVATE        LIMI
+917221648564/
+24 22 Jun ATM Jun 19 WITHDRAWAL 19                                                       SELF-SWITCH1,000.00 105,777.48
+AT        NFS        22:31:27/917322019314
+00000000100000/INR
+4585460013957031/293386
+Bank       deposits       are       covered       under       the       insurance       scheme       offered       by       DICGC       upto       an       aggregate       value       of       Rs       1       lakh       per       depositor.
+Please       register       the       Nomination       details       for       your       Savings/Deposit       accounts       if       not       done,       by       contacting       our       branch.
+Report       irregularities       in       your       statement       within       30       days       from       statement       date       or       21       days       from       date       of       transaction       for       domestic       debit       card       transactions
+Page       1       of       4                                                                       MR          SEENIVASAN
+--- PAGE BREAK ---
+Value
+Date Description Cheque Deposit Withdrawal Balance
+Date
+24 22 Jun BALANCE Jun 19 19                            FORWARD 105,777.48
+24 23 Jun UPI/917412529088/330.00 Jun 19 19                                                                            106,107.48
+00000030214265860/CRRAJAGURU@OKSBI/
+RAJAGURU         R/SBIN0000859/SEASON         TICKET/
+917412529088/
+UPI/917437699869/300.00 105,807.48
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8569807937@ONE97COMMU
+NICATIONSLI
+917437699869/
+ATM          WITHDRAWAL SELF-SWITCH1,500.00 104,307.48
+AT        NFS        20:10:24/917420003617
+00000000150000/INR
+4585460013957031/288640
+25 25 Jun UPI/917615458104/449.00 Jun 19 19                                                                            103,858.48
+AMAZONPAY/AMAZONPAY@APL/UTIB0000000/
+1000129101465/AMAZONPAY         PURCHASE/
+917615458104/
+UPI/917615251879/500.00 103,358.48
+BILLDESKTEZ/BILLDESK.TNEB@ICICI/ICIC000055
+5/
+0103SL00IPAY/UPI/
+917615251879/
+ATM          WITHDRAWAL SELF-SWITCH1,000.00 102,358.48
+AT        NFS        22:10:19/917622003978
+00000000100000/INR
+4585460013957031/362762
+27 27 Jun NON Jun 19 SCB 19                     ATM     120.00 USAGE 102,238.48 CHARGES          MAY          19
+CGST         @         9.00% 10.80 102,227.68
+SGST         @         9.00% 10.80 102,216.88
+28 28 Jun UPI/917913954049/399.00 Jun 19 19                                                                            101,817.88
+AIRTEL.IN/AIRTELIN@HDFCBANK/HDFC0000053/
+50200015779672/BHARTI        AIRTEL        LIMITED        TN
+PREPAID         15
+917913954049/
+ATM          WITHDRAWAL SELF-SWITCH1,800.00 100,017.88
+AT        CASHNT        20:50:44/9944
+00000000180000/INR
+4585460013957031/019212
+29 29 Jun PURCHASE Jun 19 19                               G          R THANGAMALIGAI14,000.00 86,017.88
+CHENNAI IN       10:13:08/726630
+00000001400000/INR
+4585460013957031/918004983079
+CREDIT         OF      797.00 INTEREST 86,814.88
+01 30 Jul UPI/918145237764/100.00 Jun 19 19                                                                             86,714.88
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8628127265@ONE97COMMU
+NICATIONSLI
+918145237764/
+01 01 Jul UPI/918213744268/700.00 Jul 19 19                                                                                  86,014.88
+AMAZON/AMAZON@APL/UTIB0000001/
+1000129101465/REQUEST         FROM         AMAZON         PAY/
+918213744268/
+UPI/918213551289/14.00 86,028.88
+917020028084740/GOOG-PAYMENT@OKAXIS/
+GOOGLEPAY/UTIB0000553/UPI/
+918213551289/
+PURCHASE          LAKSHMI SERVIC303.86 85,725.02 KANTHAM
+E        IN SCHENNAI 20:13:33/408459
+00000000030386/INR
+4585460013957031/918214172540
+02 02 Jul ATM Jul 19 19 WITHDRAWAL SELF-SWITCH1,000.00 84,725.02
+AT        NFS        21:12:31/918321005879
+00000000100000/INR
+4585460013957031/935678
+04 04 Jul UPI/918545031818/50.00 Jul 19 19                                                                                  84,675.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8662436149@ONE97COMMU
+NICATIONSLI
+918545031818/
+Page       2       of       4                                                                       MR          SEENIVASAN
+--- PAGE BREAK ---
+Value
+Date Description Cheque Deposit Withdrawal Balance
+Date
+04 04 Jul BALANCE Jul 19 19                                 FORWARD 84,675.02
+05 05 Jul UPI/918610830948/7,800.00 Jul 19 19                                                                                  76,875.02
+DUMMY         NAME/VIJB0003102/
+310201011001460/UPI/
+918610830948/
+UPI/918636836527/200.00 76,675.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8666207120@ONE97COMMU
+NICATIONSLI
+918636836527/
+UPI/918638839616/30.00 76,645.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8667360758@ONE97COMMU
+NICATIONSLI
+918638839616/
+UPI/918643867093/180.00 76,465.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8669707673@ONE97COMMU
+NICATIONSLI
+918643867093/
+06 06 Jul UPI/918744254463/100.00 Jul 19 19                                                                                  76,365.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8678907265@ONE97COMMU
+NICATIONSLI
+918744254463/
+08 07 Jul ATM Jul 19 19 WITHDRAWAL SELF-SWITCH1,500.00 74,865.02
+AT        NFS        10:24:13/918810007071
+00000000150000/INR
+4585460013957031/968641
+UPI/918844268876/50.00 74,815.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8686363667@ONE97COMMU
+NICATIONSLI
+918844268876/
+08 08 Jul UPI/918937501972/50.00 Jul 19 19                                                                                  74,765.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8690806707@ONE97COMMU
+NICATIONSLI
+918937501972/
+UPI/918944631361/50.00 74,715.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8694279146@ONE97COMMU
+NICATIONSLI
+918944631361/
+09 09 Jul UPI/919036751424/500.00 Jul 19 19                                                                                  74,215.02
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8698506403@ONE97COMMU
+NICATIONSLI
+919036751424/
+DISCOUNT         ON 2.34 FUEL 74,217.36 PU         VISA         POS         ON         140
+10 10 Jul IN3670190710M982 Jul 19 19                                   SBIN31919113757567,148.00 141,365.36
+OASYS
+NEFT         STATE         BANK         OF         INDIA
+11 11 Jul ATM Jul 19 19 WITHDRAWAL SELF-SWITCH1,500.00 139,865.36
+AT        NFS        11:57:02/919211004969
+00000000150000/INR
+4585460013957031/629859
+15 13 Jul PURCHASE Jul 19 19                                 LIFE STYLE3,599.00 136,266.36
+CHENNAI IN       20:56:43/040950
+00000000359900/INR
+4585460013957031/919415087373
+15 14 Jul UPI/919538067344/100.00 Jul 19 19                                                                                 136,166.36
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8743469606@ONE97COMMU
+NICATIONSLI
+919538067344/
+UPI/919519622732/21.00 136,145.36
+INDIAIDEAS/INDIAIDEAS@ICICI/ICIC0000103/
+0103SL00IPAY/COLLECT-PAY-REQUEST/
+919519622732/
+15 15 Jul IMPS/P2A/919619390885/03500152707420,000.00 Jul 19 19                                                                                 116,145.36
+ICIC0000350
+MANIKANDAN          R
+MANI          ANNA
+Page       3       of       4                                                                       MR          SEENIVASAN
+--- PAGE BREAK ---
+Value
+Date Description Cheque Deposit Withdrawal Balance
+Date
+15 15 Jul BALANCE Jul 19 19                                 FORWARD 116,145.36
+UPI/919619240436/1,660.00 117,805.36
+600036138/SCBL0036078/
+MR          H          MOHAMMED          HAKKEEM/LIC          PREMIUM/
+919619240436/
+ATM          WITHDRAWAL SELF-SWITCH1,500.00 116,305.36
+AT        NFS        22:21:45/919622009091
+00000000150000/INR
+4585460013957031/246263
+16 16 Jul UPI/919724531874/150.00 Jul 19 19                                                                                 116,155.36
+PAYTM/ADD-MONEY@PAYTM/PYTM0123456/
+19744201000007/OID8756371358@ONE97COMMU
+NICATIONSLI
+919724531874/
+IMPS         P2A         CHARGES 5.00 116,150.36 150719
+CGST         @         9.00%  0.45 116,149.91
+SGST         @         9.00%  0.45 116,149.46
+TOTAL 70,986.83 69,291.02 116,149.46
+REWARD    FOR42710540422 POINTS          STATEMENT
+(Till       2019-07-16)
+Scheme OpeningPointsPointsAdjustmentClosing Balance
+BalanceAccruedRedeemedBonus
+Reward        Plus 1,456 0    2018 0          -1,456 0
+REWARD    FOR42710540422 POINTS          STATEMENT
+(Till       2019-07-16)
+Scheme OpeningPointsPointsAdjustmentClosing Balance
+BalanceAccruedRedeemedBonus
+Reward        Plus 525 163 2019 0          0           688
+Page       4       of       4                                                                       MR          SEENIVASAN
+--- PAGE BREAK ---
