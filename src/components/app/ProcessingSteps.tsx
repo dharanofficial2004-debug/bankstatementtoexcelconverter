@@ -6,55 +6,39 @@ import { FileText, Check, Loader2 } from "lucide-react";
 
 interface ProcessingStepsProps {
   fileName: string;
-  onComplete: () => void;
+  currentStep: number; // 0: Uploading PDF, 1: Extracting text, 2: Analyzing with AI, 3: Preparing spreadsheet
 }
 
 const STEPS = [
-  { label: "Reading PDF...", duration: 800 },
-  { label: "Detecting bank format...", duration: 600 },
-  { label: "Extracting transactions...", duration: 1200 },
-  { label: "Building spreadsheet...", duration: 600 },
+  { label: "Uploading PDF..." },
+  { label: "Extracting text..." },
+  { label: "Analyzing with AI..." },
+  { label: "Preparing spreadsheet..." },
 ];
 
-export default function ProcessingSteps({ fileName, onComplete }: ProcessingStepsProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [progress, setProgress] = useState(0);
+export default function ProcessingSteps({ fileName, currentStep }: ProcessingStepsProps) {
+  const [progress, setProgress] = useState(10);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    // Map currentStep to target progress value
+    const targetProgress = [15, 45, 75, 95][currentStep] || 10;
+    
+    // Smoothly animate progress transition using functional state updater
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < targetProgress) {
+          return Math.min(prev + 1.5, targetProgress);
+        } else if (prev > targetProgress) {
+          return Math.max(prev - 1.5, targetProgress);
+        } else {
+          clearInterval(interval);
+          return prev;
+        }
+      });
+    }, 15);
 
-    const totalDuration = STEPS.reduce((sum, s) => sum + s.duration, 0);
-    let elapsed = 0;
-
-    const progressInterval = setInterval(() => {
-      elapsed += 50;
-      setProgress(Math.min((elapsed / totalDuration) * 100, 100));
-    }, 50);
-
-    const runSteps = (stepIndex: number) => {
-      if (stepIndex >= STEPS.length) {
-        clearInterval(progressInterval);
-        setProgress(100);
-        setTimeout(onComplete, 300);
-        return;
-      }
-
-      setCurrentStep(stepIndex);
-
-      timeout = setTimeout(() => {
-        setCompletedSteps((prev) => [...prev, stepIndex]);
-        runSteps(stepIndex + 1);
-      }, STEPS[stepIndex].duration);
-    };
-
-    runSteps(0);
-
-    return () => {
-      clearTimeout(timeout);
-      clearInterval(progressInterval);
-    };
-  }, [onComplete]);
+    return () => clearInterval(interval);
+  }, [currentStep]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
@@ -68,14 +52,14 @@ export default function ProcessingSteps({ fileName, onComplete }: ProcessingStep
             <p className="text-sm font-medium text-slate-800 truncate max-w-[300px]">
               {fileName}
             </p>
-            <p className="text-xs text-slate-500">Processing...</p>
+            <p className="text-xs text-slate-500">Processing bank statement...</p>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="w-full h-1.5 bg-slate-100 rounded-full mb-8 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-200 ease-out"
+            className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -83,8 +67,8 @@ export default function ProcessingSteps({ fileName, onComplete }: ProcessingStep
         {/* Steps */}
         <div className="space-y-3">
           {STEPS.map((step, i) => {
-            const isCompleted = completedSteps.includes(i);
-            const isActive = currentStep === i && !isCompleted;
+            const isCompleted = currentStep > i;
+            const isActive = currentStep === i;
 
             return (
               <div

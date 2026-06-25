@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import UploadZone from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
@@ -19,17 +19,46 @@ import {
 
 type AppState = "upload" | "processing" | "spreadsheet";
 
+interface Sheet {
+  id: string;
+  name: string;
+  transactions: Transaction[];
+  bankDetected: string | null;
+  headers: string[];
+}
+
 export default function AppPage() {
   const [appState, setAppState] = useState<AppState>("upload");
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [bankDetected, setBankDetected] = useState<string | null>(null);
-  const [headers, setHeaders] = useState<string[]>([]);
+  const [sheets, setSheets] = useState<Sheet[]>([]);
+  const [activeSheetId, setActiveSheetId] = useState<string>("");
+  const [pendingUploadData, setPendingUploadData] = useState<{
+    transactions: Transaction[];
+    bankDetected: string | null;
+    headers: string[];
+    fileName: string;
+  } | null>(null);
+
   const [fileName, setFileName] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"csv" | "xlsx">("csv");
+  const [exportFormat, setExportFormat] = useState<"csv" | "xlsx" | "json">("csv");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [processingStep, setProcessingStep] = useState<number>(0);
   const { showToast } = useToast();
+
+  const activeSheet = useMemo(() => {
+    return sheets.find((s) => s.id === activeSheetId) || null;
+  }, [sheets, activeSheetId]);
+
+  const transactions = useMemo(() => activeSheet ? activeSheet.transactions : [], [activeSheet]);
+  const bankDetected = activeSheet ? activeSheet.bankDetected : null;
+  const headers = activeSheet ? activeSheet.headers : [];
+
+  const handleTransactionsChange = useCallback((updated: Transaction[]) => {
+    setSheets((prev) =>
+      prev.map((s) => (s.id === activeSheetId ? { ...s, transactions: updated } : s))
+    );
+  }, [activeSheetId]);
 
   // Check auth state
   React.useEffect(() => {
@@ -52,45 +81,107 @@ export default function AppPage() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
+    // Dynamically import PDF.js as an ES module natively in the browser, bypassing Webpack parsing.
+    // @ts-expect-error: unpkg CDN ESM dynamic import is not resolvable at build time
+    const pdfjs = (await import(/* webpackIgnore: true */ "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs")) as {
+      GlobalWorkerOptions: { workerSrc: string };
+      getDocument: (args: { data: ArrayBuffer }) => {
+        promise: Promise<{
+          numPages: number;
+          getPage: (index: number) => Promise<{
+            getTextContent: () => Promise<{
+              items: Array<{ str: string }>;
+            }>;
+          }>;
+        }>;
+      };
+    };
+
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs";
+
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+
+    if (pdf.numPages > 100) {
+      throw new Error("File has too many pages. Maximum page limit is 100.");
+    }
+
+    let fullText = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map((item) => (item as { str: string }).str);
+      fullText += strings.join(" ") + "\n";
+    }
+
+    return { text: fullText, pages: pdf.numPages };
+  }, []);
+
   const handleFileSelect = useCallback(
     async (file: File) => {
       setFileName(file.name);
       setAppState("processing");
+      setProcessingStep(0); // Uploading PDF...
 
       try {
-        const formData = new FormData();
-        formData.append("file", file);
+        // Step 1: Extract PDF text locally
+        setProcessingStep(1); // Extracting text...
+        const { text } = await extractPdfText(file);
 
-        const response = await fetch("/api/convert", {
+        // Step 2: Send extracted text to route
+        setProcessingStep(2); // Analyzing with AI...
+        const response = await fetch("/api/parse-bank-statement", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
         });
 
         const data: ConvertResponse = await response.json();
 
         if (data.success && data.transactions.length > 0) {
-          setTransactions(data.transactions);
-          setBankDetected(data.bank_detected);
-          setHeaders(data.headers || []);
+          // Step 3: Preparing spreadsheet...
+          setProcessingStep(3);
+          await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
+          
+          const cleanName = file.name.replace(/\.pdf$/i, "");
+          
+          if (sheets.length > 0) {
+            setPendingUploadData({
+              transactions: data.transactions,
+              bankDetected: data.bank_detected,
+              headers: data.headers || [],
+              fileName: cleanName,
+            });
+            setAppState("spreadsheet");
+          } else {
+            const newSheet = {
+              id: crypto.randomUUID(),
+              name: cleanName,
+              transactions: data.transactions,
+              bankDetected: data.bank_detected,
+              headers: data.headers || [],
+            };
+            setSheets([newSheet]);
+            setActiveSheetId(newSheet.id);
+            setAppState("spreadsheet");
+          }
         } else {
-          showToast(data.error || "No transactions found in this PDF.", "error");
+          showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
           setAppState("upload");
         }
-      } catch {
-        showToast("Failed to process PDF. Please try again.", "error");
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "We could not fully parse this statement. Please upload another file.";
+        showToast(errorMsg, "error");
         setAppState("upload");
       }
     },
-    [showToast]
+    [showToast, extractPdfText, sheets]
   );
 
-  const handleProcessingComplete = useCallback(() => {
-    setAppState("spreadsheet");
-  }, []);
-
   const handleExport = useCallback(
-    async (format: "csv" | "xlsx") => {
-      // Check if authenticated (or if Supabase not configured, allow export)
+    async (format: "csv" | "xlsx" | "json") => {
       if (!isAuthenticated && isSupabaseConfigured()) {
         setExportFormat(format);
         setExportModalOpen(true);
@@ -99,15 +190,19 @@ export default function AppPage() {
 
       await performExport(format);
     },
-    [isAuthenticated, transactions] // eslint-disable-line react-hooks/exhaustive-deps
+    [isAuthenticated, transactions, sheets]
   );
 
-  const performExport = async (format: "csv" | "xlsx") => {
+  const performExport = async (format: "csv" | "xlsx" | "json") => {
     try {
+      const bodyPayload = format === "xlsx" 
+        ? { sheets: sheets.map(s => ({ name: s.name, transactions: s.transactions })), format }
+        : { transactions, format, headers };
+
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactions, format, headers }),
+        body: JSON.stringify(bodyPayload),
       });
 
       if (!response.ok) {
@@ -142,6 +237,58 @@ export default function AppPage() {
     }
   };
 
+  // Calculate dynamic stats
+  const summary = useMemo(() => {
+    const totalTransactions = transactions.length;
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let openingBalance = 0;
+    let closingBalance = 0;
+
+    transactions.forEach((tx) => {
+      const debitVal = parseFloat(String(tx.debit).replace(/,/g, "")) || 0;
+      const creditVal = parseFloat(String(tx.credit).replace(/,/g, "")) || 0;
+      totalDebit += debitVal;
+      totalCredit += creditVal;
+    });
+
+    if (transactions.length > 0) {
+      const opRow = transactions.find((tx) =>
+        tx.description.toLowerCase().includes("opening balance")
+      );
+      if (opRow) {
+        openingBalance = parseFloat(String(opRow.balance).replace(/,/g, "")) || 0;
+      } else {
+        const firstWithBal = transactions.find(
+          (tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, "")))
+        );
+        if (firstWithBal) {
+          const bal = parseFloat(String(firstWithBal.balance).replace(/,/g, "")) || 0;
+          const cr = parseFloat(String(firstWithBal.credit).replace(/,/g, "")) || 0;
+          const dr = parseFloat(String(firstWithBal.debit).replace(/,/g, "")) || 0;
+          openingBalance = bal - cr + dr;
+        }
+      }
+
+      const lastWithBal = [...transactions]
+        .reverse()
+        .find((tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, ""))));
+      if (lastWithBal) {
+        closingBalance = parseFloat(String(lastWithBal.balance).replace(/,/g, "")) || 0;
+      } else {
+        closingBalance = openingBalance + totalCredit - totalDebit;
+      }
+    }
+
+    return {
+      totalTransactions,
+      totalDebit,
+      totalCredit,
+      openingBalance,
+      closingBalance,
+    };
+  }, [transactions]);
+
   return (
     <div className="flex flex-col h-screen bg-slate-50">
       {/* Top Navbar */}
@@ -172,24 +319,33 @@ export default function AppPage() {
 
         {/* Export Buttons */}
         {appState === "spreadsheet" && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
-              onClick={() => handleExport("csv")}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+              onClick={() => handleExport("json")}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
                 text-slate-600 bg-white border border-slate-200 rounded-lg
                 hover:bg-slate-50 hover:border-slate-300 transition-all"
             >
-              <Download size={15} />
-              <span className="hidden sm:inline">Export CSV</span>
+              <Download size={13} />
+              <span>Export JSON</span>
+            </button>
+            <button
+              onClick={() => handleExport("csv")}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                text-slate-600 bg-white border border-slate-200 rounded-lg
+                hover:bg-slate-50 hover:border-slate-300 transition-all"
+            >
+              <Download size={13} />
+              <span>Export CSV</span>
             </button>
             <button
               onClick={() => handleExport("xlsx")}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
                 text-white bg-primary-600 rounded-lg
                 hover:bg-primary-700 transition-all shadow-sm"
             >
-              <FileDown size={15} />
-              <span className="hidden sm:inline">Export Excel</span>
+              <FileDown size={13} />
+              <span>Export Excel</span>
             </button>
           </div>
         )}
@@ -229,19 +385,55 @@ export default function AppPage() {
         {appState === "processing" && (
           <ProcessingSteps
             fileName={fileName}
-            onComplete={handleProcessingComplete}
+            currentStep={processingStep}
           />
-        )}
+        )}        {appState === "spreadsheet" && (
+          <div className="h-full p-4 flex flex-col overflow-hidden">
+            {/* Dynamic Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4 flex-shrink-0">
+              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-primary-200">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Transactions</p>
+                <h4 className="text-xl font-bold text-slate-800">{summary.totalTransactions}</h4>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-red-200">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Debit (Out)</p>
+                <h4 className="text-xl font-bold text-rose-600">
+                  {summary.totalDebit > 0 ? `₹${summary.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "₹0.00"}
+                </h4>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-emerald-200">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Credit (In)</p>
+                <h4 className="text-xl font-bold text-emerald-600">
+                  {summary.totalCredit > 0 ? `₹${summary.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "₹0.00"}
+                </h4>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-violet-200">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Opening Balance</p>
+                <h4 className="text-xl font-bold text-slate-700">
+                  ₹{summary.openingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h4>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-indigo-200">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Closing Balance</p>
+                <h4 className={`text-xl font-bold ${summary.closingBalance >= 0 ? "text-slate-800" : "text-red-700"}`}>
+                  ₹{summary.closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h4>
+              </div>
+            </div>
 
-        {appState === "spreadsheet" && (
-          <div className="h-full p-3">
-            <Spreadsheet
-              transactions={transactions}
-              bankDetected={bankDetected}
-              isGhostMode={false}
-              onTransactionsChange={setTransactions}
-              headers={headers}
-            />
+            {/* Grid */}
+            <div className="flex-1 min-h-0">
+              <Spreadsheet
+                transactions={transactions}
+                bankDetected={bankDetected}
+                isGhostMode={false}
+                onTransactionsChange={handleTransactionsChange}
+                sheets={sheets}
+                activeSheetId={activeSheetId}
+                onSheetsChange={setSheets}
+                onActiveSheetIdChange={setActiveSheetId}
+              />
+            </div>
           </div>
         )}
       </main>
@@ -253,6 +445,66 @@ export default function AppPage() {
         onExportDirect={() => performExport(exportFormat)}
         format={exportFormat}
       />
+
+      {/* Merge/New Sheet Prompt Modal */}
+      {pendingUploadData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 max-w-md w-full mx-4 animate-scale-in">
+            <h3 className="text-base font-semibold text-slate-800 mb-2">Import Statement</h3>
+            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+              We parsed <strong>{pendingUploadData.transactions.length}</strong> transactions from <strong>{pendingUploadData.fileName}</strong>. 
+              How would you like to add them to your workspace?
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  // Merge into active sheet
+                  setSheets(prev => prev.map(s => {
+                    if (s.id === activeSheetId) {
+                      const merged = [
+                        ...s.transactions,
+                        ...pendingUploadData.transactions.map(t => ({ ...t, id: crypto.randomUUID() }))
+                      ];
+                      return { ...s, transactions: merged };
+                    }
+                    return s;
+                  }));
+                  setPendingUploadData(null);
+                  showToast("Merged transactions successfully!", "success");
+                }}
+                className="w-full py-2 px-4 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors border border-primary-200"
+              >
+                Merge with Active Sheet ({sheets.find(s => s.id === activeSheetId)?.name})
+              </button>
+              <button
+                onClick={() => {
+                  // Create new sheet
+                  const newSheet = {
+                    id: crypto.randomUUID(),
+                    name: pendingUploadData.fileName,
+                    transactions: pendingUploadData.transactions,
+                    bankDetected: pendingUploadData.bankDetected,
+                    headers: pendingUploadData.headers
+                  };
+                  setSheets(prev => [...prev, newSheet]);
+                  setActiveSheetId(newSheet.id);
+                  setPendingUploadData(null);
+                  showToast("Created new sheet!", "success");
+                }}
+                className="w-full py-2 px-4 bg-primary-600 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                Create New Sheet
+              </button>
+              <button
+                onClick={() => setPendingUploadData(null)}
+                className="w-full py-2 px-4 bg-white text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-50 border border-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

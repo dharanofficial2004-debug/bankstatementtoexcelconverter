@@ -1,60 +1,35 @@
 import * as XLSX from "xlsx";
 import { Transaction } from "./types";
 
-export function exportToExcel(transactions: Transaction[], headers?: string[]): Buffer {
+export interface ExcelSheetInput {
+  name: string;
+  transactions: Transaction[];
+}
+
+export function exportToExcel(transactionsOrSheets: Transaction[] | ExcelSheetInput[]): Buffer {
   const workbook = XLSX.utils.book_new();
-  
-  let data: Record<string, string | number>[];
-  let colWidths: { wch: number }[] = [];
+  const usedNames = new Set<string>();
 
-  if (headers && headers.length > 0) {
-    // Dynamic headers mapping
-    data = transactions.map((t, i) => {
-      const row: Record<string, string | number> = {
-        "#": i + 1,
-      };
-      headers.forEach((h, idx) => {
-        row[h] = t[`col${idx}`] !== undefined ? t[`col${idx}`] : "";
-      });
-      return row;
-    });
+  const isMultiSheet = Array.isArray(transactionsOrSheets) && 
+                       transactionsOrSheets.length > 0 && 
+                       "transactions" in (transactionsOrSheets[0] as Record<string, unknown>);
 
-    // Set dynamic column widths
-    colWidths = [
-      { wch: 5 }, // #
-      ...headers.map(h => {
-        const lowerH = h.toLowerCase();
-        if (lowerH.includes("description") || lowerH.includes("particulars") || lowerH.includes("narrative")) {
-          return { wch: 45 };
-        }
-        if (lowerH.includes("date")) {
-          return { wch: 12 };
-        }
-        if (
-          lowerH.includes("amount") ||
-          lowerH.includes("debit") ||
-          lowerH.includes("credit") ||
-          lowerH.includes("balance") ||
-          lowerH.includes("withdrawal") ||
-          lowerH.includes("deposit")
-        ) {
-          return { wch: 15 };
-        }
-        return { wch: Math.max(12, h.length + 2) };
-      })
-    ];
-  } else {
-    // Default headers mapping
-    data = transactions.map((t, i) => ({
+  const sheetsData = isMultiSheet 
+    ? (transactionsOrSheets as ExcelSheetInput[]) 
+    : [{ name: "Bank Statement", transactions: transactionsOrSheets as Transaction[] }];
+
+  sheetsData.forEach((s) => {
+    // Standard headers mapping
+    const data = s.transactions.map((t, i) => ({
       "#": i + 1,
       "Date": t.date,
       "Description": t.description,
-      "Debit": t.debit ? parseFloat(t.debit.replace(/,/g, "")) : "",
-      "Credit": t.credit ? parseFloat(t.credit.replace(/,/g, "")) : "",
-      "Balance": t.balance ? parseFloat(t.balance.replace(/,/g, "")) : "",
+      "Debit": t.debit ? parseFloat(String(t.debit).replace(/,/g, "")) || t.debit : "",
+      "Credit": t.credit ? parseFloat(String(t.credit).replace(/,/g, "")) || t.credit : "",
+      "Balance": t.balance ? parseFloat(String(t.balance).replace(/,/g, "")) || t.balance : "",
     }));
 
-    colWidths = [
+    const colWidths = [
       { wch: 5 },   // #
       { wch: 12 },  // Date
       { wch: 45 },  // Description
@@ -62,12 +37,27 @@ export function exportToExcel(transactions: Transaction[], headers?: string[]): 
       { wch: 15 },  // Credit
       { wch: 15 },  // Balance
     ];
-  }
-  
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  worksheet["!cols"] = colWidths;
-  
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Bank Statement");
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    worksheet["!cols"] = colWidths;
+    
+    // Ensure sheet name is unique and valid (max 31 chars, no invalid chars like :, ?, *, /, \)
+    const baseName = s.name
+      .replace(/[:\?\*\/\\\[\]]/g, "")
+      .substring(0, 31) || "Sheet";
+    
+    let safeName = baseName;
+    let counter = 1;
+    while (usedNames.has(safeName.toLowerCase())) {
+      const suffix = `_${counter}`;
+      const maxBaseLen = 31 - suffix.length;
+      safeName = baseName.substring(0, maxBaseLen) + suffix;
+      counter++;
+    }
+    usedNames.add(safeName.toLowerCase());
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, safeName);
+  });
   
   const buffer = XLSX.write(workbook, {
     type: "buffer",

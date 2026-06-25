@@ -2,7 +2,6 @@ export interface Transaction {
   id: string;
   date: string;
   description: string;
-  chqRefNo: string;
   debit: string;
   credit: string;
   balance: string;
@@ -28,10 +27,16 @@ export interface SpreadsheetColumn {
 }
 
 export interface UndoAction {
-  row: number;
-  col: number;
-  oldValue: string;
-  newValue: string;
+  transactionId?: string;
+  colKey?: string;
+  oldValue?: string;
+  newValue?: string;
+  batch?: {
+    transactionId: string;
+    colKey: string;
+    oldValue: string;
+    newValue: string;
+  }[];
 }
 
 export interface ContextMenuState {
@@ -44,22 +49,21 @@ export interface ContextMenuState {
 
 export const COLUMNS: SpreadsheetColumn[] = [
   { key: "date", label: "Date", letter: "A", width: 120, type: "date" },
-  { key: "description", label: "Description", letter: "B", width: 280, type: "text" },
-  { key: "chqRefNo", label: "Chq/Ref. No.", letter: "C", width: 160, type: "text" },
-  { key: "debit", label: "Withdrawal (Dr.)", letter: "D", width: 140, type: "currency" },
-  { key: "credit", label: "Deposit (Cr.)", letter: "E", width: 140, type: "currency" },
-  { key: "balance", label: "Balance", letter: "F", width: 140, type: "currency" },
+  { key: "description", label: "Description", letter: "B", width: 350, type: "text" },
+  { key: "debit", label: "Debit", letter: "C", width: 140, type: "currency" },
+  { key: "credit", label: "Credit", letter: "D", width: 140, type: "currency" },
+  { key: "balance", label: "Balance", letter: "E", width: 140, type: "currency" },
 ];
 
 export const GHOST_DATA: Transaction[] = [
-  { id: "g1", date: "01/06/2026", description: "UPI-HDFC-John Doe", chqRefNo: "UPI-123456", debit: "2,500.00", credit: "", balance: "47,500.00" },
-  { id: "g2", date: "02/06/2026", description: "NEFT-SALARY-ACME", chqRefNo: "NEFT-98765", debit: "", credit: "65,000.00", balance: "1,12,500.00" },
-  { id: "g3", date: "03/06/2026", description: "ATM-CASH WITHDRAWAL", chqRefNo: "ATM-001", debit: "10,000.00", credit: "", balance: "1,02,500.00" },
-  { id: "g4", date: "05/06/2026", description: "POS-AMAZON-PURCHASE", chqRefNo: "POS-456", debit: "3,299.00", credit: "", balance: "99,201.00" },
-  { id: "g5", date: "07/06/2026", description: "UPI-SWIGGY", chqRefNo: "UPI-23456", debit: "450.00", credit: "", balance: "98,751.00" },
-  { id: "g6", date: "10/06/2026", description: "IMPS-RENT PAYMENT", chqRefNo: "IMPS-999", debit: "15,000.00", credit: "", balance: "83,751.00" },
-  { id: "g7", date: "12/06/2026", description: "NEFT-FREELANCE", chqRefNo: "NEFT-555", debit: "", credit: "25,000.00", balance: "1,08,751.00" },
-  { id: "g8", date: "15/06/2026", description: "ECS-ELECTRICITY", chqRefNo: "ECS-111", debit: "2,150.00", credit: "", balance: "1,06,601.00" },
+  { id: "g1", date: "2026-06-01", description: "UPI-HDFC-John Doe", debit: "2,500.00", credit: "", balance: "47,500.00" },
+  { id: "g2", date: "2026-06-02", description: "NEFT-SALARY-ACME", debit: "", credit: "65,000.00", balance: "1,12,500.00" },
+  { id: "g3", date: "2026-06-03", description: "ATM-CASH WITHDRAWAL", debit: "10,000.00", credit: "", balance: "1,02,500.00" },
+  { id: "g4", date: "2026-06-05", description: "POS-AMAZON-PURCHASE", debit: "3,299.00", credit: "", balance: "99,201.00" },
+  { id: "g5", date: "2026-06-07", description: "UPI-SWIGGY", debit: "450.00", credit: "", balance: "98,751.00" },
+  { id: "g6", date: "2026-06-10", description: "IMPS-RENT PAYMENT", debit: "15,000.00", credit: "", balance: "83,751.00" },
+  { id: "g7", date: "2026-06-12", description: "NEFT-FREELANCE", debit: "", credit: "25,000.00", balance: "1,08,751.00" },
+  { id: "g8", date: "2026-06-15", description: "ECS-ELECTRICITY", debit: "2,150.00", credit: "", balance: "1,06,601.00" },
 ];
 
 export interface ConvertResponse {

@@ -21,8 +21,8 @@ export default function UploadZone({ onFileSelect, isCollapsed }: UploadZoneProp
         setError("Please upload a PDF file.");
         return false;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        setError("File too large. Maximum size is 10MB.");
+      if (file.size > 20 * 1024 * 1024) {
+        setError("File too large. Maximum size is 20MB.");
         return false;
       }
       return true;
@@ -121,7 +121,7 @@ export default function UploadZone({ onFileSelect, isCollapsed }: UploadZoneProp
           <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
             <span>Supports all banks</span>
             <span className="w-1 h-1 rounded-full bg-slate-300" />
-            <span>Max 10MB</span>
+            <span>Max 20MB</span>
             <span className="w-1 h-1 rounded-full bg-slate-300" />
             <span>PDF only</span>
           </div>

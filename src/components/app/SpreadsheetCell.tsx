@@ -13,6 +13,9 @@ interface SpreadsheetCellProps {
   isDebit: boolean;
   isCredit: boolean;
   isGhost: boolean;
+  isBold?: boolean;
+  isItalic?: boolean;
+  isUnderline?: boolean;
   onSelect: (row: number, col: number) => void;
   onDoubleClick: (row: number, col: number) => void;
   onEdit: (row: number, col: number, value: string) => void;
@@ -32,6 +35,9 @@ const SpreadsheetCell = memo(function SpreadsheetCell({
   isDebit,
   isCredit,
   isGhost,
+  isBold,
+  isItalic,
+  isUnderline,
   onSelect,
   onDoubleClick,
   onEdit,
@@ -127,6 +133,9 @@ const SpreadsheetCell = memo(function SpreadsheetCell({
         isDebit && "text-error-600",
         isCredit && "text-success-600",
         isGhost && "text-slate-300",
+        isBold && "font-bold",
+        isItalic && "italic",
+        isUnderline && "underline",
         row % 2 === 1 && "bg-sheet-row-alt",
         !isGhost && !isSelected && !isInRange && "hover:bg-sheet-row-hover"
       )}

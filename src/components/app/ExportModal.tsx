@@ -8,7 +8,7 @@ interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onExportDirect: () => void;
-  format: "csv" | "xlsx";
+  format: "csv" | "xlsx" | "json";
 }
 
 export default function ExportModal({

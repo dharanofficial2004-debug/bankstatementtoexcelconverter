@@ -15,12 +15,23 @@ import {
 } from "@/lib/types";
 import { cellRef as getCellRef, cn } from "@/lib/utils";
 
+interface Sheet {
+  id: string;
+  name: string;
+  transactions: Transaction[];
+  bankDetected: string | null;
+  headers: string[];
+}
+
 interface SpreadsheetProps {
   transactions: Transaction[];
   bankDetected: string | null;
   isGhostMode: boolean;
   onTransactionsChange: (transactions: Transaction[]) => void;
-  headers?: string[];
+  sheets?: Sheet[];
+  activeSheetId?: string;
+  onSheetsChange?: React.Dispatch<React.SetStateAction<Sheet[]>>;
+  onActiveSheetIdChange?: (id: string) => void;
 }
 
 export default function Spreadsheet({
@@ -28,33 +39,24 @@ export default function Spreadsheet({
   bankDetected,
   isGhostMode,
   onTransactionsChange,
-  headers,
+  sheets = [],
+  activeSheetId = "",
+  onSheetsChange,
+  onActiveSheetIdChange,
 }: SpreadsheetProps) {
   const data = isGhostMode ? GHOST_DATA : transactions;
 
+  const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance"]);
+
   const columns = useMemo(() => {
-    if (!headers || headers.length === 0) return COLUMNS;
-    return headers.map((header, idx) => {
-      const hLower = header.toLowerCase();
-      let type: "number" | "text" | "date" | "currency" = "text";
-      if (hLower.includes("date")) type = "date";
-      else if (hLower.includes("withdrawal") || hLower.includes("debit") || hLower.includes("deposit") || hLower.includes("credit") || hLower.includes("balance") || hLower.includes("amount")) {
-        type = "currency";
-      }
-      return {
-        key: `col${idx}`,
-        label: header,
-        letter: String.fromCharCode(65 + idx),
-        width: hLower.includes("description") || hLower.includes("particulars") || hLower.includes("narration") ? 280 : 120,
-        type
-      };
-    });
-  }, [headers]);
+    return colOrder.map(key => COLUMNS.find(c => c.key === key)!).filter(Boolean);
+  }, [colOrder]);
 
   const COL_KEYS = useMemo(() => {
     return columns.map((col) => col.key);
   }, [columns]);
 
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
   const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
   const [rangeStart, setRangeStart] = useState<CellPosition | null>(null);
@@ -73,14 +75,49 @@ export default function Spreadsheet({
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filtered data based on search
+  // Sorted and searched data
   const filteredData = useMemo(() => {
-    if (!searchQuery.trim()) return data;
-    const q = searchQuery.toLowerCase();
-    return data.filter((t) =>
-      columns.some(col => (t[col.key] || "").toLowerCase().includes(q))
-    );
-  }, [data, searchQuery, columns]);
+    let result = [...data];
+
+    // Apply sorting
+    if (sortConfig) {
+      const { key, direction } = sortConfig;
+      result.sort((a, b) => {
+        const aVal = String(a[key] || "").trim();
+        const bVal = String(b[key] || "").trim();
+
+        // Check if numerical
+        const aNum = parseFloat(aVal.replace(/,/g, ""));
+        const bNum = parseFloat(bVal.replace(/,/g, ""));
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return direction === "asc" ? aNum - bNum : bNum - aNum;
+        }
+
+        // Check if date (YYYY-MM-DD or standard formats)
+        const aDate = Date.parse(aVal);
+        const bDate = Date.parse(bVal);
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          return direction === "asc" ? aDate - bDate : bDate - aDate;
+        }
+
+        // Text comparison
+        return direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((t) =>
+        columns.some((col) => String(t[col.key] || "").toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [data, sortConfig, searchQuery, columns]);
 
   // Get cell value by position
   const getCellValue = useCallback(
@@ -175,7 +212,7 @@ export default function Spreadsheet({
           onTransactionsChange(updated);
           setUndoStack((prev) => [
             ...prev,
-            { row: originalIndex, col, oldValue, newValue: value },
+            { transactionId: filteredData[row].id, colKey: key, oldValue, newValue: value },
           ]);
           setRedoStack([]);
           setIsEdited(true);
@@ -292,28 +329,241 @@ export default function Spreadsheet({
   const handleUndo = useCallback(() => {
     if (undoStack.length === 0) return;
     const action = undoStack[undoStack.length - 1];
-    const key = COL_KEYS[action.col - 1];
+    
     const updated = [...transactions];
-    updated[action.row] = { ...updated[action.row], [key]: action.oldValue };
-    onTransactionsChange(updated);
+    let changed = false;
+
+    if (action.batch && action.batch.length > 0) {
+      action.batch.forEach((item) => {
+        const idx = updated.findIndex((t) => t.id === item.transactionId);
+        if (idx !== -1) {
+          updated[idx] = { ...updated[idx], [item.colKey]: item.oldValue };
+          changed = true;
+        }
+      });
+    } else if (action.transactionId && action.colKey) {
+      const idx = updated.findIndex((t) => t.id === action.transactionId);
+      if (idx !== -1) {
+        updated[idx] = { ...updated[idx], [action.colKey]: action.oldValue || "" };
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      onTransactionsChange(updated);
+    }
+    
     setUndoStack((prev) => prev.slice(0, -1));
     setRedoStack((prev) => [...prev, action]);
-  }, [undoStack, transactions, onTransactionsChange, COL_KEYS]);
+  }, [undoStack, transactions, onTransactionsChange]);
 
   const handleRedo = useCallback(() => {
     if (redoStack.length === 0) return;
     const action = redoStack[redoStack.length - 1];
-    const key = COL_KEYS[action.col - 1];
+    
     const updated = [...transactions];
-    updated[action.row] = { ...updated[action.row], [key]: action.newValue };
-    onTransactionsChange(updated);
+    let changed = false;
+
+    if (action.batch && action.batch.length > 0) {
+      action.batch.forEach((item) => {
+        const idx = updated.findIndex((t) => t.id === item.transactionId);
+        if (idx !== -1) {
+          updated[idx] = { ...updated[idx], [item.colKey]: item.newValue };
+          changed = true;
+        }
+      });
+    } else if (action.transactionId && action.colKey) {
+      const idx = updated.findIndex((t) => t.id === action.transactionId);
+      if (idx !== -1) {
+        updated[idx] = { ...updated[idx], [action.colKey]: action.newValue || "" };
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      onTransactionsChange(updated);
+    }
+
     setRedoStack((prev) => prev.slice(0, -1));
     setUndoStack((prev) => [...prev, action]);
-  }, [redoStack, transactions, onTransactionsChange, COL_KEYS]);
+  }, [redoStack, transactions, onTransactionsChange]);
+
+  // Dynamic column widths state
+  const [colWidths, setColWidths] = useState<Record<string, number>>({
+    date: 120,
+    description: 350,
+    debit: 140,
+    credit: 140,
+    balance: 140,
+  });
+
+  // Cell formatting styles
+  const [cellStyles, setCellStyles] = useState<Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>>({});
+
+  // Resize handler
+  const handleResizeStart = useCallback((e: React.MouseEvent, colKey: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startWidth = colWidths[colKey] || 100;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const newWidth = Math.max(60, startWidth + deltaX);
+      setColWidths((prev) => ({
+        ...prev,
+        [colKey]: newWidth,
+      }));
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [colWidths]);
+
+  // Reorder/move column handler
+  const handleMoveColumn = useCallback((colKey: string, direction: "left" | "right") => {
+    const index = colOrder.indexOf(colKey);
+    if (index === -1) return;
+    const newIndex = direction === "left" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= colOrder.length) return;
+
+    const newOrder = [...colOrder];
+    const temp = newOrder[index];
+    newOrder[index] = newOrder[newIndex];
+    newOrder[newIndex] = temp;
+    setColOrder(newOrder);
+    
+    // Reset selection coordinates
+    setSelectedCell(null);
+    setRangeStart(null);
+    setRangeEnd(null);
+  }, [colOrder]);
+
+  // Toggle bold, italic, underline
+  const toggleStyle = useCallback((styleName: "bold" | "italic" | "underline") => {
+    if (isGhostMode) return;
+    
+    const cellsToToggle: { rowId: string; colKey: string }[] = [];
+    if (rangeStart && rangeEnd) {
+      const minRow = Math.min(rangeStart.row, rangeEnd.row);
+      const maxRow = Math.max(rangeStart.row, rangeEnd.row);
+      const minCol = Math.min(rangeStart.col, rangeEnd.col);
+      const maxCol = Math.max(rangeStart.col, rangeEnd.col);
+
+      for (let r = minRow; r <= maxRow; r++) {
+        const rowId = filteredData[r]?.id;
+        if (rowId) {
+          for (let c = minCol; c <= maxCol; c++) {
+            if (c === 0) continue;
+            const colKey = COL_KEYS[c - 1];
+            cellsToToggle.push({ rowId, colKey });
+          }
+        }
+      }
+    } else if (selectedCell) {
+      const rowId = filteredData[selectedCell.row]?.id;
+      if (rowId && selectedCell.col > 0) {
+        const colKey = COL_KEYS[selectedCell.col - 1];
+        cellsToToggle.push({ rowId, colKey });
+      }
+    }
+
+    if (cellsToToggle.length === 0) return;
+
+    const firstCellKey = `${cellsToToggle[0].rowId}-${cellsToToggle[0].colKey}`;
+    const shouldEnable = !cellStyles[firstCellKey]?.[styleName];
+
+    setCellStyles((prev) => {
+      const updated = { ...prev };
+      cellsToToggle.forEach(({ rowId, colKey }) => {
+        const key = `${rowId}-${colKey}`;
+        updated[key] = {
+          ...updated[key],
+          [styleName]: shouldEnable,
+        };
+      });
+      return updated;
+    });
+  }, [rangeStart, rangeEnd, selectedCell, filteredData, COL_KEYS, cellStyles, isGhostMode]);
+
+  // Clear selected cells contents
+  const clearSelectedRange = useCallback(() => {
+    if (isGhostMode) return;
+    const minRow = rangeStart && rangeEnd ? Math.min(rangeStart.row, rangeEnd.row) : (selectedCell ? selectedCell.row : -1);
+    const maxRow = rangeStart && rangeEnd ? Math.max(rangeStart.row, rangeEnd.row) : (selectedCell ? selectedCell.row : -1);
+    const minCol = rangeStart && rangeEnd ? Math.min(rangeStart.col, rangeEnd.col) : (selectedCell ? selectedCell.col : -1);
+    const maxCol = rangeStart && rangeEnd ? Math.max(rangeStart.col, rangeEnd.col) : (selectedCell ? selectedCell.col : -1);
+
+    if (minRow === -1 || minCol === -1) return;
+
+    const updated = [...transactions];
+    const newEdits: { transactionId: string; colKey: string; oldValue: string; newValue: string }[] = [];
+    let changed = false;
+
+    for (let r = minRow; r <= maxRow; r++) {
+      const originalIndex = transactions.findIndex(
+        (t) => t.id === filteredData[r]?.id
+      );
+      if (originalIndex !== -1) {
+        for (let c = minCol; c <= maxCol; c++) {
+          if (c === 0) continue;
+          const key = COL_KEYS[c - 1];
+          const oldValue = updated[originalIndex][key] || "";
+          if (oldValue !== "") {
+            updated[originalIndex] = { ...updated[originalIndex], [key]: "" };
+            newEdits.push({
+              transactionId: filteredData[r].id,
+              colKey: key,
+              oldValue,
+              newValue: ""
+            });
+            changed = true;
+          }
+        }
+      }
+    }
+
+    if (changed) {
+      onTransactionsChange(updated);
+      setUndoStack((prev) => [...prev, { batch: newEdits }]);
+      setRedoStack([]);
+      setIsEdited(true);
+    }
+  }, [rangeStart, rangeEnd, selectedCell, transactions, filteredData, COL_KEYS, onTransactionsChange, isGhostMode]);
+
+  // Style status checks for toolbar
+  const isBoldActive = useMemo(() => {
+    if (!selectedCell || selectedCell.col === 0) return false;
+    const rowId = filteredData[selectedCell.row]?.id;
+    const colKey = COL_KEYS[selectedCell.col - 1];
+    return !!cellStyles[`${rowId}-${colKey}`]?.bold;
+  }, [selectedCell, filteredData, COL_KEYS, cellStyles]);
+
+  const isItalicActive = useMemo(() => {
+    if (!selectedCell || selectedCell.col === 0) return false;
+    const rowId = filteredData[selectedCell.row]?.id;
+    const colKey = COL_KEYS[selectedCell.col - 1];
+    return !!cellStyles[`${rowId}-${colKey}`]?.italic;
+  }, [selectedCell, filteredData, COL_KEYS, cellStyles]);
+
+  const isUnderlineActive = useMemo(() => {
+    if (!selectedCell || selectedCell.col === 0) return false;
+    const rowId = filteredData[selectedCell.row]?.id;
+    const colKey = COL_KEYS[selectedCell.col - 1];
+    return !!cellStyles[`${rowId}-${colKey}`]?.underline;
+  }, [selectedCell, filteredData, COL_KEYS, cellStyles]);
 
   // Global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in text inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
         handleUndo();
@@ -322,14 +572,100 @@ export default function Spreadsheet({
         e.preventDefault();
         handleRedo();
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "c" && selectedCell) {
-        const val = getCellValue(selectedCell.row, selectedCell.col);
-        navigator.clipboard.writeText(val);
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        if (rangeStart && rangeEnd) {
+          e.preventDefault();
+          const minRow = Math.min(rangeStart.row, rangeEnd.row);
+          const maxRow = Math.max(rangeStart.row, rangeEnd.row);
+          const minCol = Math.min(rangeStart.col, rangeEnd.col);
+          const maxCol = Math.max(rangeStart.col, rangeEnd.col);
+
+          let textGrid = "";
+          for (let r = minRow; r <= maxRow; r++) {
+            const rowVals: string[] = [];
+            for (let c = minCol; c <= maxCol; c++) {
+              rowVals.push(getCellValue(r, c));
+            }
+            textGrid += rowVals.join("\t") + "\n";
+          }
+          navigator.clipboard.writeText(textGrid.trim());
+        } else if (selectedCell) {
+          e.preventDefault();
+          const val = getCellValue(selectedCell.row, selectedCell.col);
+          navigator.clipboard.writeText(val);
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        if (isGhostMode) return;
+        e.preventDefault();
+        navigator.clipboard.readText().then((clipText) => {
+          if (!clipText) return;
+          const rows = clipText.split(/\r?\n/).map(row => row.split("\t"));
+          if (rows.length > 0 && rows[rows.length - 1].length === 1 && rows[rows.length - 1][0] === "") {
+            rows.pop();
+          }
+          if (rows.length === 0) return;
+
+          const startRow = selectedCell ? selectedCell.row : (rangeStart ? Math.min(rangeStart.row, rangeEnd!.row) : 0);
+          const startCol = selectedCell ? selectedCell.col : (rangeStart ? Math.min(rangeStart.col, rangeEnd!.col) : 1);
+          if (startCol === 0) return;
+
+          const updated = [...transactions];
+          const newEdits: { transactionId: string; colKey: string; oldValue: string; newValue: string }[] = [];
+          let changed = false;
+
+          rows.forEach((rowVals, rOffset) => {
+            const targetRow = startRow + rOffset;
+            if (targetRow >= filteredData.length) return;
+
+            const tx = filteredData[targetRow];
+            const originalIndex = transactions.findIndex(t => t.id === tx.id);
+            if (originalIndex === -1) return;
+
+            rowVals.forEach((val, cOffset) => {
+              const targetCol = startCol + cOffset;
+              if (targetCol <= 0 || targetCol > columns.length) return;
+
+              const colKey = COL_KEYS[targetCol - 1];
+              const oldValue = updated[originalIndex][colKey] || "";
+              const newValue = val.trim();
+
+              if (oldValue !== newValue) {
+                updated[originalIndex] = {
+                  ...updated[originalIndex],
+                  [colKey]: newValue
+                };
+                newEdits.push({
+                  transactionId: tx.id,
+                  colKey,
+                  oldValue,
+                  newValue
+                });
+                changed = true;
+              }
+            });
+          });
+
+          if (changed) {
+            onTransactionsChange(updated);
+            setUndoStack((prev) => [...prev, { batch: newEdits }]);
+            setRedoStack([]);
+            setIsEdited(true);
+          }
+        }).catch((err) => {
+          console.error("Failed to read clipboard text: ", err);
+        });
+      }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (!editingCell) {
+          e.preventDefault();
+          clearSelectedRange();
+        }
       }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [handleUndo, handleRedo, selectedCell, getCellValue]);
+  }, [handleUndo, handleRedo, selectedCell, rangeStart, rangeEnd, getCellValue, editingCell, clearSelectedRange]);
 
   // Helper to create a new row populated with all key fields
   const createEmptyRow = useCallback((): Transaction => {
@@ -337,16 +673,12 @@ export default function Spreadsheet({
       id: crypto.randomUUID(),
       date: "",
       description: "",
-      chqRefNo: "",
       debit: "",
       credit: "",
       balance: "",
     };
-    columns.forEach((col) => {
-      row[col.key] = "";
-    });
     return row;
-  }, [columns]);
+  }, []);
 
   // Row operations
   const handleAddRow = useCallback(() => {
@@ -440,6 +772,12 @@ export default function Spreadsheet({
       <SpreadsheetToolbar
         cellRef={currentCellRef}
         cellValue={currentCellValue}
+        isBoldActive={isBoldActive}
+        isItalicActive={isItalicActive}
+        isUnderlineActive={isUnderlineActive}
+        onToggleBold={() => toggleStyle("bold")}
+        onToggleItalic={() => toggleStyle("italic")}
+        onToggleUnderline={() => toggleStyle("underline")}
         bankDetected={bankDetected}
         transactionCount={filteredData.length}
         isGhostMode={isGhostMode}
@@ -466,7 +804,7 @@ export default function Spreadsheet({
           <colgroup>
             <col style={{ width: 42 }} /> {/* Row number col */}
             {columns.map((col, i) => (
-              <col key={i} style={{ width: col.width }} />
+              <col key={i} style={{ width: colWidths[col.key] || col.width }} />
             ))}
           </colgroup>
 
@@ -481,12 +819,18 @@ export default function Spreadsheet({
                 <th
                   key={col.letter}
                   className={cn(
-                    "sheet-cell sheet-cell--header cursor-pointer",
+                    "sheet-cell sheet-cell--header cursor-pointer relative",
                     "hover:bg-slate-200 transition-colors"
                   )}
                   onClick={() => handleColumnClick(i + 1)}
                 >
-                  {col.letter}
+                  <span>{col.letter}</span>
+                  {/* Resize Handle */}
+                  <div
+                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary-300 active:bg-primary-500 z-20"
+                    onMouseDown={(e) => handleResizeStart(e, col.key)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </th>
               ))}
             </tr>
@@ -495,14 +839,37 @@ export default function Spreadsheet({
               <td className="sheet-cell sheet-cell--row-number sheet-cell--corner bg-primary-50 font-semibold text-primary-600 text-xs">
                 
               </td>
-              {columns.map((col) => (
-                <td
-                  key={`header-${col.key}`}
-                  className="sheet-cell bg-primary-50 text-primary-800 font-semibold text-xs border-b-2 border-b-primary-200"
-                >
-                  {col.label}
-                </td>
-              ))}
+              {columns.map((col) => {
+                const isSorted = sortConfig?.key === col.key;
+                const direction = sortConfig?.direction;
+                return (
+                  <td
+                    key={`header-${col.key}`}
+                    onClick={() => {
+                      if (isGhostMode) return;
+                      setSortConfig((prev) => {
+                        if (!prev || prev.key !== col.key) {
+                          return { key: col.key, direction: "asc" };
+                        }
+                        if (prev.direction === "asc") {
+                          return { key: col.key, direction: "desc" };
+                        }
+                        return null;
+                      });
+                    }}
+                    className="sheet-cell bg-primary-50 text-primary-800 font-semibold text-xs border-b-2 border-b-primary-200 cursor-pointer select-none hover:bg-primary-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{col.label}</span>
+                      {isSorted && (
+                        <span className="text-primary-600 font-bold ml-1">
+                          {direction === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
             </tr>
           </thead>
 
@@ -537,6 +904,7 @@ export default function Spreadsheet({
                   const isEditingThis =
                     editingCell?.row === rowIndex &&
                     editingCell?.col === actualColIndex;
+                  const cellStyle = cellStyles[`${row.id}-${col.key}`];
 
                   return (
                     <SpreadsheetCell
@@ -547,9 +915,12 @@ export default function Spreadsheet({
                       isSelected={isSelected}
                       isEditing={isEditingThis}
                       isInRange={isInRange(rowIndex, actualColIndex)}
-                      isDebit={false}
-                      isCredit={false}
+                      isDebit={col.key === "debit"}
+                      isCredit={col.key === "credit"}
                       isGhost={isGhostMode}
+                      isBold={!!cellStyle?.bold}
+                      isItalic={!!cellStyle?.italic}
+                      isUnderline={!!cellStyle?.underline}
                       onSelect={handleSelect}
                       onDoubleClick={handleDoubleClick}
                       onEdit={handleEdit}
@@ -573,6 +944,10 @@ export default function Spreadsheet({
         selectedSum={selectedSum}
         isEdited={isEdited}
         isGhostMode={isGhostMode}
+        sheets={sheets}
+        activeSheetId={activeSheetId}
+        onSheetsChange={onSheetsChange}
+        onActiveSheetIdChange={onActiveSheetIdChange}
       />
 
       {/* Context Menu */}
@@ -594,6 +969,18 @@ export default function Spreadsheet({
           }}
           onClearCell={handleClearCell}
           onCopyValue={handleCopyValue}
+          onMoveColumnLeft={() => {
+            if (contextMenu.col > 0) {
+              const colKey = COL_KEYS[contextMenu.col - 1];
+              handleMoveColumn(colKey, "left");
+            }
+          }}
+          onMoveColumnRight={() => {
+            if (contextMenu.col > 0) {
+              const colKey = COL_KEYS[contextMenu.col - 1];
+              handleMoveColumn(colKey, "right");
+            }
+          }}
         />
       )}
     </div>

@@ -2,6 +2,16 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
+import { Transaction } from "@/lib/types";
+
+interface Sheet {
+  id: string;
+  name: string;
+  transactions: Transaction[];
+  bankDetected: string | null;
+  headers: string[];
+}
 
 interface SpreadsheetStatusBarProps {
   totalRows: number;
@@ -9,6 +19,10 @@ interface SpreadsheetStatusBarProps {
   selectedSum: number | null;
   isEdited: boolean;
   isGhostMode: boolean;
+  sheets?: Sheet[];
+  activeSheetId?: string;
+  onSheetsChange?: React.Dispatch<React.SetStateAction<Sheet[]>>;
+  onActiveSheetIdChange?: (id: string) => void;
 }
 
 export default function SpreadsheetStatusBar({
@@ -17,19 +31,85 @@ export default function SpreadsheetStatusBar({
   selectedSum,
   isEdited,
   isGhostMode,
+  sheets = [],
+  activeSheetId = "",
+  onSheetsChange,
+  onActiveSheetIdChange,
 }: SpreadsheetStatusBarProps) {
   return (
-    <div className="flex items-center h-7 px-1 border-t border-sheet-border bg-sheet-header-bg text-xs select-none">
-      {/* Sheet Tab */}
-      <div className="flex items-center h-full">
-        <div className="flex items-center h-full px-4 bg-white border-t-2 border-t-primary-600 border-x border-sheet-border rounded-t-sm -mb-px font-medium text-slate-700">
-          Sheet1
-        </div>
-        <button className="flex items-center justify-center w-6 h-6 ml-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </button>
+    <div className="flex items-center h-8 border-t border-sheet-border bg-slate-50 text-xs select-none">
+      {/* Sheet Tabs */}
+      <div className="flex items-center h-full px-1 border-r border-sheet-border overflow-x-auto max-w-[60%] scrollbar-none gap-0.5">
+        {sheets.map((s) => {
+          const isActive = s.id === activeSheetId;
+          return (
+            <div
+              key={s.id}
+              className={cn(
+                "group flex items-center gap-1.5 h-full px-3 border-x border-t border-transparent cursor-pointer font-medium text-slate-600 transition-all select-none border-b-2",
+                isActive
+                  ? "bg-white text-primary-700 border-t-sheet-border border-x-sheet-border border-b-primary-600 font-semibold"
+                  : "hover:bg-slate-200 hover:text-slate-700 border-b-transparent"
+              )}
+              onClick={() => onActiveSheetIdChange?.(s.id)}
+              onDoubleClick={() => {
+                if (isGhostMode) return;
+                const newName = prompt("Rename Sheet:", s.name);
+                if (newName && newName.trim() && onSheetsChange) {
+                  onSheetsChange((prev) =>
+                    prev.map((sheet) =>
+                      sheet.id === s.id ? { ...sheet, name: newName.trim() } : sheet
+                    )
+                  );
+                }
+              }}
+            >
+              <span className="truncate max-w-[120px]">{s.name}</span>
+              {sheets.length > 1 && !isGhostMode && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (
+                      confirm(`Are you sure you want to delete sheet "${s.name}"?`) &&
+                      onSheetsChange &&
+                      onActiveSheetIdChange
+                    ) {
+                      const newSheets = sheets.filter((sheet) => sheet.id !== s.id);
+                      onSheetsChange(newSheets);
+                      if (isActive) {
+                        onActiveSheetIdChange(newSheets[0].id);
+                      }
+                    }
+                  }}
+                  className="text-slate-400 hover:text-rose-600 transition-colors rounded-full hover:bg-slate-100 p-0.5 opacity-0 group-hover:opacity-100"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Add sheet button */}
+        {!isGhostMode && onSheetsChange && onActiveSheetIdChange && (
+          <button
+            onClick={() => {
+              const newSheet = {
+                id: crypto.randomUUID(),
+                name: `Sheet ${sheets.length + 1}`,
+                transactions: [],
+                bankDetected: null,
+                headers: [],
+              };
+              onSheetsChange((prev) => [...prev, newSheet]);
+              onActiveSheetIdChange(newSheet.id);
+            }}
+            className="flex items-center justify-center w-6 h-6 ml-1 text-slate-500 hover:text-primary-600 hover:bg-slate-200 rounded transition-colors"
+            title="Add New Sheet"
+          >
+            <Plus size={13} />
+          </button>
+        )}
       </div>
 
       {/* Spacer */}

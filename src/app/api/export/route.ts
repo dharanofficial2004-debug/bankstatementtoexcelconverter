@@ -6,22 +6,23 @@ import { Transaction } from "@/lib/types";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { transactions, format, headers } = body as {
-      transactions: Transaction[];
-      format: "csv" | "xlsx";
-      headers?: string[];
+    const { transactions, sheets, format } = body as {
+      transactions?: Transaction[];
+      sheets?: { name: string; transactions: Transaction[] }[];
+      format: "csv" | "xlsx" | "json";
     };
 
-    if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
+    const hasData = (transactions && transactions.length > 0) || (sheets && sheets.length > 0);
+    if (!hasData) {
       return NextResponse.json(
-        { success: false, error: "No transactions provided" },
+        { success: false, error: "No transactions or sheets provided" },
         { status: 400 }
       );
     }
 
-    if (!format || !["csv", "xlsx"].includes(format)) {
+    if (!format || !["csv", "xlsx", "json"].includes(format)) {
       return NextResponse.json(
-        { success: false, error: "Invalid format. Use 'csv' or 'xlsx'." },
+        { success: false, error: "Invalid format. Use 'csv', 'xlsx', or 'json'." },
         { status: 400 }
       );
     }
@@ -29,7 +30,8 @@ export async function POST(request: NextRequest) {
     const date = new Date().toISOString().split("T")[0];
     
     if (format === "csv") {
-      const csv = exportToCsv(transactions, headers);
+      const txs = transactions || (sheets && sheets.length > 0 ? sheets[0].transactions : []);
+      const csv = exportToCsv(txs);
       return new NextResponse(csv, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
@@ -39,12 +41,32 @@ export async function POST(request: NextRequest) {
     }
 
     if (format === "xlsx") {
-      const buffer = exportToExcel(transactions, headers);
+      const dataToExport = sheets && sheets.length > 0 ? sheets : (transactions || []);
+      const buffer = exportToExcel(dataToExport);
       return new NextResponse(buffer as unknown as BodyInit, {
         headers: {
           "Content-Type":
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           "Content-Disposition": `attachment; filename="bankstatement_${date}.xlsx"`,
+        },
+      });
+    }
+
+    if (format === "json") {
+      const txs = transactions || (sheets && sheets.length > 0 ? sheets[0].transactions : []);
+      const jsonString = JSON.stringify(
+        txs.map((tx) => {
+          const rest: Partial<Transaction> = { ...tx };
+          delete rest.id;
+          return rest;
+        }),
+        null,
+        2
+      );
+      return new NextResponse(jsonString, {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Disposition": `attachment; filename="bankstatement_${date}.json"`,
         },
       });
     }

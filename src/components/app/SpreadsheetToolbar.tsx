@@ -31,6 +31,12 @@ interface SpreadsheetToolbarProps {
   canRedo: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isBoldActive?: boolean;
+  isItalicActive?: boolean;
+  isUnderlineActive?: boolean;
+  onToggleBold?: () => void;
+  onToggleItalic?: () => void;
+  onToggleUnderline?: () => void;
 }
 
 export default function SpreadsheetToolbar({
@@ -47,6 +53,12 @@ export default function SpreadsheetToolbar({
   canRedo,
   searchQuery,
   onSearchChange,
+  isBoldActive,
+  isItalicActive,
+  isUnderlineActive,
+  onToggleBold,
+  onToggleItalic,
+  onToggleUnderline,
 }: SpreadsheetToolbarProps) {
   const bankInfo = bankDetected
     ? BANK_COLORS[bankDetected] || BANK_COLORS.GENERIC
@@ -92,10 +104,28 @@ export default function SpreadsheetToolbar({
 
         <ToolbarSeparator />
 
-        {/* Format buttons (decorative) */}
-        <ToolbarButton icon={<Bold size={15} />} title="Bold" decorative />
-        <ToolbarButton icon={<Italic size={15} />} title="Italic" decorative />
-        <ToolbarButton icon={<Underline size={15} />} title="Underline" decorative />
+        {/* Format buttons */}
+        <ToolbarButton
+          icon={<Bold size={15} />}
+          title="Bold"
+          onClick={onToggleBold}
+          active={isBoldActive}
+          disabled={isGhostMode}
+        />
+        <ToolbarButton
+          icon={<Italic size={15} />}
+          title="Italic"
+          onClick={onToggleItalic}
+          active={isItalicActive}
+          disabled={isGhostMode}
+        />
+        <ToolbarButton
+          icon={<Underline size={15} />}
+          title="Underline"
+          onClick={onToggleUnderline}
+          active={isUnderlineActive}
+          disabled={isGhostMode}
+        />
 
         <ToolbarSeparator />
 
@@ -184,12 +214,14 @@ function ToolbarButton({
   disabled,
   title,
   decorative,
+  active,
 }: {
   icon: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   title?: string;
   decorative?: boolean;
+  active?: boolean;
 }) {
   return (
     <button
@@ -198,7 +230,9 @@ function ToolbarButton({
       title={title}
       className={cn(
         "flex items-center justify-center w-7 h-7 rounded",
-        "text-slate-500 transition-colors",
+        "transition-colors",
+        active && "bg-primary-100 text-primary-700 font-semibold",
+        !active && "text-slate-500",
         !disabled && !decorative && "hover:bg-slate-100 hover:text-slate-700 cursor-pointer",
         disabled && "opacity-40 cursor-not-allowed",
         decorative && "opacity-60 cursor-default"
