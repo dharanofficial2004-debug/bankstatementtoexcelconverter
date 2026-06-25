@@ -630,18 +630,18 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
         for (let i = 0; i < mergedRows.length; i++) {
           const r = mergedRows[i];
           if (r.items.length >= 3) {
-            const joined = r.items.map(item => item.text.toLowerCase()).join(" ");
-            if (
-              joined.includes("item") || 
-              joined.includes("description") || 
-              joined.includes("particulars") || 
-              joined.includes("date") || 
-              joined.includes("amount") ||
-              joined.includes("narration") ||
-              joined.includes("balance") ||
-              joined.includes("withdrawal") ||
-              joined.includes("deposit")
-            ) {
+            const itemsLower = r.items.map(item => item.text.toLowerCase().trim());
+            
+            const hasDate = itemsLower.some(val => ["date", "txn date", "value date", "tran date", "post date", "booking date", "txndate"].some(k => val === k || val.includes(k)));
+            const hasDesc = itemsLower.some(val => ["description", "particulars", "narration", "remarks", "details", "narrative"].some(k => val === k || val.includes(k)));
+            const hasAmount = itemsLower.some(val => ["amount", "debit", "credit", "withdrawal", "deposit", "balance", "bal", "withdrawal (dr.)", "deposit (cr.)", "value"].some(k => val === k || val.includes(k)));
+            
+            let score = 0;
+            if (hasDate) score++;
+            if (hasDesc) score++;
+            if (hasAmount) score++;
+            
+            if (score >= 2) {
               headerRow = r;
               headerRowIdx = i;
               break;
@@ -649,7 +649,7 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
           }
         }
         
-        // Fallback: use first row with >= 3 items
+        // Fallback: use first row with >= 3 items if no strict header matched
         if (!headerRow) {
           for (let i = 0; i < mergedRows.length; i++) {
             if (mergedRows[i].items.length >= 3) {
@@ -721,8 +721,8 @@ export async function parseStatement(buffer: Buffer): Promise<ParseResult> {
           rowText.includes("closing balance") ||
           rowText.includes("total ")
         ) {
-          console.log(`--- PARSER: Stopping page parsing at boundary row: "${rowText}"`);
-          break;
+          console.log(`--- PARSER: Skipping boundary/summary row: "${rowText}"`);
+          continue;
         }
         
         const rowCells = Array(colBoundaries.length).fill("");

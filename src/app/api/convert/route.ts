@@ -41,12 +41,14 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     console.log(`--- UPLOAD API: Memory buffer successfully prepared (length: ${buffer.length} bytes) ---`);
 
-    // Temporarily save the uploaded file for diagnostics
-    try {
-      fs.writeFileSync(path.join(process.cwd(), "uploaded_sample.pdf"), buffer);
-      console.log("--- UPLOAD API DIAGNOSTICS: Successfully saved uploaded_sample.pdf ---");
-    } catch (e) {
-      console.error("--- UPLOAD API DIAGNOSTICS ERROR: Failed to save uploaded_sample.pdf:", e);
+    // Temporarily save the uploaded file for diagnostics in local development only
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        fs.writeFileSync(path.join(process.cwd(), "uploaded_sample.pdf"), buffer);
+        console.log("--- UPLOAD API DIAGNOSTICS: Successfully saved uploaded_sample.pdf ---");
+      } catch (e) {
+        console.error("--- UPLOAD API DIAGNOSTICS ERROR: Failed to save uploaded_sample.pdf:", e);
+      }
     }
 
     console.log("--- UPLOAD API: Invoking parseStatement... ---");
