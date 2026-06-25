@@ -1,3 +1,4 @@
+import "@/lib/polyfill";
 import { NextRequest, NextResponse } from "next/server";
 import { parseStatement } from "@/lib/parseStatement";
 import fs from "fs";
