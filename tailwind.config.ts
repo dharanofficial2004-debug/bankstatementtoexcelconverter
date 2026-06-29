@@ -67,6 +67,7 @@ const config: Config = {
         "progress-fill": "progressFill 3s ease-in-out",
         "pulse-soft": "pulseSoft 2s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "slide-up-sheet": "slideUpSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         fadeIn: {
@@ -105,6 +106,10 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-20px)" },
+        },
+        slideUpSheet: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       boxShadow: {

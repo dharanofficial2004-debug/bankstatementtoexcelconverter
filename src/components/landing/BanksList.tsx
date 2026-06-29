@@ -1,6 +1,6 @@
 import React from "react";
 
-const banks = [
+const defaultBanks = [
   "HDFC",
   "SBI",
   "ICICI",
@@ -16,15 +16,27 @@ const banks = [
   "Bank of America",
 ];
 
-export default function BanksList() {
+interface BanksListProps {
+  title?: string;
+  subtitle?: string;
+  banks?: string[];
+  moreText?: string;
+}
+
+export default function BanksList({
+  title = "Works with all major banks",
+  subtitle = "Upload any bank statement PDF — we handle the rest",
+  banks = defaultBanks,
+  moreText = "+ 100 more",
+}: BanksListProps) {
   return (
     <section className="py-20 px-4">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-          Works with all major banks
+          {title}
         </h2>
         <p className="text-lg text-slate-500 mb-10">
-          Upload any bank statement PDF — we handle the rest
+          {subtitle}
         </p>
 
         {/* Bank pills */}
@@ -43,7 +55,7 @@ export default function BanksList() {
           ))}
           <div className="px-4 py-2 bg-primary-50 border border-primary-200 rounded-full
             text-sm font-semibold text-primary-700 shadow-sm">
-            + 100 more
+            {moreText}
           </div>
         </div>
       </div>

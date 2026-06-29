@@ -1,7 +1,15 @@
 import React from "react";
-import { CloudUpload, Grid3X3, Download } from "lucide-react";
+import { CloudUpload, Grid3X3, Download, LucideIcon } from "lucide-react";
 
-const steps = [
+export interface StepItem {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  color: string;
+  bgLight: string;
+}
+
+const defaultSteps: StepItem[] = [
   {
     icon: CloudUpload,
     title: "Upload PDF",
@@ -25,17 +33,27 @@ const steps = [
   },
 ];
 
-export default function HowItWorks() {
+interface HowItWorksProps {
+  title?: string;
+  subtitle?: string;
+  steps?: StepItem[];
+}
+
+export default function HowItWorks({
+  title = "How It Works",
+  subtitle = "Three simple steps to convert any bank statement",
+  steps = defaultSteps,
+}: HowItWorksProps) {
   return (
     <section id="how-it-works" className="py-24 px-4 bg-slate-50/50">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            How It Works
+            {title}
           </h2>
           <p className="text-lg text-slate-500 max-w-xl mx-auto">
-            Three simple steps to convert any bank statement
+            {subtitle}
           </p>
         </div>
 

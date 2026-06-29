@@ -7,6 +7,10 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/app", "/auth/", "/api/"],
     },
-    sitemap: "https://bankstatementtoexcelconverter.com/sitemap.xml",
+    sitemap: [
+      "https://bankstatementtoexcelconverter.com/sitemap.xml",
+      "https://bankstatementtoexcelconverter.com/fr/sitemap.xml",
+      "https://bankstatementtoexcelconverter.com/banks/in/sitemap.xml",
+    ],
   };
 }

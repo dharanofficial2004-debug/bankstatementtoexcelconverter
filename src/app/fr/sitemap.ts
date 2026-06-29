@@ -12,16 +12,13 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      // Skip private folders, route groups, api routes, static assets, and separated sitemap folders
       if (
         entry.name.startsWith("_") ||
         entry.name.startsWith("(") ||
         entry.name.startsWith("[") ||
         entry.name === "api" ||
         entry.name === "fonts" ||
-        entry.name === "auth" ||
-        (currentDir === "" && entry.name === "fr") ||
-        (currentDir === "" && entry.name === "banks")
+        entry.name === "auth"
       ) {
         continue;
       }
@@ -29,7 +26,6 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
       const newPath = currentDir ? `${currentDir}/${entry.name}` : entry.name;
       routes.push(...getRoutes(baseDir, newPath));
     } else if (entry.isFile() && entry.name === "page.tsx") {
-      // If a page.tsx exists in the current directory, it's a route
       routes.push(currentDir);
     }
   }
@@ -38,12 +34,11 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://bankstatementtoexcelconverter.com";
+  const baseUrl = "https://bankstatementtoexcelconverter.com/fr";
   const lastModified = new Date();
 
-  // Try to find the app directory, either in src/app or app/
-  const srcAppDir = path.join(process.cwd(), "src", "app");
-  const rootAppDir = path.join(process.cwd(), "app");
+  const srcAppDir = path.join(process.cwd(), "src", "app", "fr");
+  const rootAppDir = path.join(process.cwd(), "app", "fr");
   
   const appDir = fs.existsSync(srcAppDir) ? srcAppDir : rootAppDir;
   
@@ -60,8 +55,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     if (route === "") {
       priority = 1.0;
       changeFrequency = "daily";
-    } else if (route === "pricing") {
-      priority = 0.8;
     }
 
     return {

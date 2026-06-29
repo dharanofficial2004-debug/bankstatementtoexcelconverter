@@ -44,7 +44,7 @@ export default function Spreadsheet({
   onSheetsChange,
   onActiveSheetIdChange,
 }: SpreadsheetProps) {
-  const data = isGhostMode ? GHOST_DATA : transactions;
+  const data = isGhostMode ? (transactions.length > 0 ? transactions : GHOST_DATA) : transactions;
 
   const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance"]);
 
@@ -665,6 +665,7 @@ export default function Spreadsheet({
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleUndo, handleRedo, selectedCell, rangeStart, rangeEnd, getCellValue, editingCell, clearSelectedRange]);
 
   // Helper to create a new row populated with all key fields

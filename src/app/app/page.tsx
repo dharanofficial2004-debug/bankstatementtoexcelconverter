@@ -6,9 +6,11 @@ import UploadZone from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
 import Spreadsheet from "@/components/app/Spreadsheet";
 import ExportModal from "@/components/app/ExportModal";
+import LoginModal from "@/components/app/LoginModal";
 import { useToast } from "@/components/ui/Toast";
-import { Transaction, ConvertResponse } from "@/lib/types";
+import { Transaction, ConvertResponse, GHOST_DATA } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getPrice, DocumentMetrics } from "@/lib/pricing";
 import {
   FileSpreadsheet,
   Download,
@@ -17,7 +19,15 @@ import {
   LogOut,
 } from "lucide-react";
 
-type AppState = "upload" | "processing" | "spreadsheet";
+// Add Razorpay window typing
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Razorpay: any;
+  }
+}
+
+type AppState = "upload" | "processing" | "preview" | "spreadsheet";
 
 interface Sheet {
   id: string;
@@ -45,6 +55,14 @@ export default function AppPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<number>(0);
   const { showToast } = useToast();
+
+  // Payment flow state
+  const [extractedText, setExtractedText] = useState<string | null>(null);
+  const [extractionMeta, setExtractionMeta] = useState<DocumentMetrics | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [previewTransactions, setPreviewTransactions] = useState<Transaction[]>([]);
 
   const activeSheet = useMemo(() => {
     return sheets.find((s) => s.id === activeSheetId) || null;
@@ -128,68 +146,230 @@ export default function AppPage() {
       try {
         // Step 1: Extract PDF text locally
         setProcessingStep(1); // Extracting text...
-        const { text } = await extractPdfText(file);
+        const { text, pages } = await extractPdfText(file);
 
-        // Step 2: Send extracted text to route
-        setProcessingStep(2); // Analyzing with AI...
-        const response = await fetch("/api/parse-bank-statement", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        });
+        // Step 2: Calculate metrics
+        const words = text.split(/\s+/).filter(Boolean).length;
+        const characters = text.length;
 
-        const data: ConvertResponse = await response.json();
-
-        if (data.success && data.transactions.length > 0) {
-          // Step 3: Preparing spreadsheet...
-          setProcessingStep(3);
-          await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
-          
-          const cleanName = file.name.replace(/\.pdf$/i, "");
-          
-          if (sheets.length > 0) {
-            setPendingUploadData({
-              transactions: data.transactions,
-              bankDetected: data.bank_detected,
-              headers: data.headers || [],
-              fileName: cleanName,
-            });
-            setAppState("spreadsheet");
-          } else {
-            const newSheet = {
-              id: crypto.randomUUID(),
-              name: cleanName,
-              transactions: data.transactions,
-              bankDetected: data.bank_detected,
-              headers: data.headers || [],
-            };
-            setSheets([newSheet]);
-            setActiveSheetId(newSheet.id);
-            setAppState("spreadsheet");
+        setExtractedText(text);
+        setExtractionMeta({ pages, words, characters });
+        
+        // Generate Real Preview Data
+        setProcessingStep(2);
+        try {
+          const tinyText = text.substring(0, 1500); 
+          const previewRes = await fetch("/api/parse-bank-statement", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: tinyText }),
+          });
+          if (previewRes.ok) {
+            const previewData = await previewRes.json();
+            if (previewData.success && previewData.transactions) {
+              setPreviewTransactions(previewData.transactions.slice(0, 6)); 
+            }
           }
-        } else {
-          showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
-          setAppState("upload");
+        } catch (e) {
+          console.error("Preview generation failed:", e);
         }
+
+        // Show preview instead of going directly to AI
+        setAppState("preview");
+
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "We could not fully parse this statement. Please upload another file.";
+        const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
         showToast(errorMsg, "error");
         setAppState("upload");
       }
     },
-    [showToast, extractPdfText, sheets]
+    [showToast, extractPdfText]
   );
 
+  const startAIConversion = async (text: string) => {
+    setIsConverting(true);
+    setProcessingStep(2); // Analyzing with AI...
+    
+    try {
+      const response = await fetch("/api/parse-bank-statement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      const data: ConvertResponse = await response.json();
+
+      if (data.success && data.transactions.length > 0) {
+        // Step 3: Preparing spreadsheet...
+        setProcessingStep(3);
+        await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
+        
+        const cleanName = fileName.replace(/\.pdf$/i, "");
+        
+        if (sheets.length > 0) {
+          setPendingUploadData({
+            transactions: data.transactions,
+            bankDetected: data.bank_detected,
+            headers: data.headers || [],
+            fileName: cleanName,
+          });
+          setAppState("spreadsheet");
+        } else {
+          const newSheet = {
+            id: crypto.randomUUID(),
+            name: cleanName,
+            transactions: data.transactions,
+            bankDetected: data.bank_detected,
+            headers: data.headers || [],
+          };
+          setSheets([newSheet]);
+          setActiveSheetId(newSheet.id);
+          setAppState("spreadsheet");
+        }
+      } else {
+        showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
+        setAppState("upload");
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "We could not fully parse this statement. Please try again.";
+      showToast(errorMsg, "error");
+      setAppState("upload");
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  const initRazorpayPayment = async () => {
+    if (!extractionMeta || !supabase) return;
+    setIsProcessingPayment(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      // Create order
+      const createOrderRes = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          pages: extractionMeta.pages,
+          words: extractionMeta.words,
+          characters: extractionMeta.characters,
+          filename: fileName
+        }),
+      });
+
+      const orderData = await createOrderRes.json();
+      
+      if (!orderData.success) {
+        throw new Error(orderData.error || "Failed to create payment order");
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "StatementToExcel",
+        description: `Unlock ${fileName} Conversion`,
+        order_id: orderData.orderId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                payment_record_id: orderData.paymentRecordId
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              showToast("Payment successful! Starting conversion...", "success");
+              if (extractedText) {
+                startAIConversion(extractedText);
+              }
+            } else {
+              throw new Error(verifyData.error || "Payment verification failed");
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "Payment verification failed";
+            showToast(msg, "error");
+            setIsProcessingPayment(false);
+          }
+        },
+        prefill: {
+          email: userEmail || "",
+        },
+        theme: {
+          color: "#2563EB",
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessingPayment(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rzp.on("payment.failed", function (response: any) {
+        showToast(response.error.description || "Payment failed", "error");
+        setIsProcessingPayment(false);
+      });
+      rzp.open();
+      
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Payment initialization failed";
+      showToast(errorMsg, "error");
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handlePayAndUnlock = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+    } else {
+      initRazorpayPayment();
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    setIsAuthenticated(true);
+    // After successful login, check session and initiate payment
+    supabase?.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUserEmail(session.user.email || null);
+        initRazorpayPayment();
+      }
+    });
+  };
+
   const handleExport = useCallback(
-    async (format: "csv" | "xlsx" | "json") => {
+    (format: "csv" | "xlsx" | "json") => {
       if (!isAuthenticated && isSupabaseConfigured()) {
         setExportFormat(format);
         setExportModalOpen(true);
         return;
       }
 
-      await performExport(format);
+      performExport(format);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isAuthenticated, transactions, sheets]
   );
 
@@ -239,27 +419,30 @@ export default function AppPage() {
 
   // Calculate dynamic stats
   const summary = useMemo(() => {
-    const totalTransactions = transactions.length;
+    const txsToUse = appState === "preview" 
+      ? (previewTransactions.length > 0 ? previewTransactions : GHOST_DATA) 
+      : transactions;
+    const totalTransactions = txsToUse.length;
     let totalDebit = 0;
     let totalCredit = 0;
     let openingBalance = 0;
     let closingBalance = 0;
 
-    transactions.forEach((tx) => {
+    txsToUse.forEach((tx) => {
       const debitVal = parseFloat(String(tx.debit).replace(/,/g, "")) || 0;
       const creditVal = parseFloat(String(tx.credit).replace(/,/g, "")) || 0;
       totalDebit += debitVal;
       totalCredit += creditVal;
     });
 
-    if (transactions.length > 0) {
-      const opRow = transactions.find((tx) =>
+    if (txsToUse.length > 0) {
+      const opRow = txsToUse.find((tx) =>
         tx.description.toLowerCase().includes("opening balance")
       );
       if (opRow) {
         openingBalance = parseFloat(String(opRow.balance).replace(/,/g, "")) || 0;
       } else {
-        const firstWithBal = transactions.find(
+        const firstWithBal = txsToUse.find(
           (tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, "")))
         );
         if (firstWithBal) {
@@ -270,7 +453,7 @@ export default function AppPage() {
         }
       }
 
-      const lastWithBal = [...transactions]
+      const lastWithBal = [...txsToUse]
         .reverse()
         .find((tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, ""))));
       if (lastWithBal) {
@@ -287,12 +470,17 @@ export default function AppPage() {
       openingBalance,
       closingBalance,
     };
-  }, [transactions]);
+  }, [transactions, appState]);
+
+  const currentPricing = useMemo(() => {
+    if (!extractionMeta) return null;
+    return getPrice(extractionMeta);
+  }, [extractionMeta]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
       {/* Top Navbar */}
-      <nav className="flex items-center h-14 px-4 bg-white border-b border-slate-200 gap-3 flex-shrink-0">
+      <nav className="flex items-center h-14 px-4 bg-white border-b border-slate-200 gap-3 flex-shrink-0 relative z-10">
         {/* Logo */}
         <Link
           href="/"
@@ -365,19 +553,19 @@ export default function AppPage() {
             </button>
           </div>
         ) : (
-          <Link
-            href="/auth/login"
+          <button
+            onClick={() => setShowLoginModal(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600
               hover:text-primary-600 transition-colors ml-2"
           >
             <User size={16} />
             <span className="hidden sm:inline">Sign in</span>
-          </Link>
+          </button>
         )}
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
         {appState === "upload" && (
           <UploadZone onFileSelect={handleFileSelect} isCollapsed={false} />
         )}
@@ -387,8 +575,10 @@ export default function AppPage() {
             fileName={fileName}
             currentStep={processingStep}
           />
-        )}        {appState === "spreadsheet" && (
-          <div className="h-full p-4 flex flex-col overflow-hidden">
+        )}        
+        
+        {(appState === "preview" || appState === "spreadsheet") && (
+          <div className="h-full p-4 flex flex-col overflow-hidden relative">
             {/* Dynamic Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4 flex-shrink-0">
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-primary-200">
@@ -422,21 +612,68 @@ export default function AppPage() {
             </div>
 
             {/* Grid */}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 relative">
               <Spreadsheet
-                transactions={transactions}
-                bankDetected={bankDetected}
-                isGhostMode={false}
+                transactions={appState === "preview" ? previewTransactions : transactions}
+                bankDetected={appState === "preview" ? "Preview Mode" : bankDetected}
+                isGhostMode={appState === "preview"}
                 onTransactionsChange={handleTransactionsChange}
                 sheets={sheets}
                 activeSheetId={activeSheetId}
                 onSheetsChange={setSheets}
                 onActiveSheetIdChange={setActiveSheetId}
               />
+              
+              {/* Inline Payment Overlay for preview mode */}
+              {appState === "preview" && (
+                <div className="absolute bottom-0 left-0 right-0 h-[300px] z-[30] bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-end pb-8">
+                  <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md text-center mx-4">
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">Preview Ready</h3>
+                    <p className="text-sm text-slate-500 mb-5">
+                      We've extracted a preview from your {extractionMeta?.pages || 0} page document. 
+                      Unlock the full conversion to access all data and export options.
+                    </p>
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                      <span className="text-sm font-medium text-slate-600">Conversion Price</span>
+                      <span className="text-xl font-bold text-slate-800">
+                        ${currentPricing?.priceUSD.toFixed(2)} <span className="text-xs text-slate-500">USD</span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={handlePayAndUnlock}
+                      disabled={isProcessingPayment || isConverting}
+                      className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-medium transition-all shadow-sm shadow-primary-600/20 disabled:opacity-70"
+                    >
+                      {isProcessingPayment || isConverting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Processing...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                          <span>Pay & Unlock Full Conversion</span>
+                        </>
+                      )}
+                    </button>
+                    <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                      <span>Secure payment via Razorpay</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </main>
+
+      {/* Login Modal for Auth flow */}
+      <LoginModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
 
       {/* Export Modal */}
       <ExportModal
