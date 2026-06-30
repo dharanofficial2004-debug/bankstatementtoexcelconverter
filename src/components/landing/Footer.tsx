@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="flex gap-16">
+          <div className="flex flex-wrap gap-12 md:gap-16">
             <div>
               <h4 className="text-sm font-semibold text-slate-800 mb-3">
                 Product
@@ -45,6 +45,76 @@ export default function Footer() {
                   className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
                 >
                   Try Free
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-slate-800 mb-3">
+                Indian Banks
+              </h4>
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/banks/in/hdfc-bank"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  HDFC Bank
+                </Link>
+                <Link
+                  href="/banks/in/sbi-bank"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  SBI Bank
+                </Link>
+                <Link
+                  href="/banks/in/icici-bank"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  ICICI Bank
+                </Link>
+                <Link
+                  href="/banks/in/axis-bank"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  Axis Bank
+                </Link>
+                <Link
+                  href="/banks/in"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  View all banks →
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-slate-800 mb-3">
+                Français
+              </h4>
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/fr"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  Accueil
+                </Link>
+                <Link
+                  href="/fr/convertisseur-releve-bancaire-excel"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  Convertisseur Excel
+                </Link>
+                <Link
+                  href="/fr/releve-bancaire-csv"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  Relevé Bancaire CSV
+                </Link>
+                <Link
+                  href="/fr"
+                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  Voir tout →
                 </Link>
               </div>
             </div>
