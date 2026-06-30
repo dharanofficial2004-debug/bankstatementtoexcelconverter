@@ -106,6 +106,24 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-D1BQKKX3CJ"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-D1BQKKX3CJ');
+            `,
+          }}
+        />
+      </head>
       <body className="antialiased">
         <script
           type="application/ld+json"
