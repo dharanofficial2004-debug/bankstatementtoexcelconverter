@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "PDF Relevé Bancaire vers Excel — Convertisseur Gratuit",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Transformer un <strong>PDF relevé bancaire vers Excel</strong> demande souvent des compétences techniques ou des logiciels coûteux. Nous avons démocratisé ce processus.</p>\n          <p className="text-slate-600 mb-4">Notre solution de <strong>PDF relevé bancaire vers Excel</strong> est conçue pour être intuitive. Vous téléchargez le document et, instantanément, les données s'affichent sous forme de grille interactive.</p>\n          <p className="text-slate-600 mb-4">La fiabilité de notre outil de <strong>PDF relevé bancaire vers Excel</strong> en fait le choix privilégié des TPE et PME françaises pour digitaliser leur comptabilité.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

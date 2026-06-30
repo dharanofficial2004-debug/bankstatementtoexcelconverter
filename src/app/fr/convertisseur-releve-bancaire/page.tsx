@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Convertisseur Relevé Bancaire — PDF vers Excel et CSV Gratuit",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Un bon <strong>convertisseur relevé bancaire</strong> fait toute la différence lors de la clôture mensuelle. Fini le stress de la saisie et les erreurs de frappe !</p>\n          <p className="text-slate-600 mb-4">Nous avons développé le <strong>convertisseur relevé bancaire</strong> le plus puissant et le plus simple d'utilisation pour le marché francophone. Il comprend les subtilités des formats des banques comme LCL ou Banque Populaire.</p>\n          <p className="text-slate-600 mb-4">N'attendez plus pour tester notre <strong>convertisseur relevé bancaire</strong>. L'interface d'édition intégrée agit comme un véritable tableur, vous offrant flexibilité et rapidité.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

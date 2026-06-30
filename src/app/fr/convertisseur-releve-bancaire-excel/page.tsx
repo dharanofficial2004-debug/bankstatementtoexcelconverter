@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Convertisseur Relevé Bancaire Excel — Gratuit et Instantané",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Le <strong>convertisseur relevé bancaire Excel</strong> est l'outil indispensable pour simplifier votre comptabilité. En France, de nombreux professionnels perdent des heures à recopier manuellement les transactions depuis un fichier PDF vers une feuille de calcul. Notre outil automatise entièrement ce processus.</p>\n          <p className="text-slate-600 mb-4">Grâce à notre <strong>convertisseur relevé bancaire Excel</strong>, vous pouvez extraire vos données instantanément et avec une précision inégalée. Que vous soyez un expert-comptable cherchant à optimiser son temps ou un particulier gérant ses finances, cet outil s'adapte à vos besoins.</p>\n          <p className="text-slate-600 mb-4">L'un des plus grands avantages de notre <strong>convertisseur relevé bancaire Excel</strong> est la possibilité de prévisualiser et de modifier les données avant même de générer le fichier final. Vous gardez ainsi le contrôle total sur vos données financières.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

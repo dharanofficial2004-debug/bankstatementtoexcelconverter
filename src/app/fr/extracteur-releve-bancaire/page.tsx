@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Extracteur Relevé Bancaire — Extrayez vos Transactions en Excel",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">L'utilisation d'un <strong>extracteur relevé bancaire</strong> performant est essentielle pour l'automatisation comptable. L'extraction est toujours supérieure au simple copier-coller, qui désorganise souvent les colonnes.</p>\n          <p className="text-slate-600 mb-4">Notre <strong>extracteur relevé bancaire</strong> s'appuie sur des algorithmes d'intelligence artificielle pour comprendre la structure du document, même si celle-ci varie d'une page à l'autre. La précision de l'extraction garantit des chiffres justes pour votre bilan.</p>\n          <p className="text-slate-600 mb-4">Faites confiance à notre <strong>extracteur relevé bancaire</strong> pour récupérer vos transactions sans faille et exporter le tout vers un format standardisé et universel.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

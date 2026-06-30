@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "__TITLE__",
@@ -110,6 +111,8 @@ export default function Page() {
           __CONTENT__
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

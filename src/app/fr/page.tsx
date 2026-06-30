@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Convertisseur Relevé Bancaire Excel Gratuit — Aperçu Éditable En Direct",
@@ -132,6 +133,8 @@ export default function FrenchHomePage() {
           </p>
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

@@ -5,6 +5,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Testimonials from "@/components/landing/Testimonials";
 import Footer from "@/components/landing/Footer";
+import PseoLinks from "@/components/landing/PseoLinks";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <HowItWorks />
       <BanksList />
       <Testimonials />
+      <PseoLinks />
       <Footer />
     </div>
   );

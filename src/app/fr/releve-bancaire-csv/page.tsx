@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Relevé Bancaire CSV — Convertisseur PDF vers CSV Gratuit",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Pourquoi convertir votre <strong>relevé bancaire CSV</strong> plutôt qu'en Excel ? Le format CSV est la norme d'importation de la majorité des logiciels de comptabilité français comme Pennylane, Sage ou Cegid.</p>\n          <p className="text-slate-600 mb-4">En transformant votre <strong>relevé bancaire CSV</strong>, vous vous assurez d'une compatibilité maximale pour l'import de vos flux bancaires. Notre outil structure le fichier CSV avec les délimiteurs standards (virgules ou points-virgules) appropriés.</p>\n          <p className="text-slate-600 mb-4">Que vous soyez dirigeant d'entreprise ou comptable, générer un <strong>relevé bancaire CSV</strong> depuis un PDF vous fera gagner de précieuses heures de pointage manuel chaque mois.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

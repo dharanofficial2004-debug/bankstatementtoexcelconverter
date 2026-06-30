@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Convertisseur PDF Relevé Bancaire — Outil Gratuit En Ligne",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Il est temps d'adopter un <strong>convertisseur PDF relevé bancaire</strong> fiable. Les documents PDF, bien que parfaits pour la consultation, sont inexploitables pour l'analyse de données.</p>\n          <p className="text-slate-600 mb-4">C'est là qu'intervient notre <strong>convertisseur PDF relevé bancaire</strong>. En quelques clics, il libère vos données financières de leur carcan numérique et les rend dynamiques et manipulables.</p>\n          <p className="text-slate-600 mb-4">Essayez ce <strong>convertisseur PDF relevé bancaire</strong> gratuit aujourd'hui. Il deviendra rapidement un outil incontournable de votre boîte à outils administrative.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

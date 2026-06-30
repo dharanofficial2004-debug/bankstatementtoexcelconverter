@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Relevé Bancaire vers Excel — Conversion Instantanée Gratuite",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Le passage d'un <strong>relevé bancaire vers Excel</strong> est une étape cruciale pour toute analyse financière sérieuse. Que ce soit pour un audit ou pour la gestion de trésorerie, avoir des données structurées est indispensable.</p>\n          <p className="text-slate-600 mb-4">Notre outil de transformation de <strong>relevé bancaire vers Excel</strong> vous assure un résultat propre et prêt à l'emploi. Vous pourrez immédiatement appliquer vos filtres, formules et tableaux croisés dynamiques habituels.</p>\n          <p className="text-slate-600 mb-4">Ne perdez plus de temps avec la saisie manuelle. La transition d'un <strong>relevé bancaire vers Excel</strong> se fait désormais en un seul clic, en toute sécurité.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>

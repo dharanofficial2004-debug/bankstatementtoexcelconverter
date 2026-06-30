@@ -5,6 +5,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
+import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
 
 export const metadata: Metadata = {
   title: "Convertir Relevé Bancaire en Excel — Outil Gratuit En Ligne",
@@ -110,6 +111,8 @@ export default function Page() {
           <p className="text-slate-600 mb-4">Vous cherchez à <strong>convertir relevé bancaire en Excel</strong> ? Vous avez trouvé la solution la plus rapide du marché. De la préparation des déclarations fiscales au simple suivi de budget, la nécessité de manipuler des données bancaires est omniprésente.</p>\n          <p className="text-slate-600 mb-4">Pour <strong>convertir relevé bancaire en Excel</strong>, notre algorithme intelligent identifie automatiquement les colonnes (date, libellé, débit, crédit) spécifiques aux banques françaises comme le Crédit Mutuel ou la Caisse d'Épargne.</p>\n          <p className="text-slate-600 mb-4">Il n'a jamais été aussi facile de <strong>convertir relevé bancaire en Excel</strong>. Téléchargez votre PDF, vérifiez le résultat dans notre tableur intégré, et téléchargez votre fichier parfaitement formaté.</p>\n
         </div>
       </section>
+
+      <FrenchPseoLinks />
 
       <Footer />
     </div>
