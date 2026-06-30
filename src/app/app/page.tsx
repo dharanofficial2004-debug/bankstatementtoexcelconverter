@@ -470,7 +470,7 @@ export default function AppPage() {
       openingBalance,
       closingBalance,
     };
-  }, [transactions, appState]);
+  }, [transactions, appState, previewTransactions]);
 
   const currentPricing = useMemo(() => {
     if (!extractionMeta) return null;

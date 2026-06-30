@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { indianBanks } from "@/lib/indianBanks";
+
 
 export default function PseoLinks() {
   const frenchPages = [
