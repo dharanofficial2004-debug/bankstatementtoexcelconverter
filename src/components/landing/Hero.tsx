@@ -77,6 +77,19 @@ export default function Hero({
             </div>
           ))}
         </div>
+
+        {/* Product Hunt Badge */}
+        <div className="mt-8 flex justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+          <a href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel" target="_blank" rel="noopener noreferrer">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt" 
+              width="250" 
+              height="54" 
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880" 
+            />
+          </a>
+        </div>
       </div>
     </section>
   );
