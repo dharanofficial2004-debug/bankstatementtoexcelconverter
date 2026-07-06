@@ -14,6 +14,7 @@ const defaultBanks = [
   "Zenith Bank",
   "Wells Fargo",
   "Bank of America",
+  "South Indian Bank",
 ];
 
 interface BanksListProps {

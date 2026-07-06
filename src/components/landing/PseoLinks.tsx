@@ -34,7 +34,8 @@ export default function PseoLinks() {
     { slug: "idfc-first-bank", title: "IDFC First Bank" },
     { slug: "federal-bank", title: "Federal Bank" },
     { slug: "bandhan-bank", title: "Bandhan Bank" },
-    { slug: "rbl-bank", title: "RBL Bank" }
+    { slug: "rbl-bank", title: "RBL Bank" },
+    { slug: "south-indian-bank", title: "South Indian Bank" }
   ];
 
   return (
