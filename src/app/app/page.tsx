@@ -158,7 +158,11 @@ export default function AppPage() {
         // Generate Real Preview Data
         setProcessingStep(2);
         try {
-          const tinyText = text.substring(0, 1500); 
+          // Sniff for the first date-like string to skip headers
+          const dateRegex = /(?:\d{1,4}[./-]\d{1,2}[./-]\d{1,4})|(?:\d{1,2}[\s./-]+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s./-]+\d{2,4})/i;
+          const match = text.match(dateRegex);
+          const startIndex = match?.index !== undefined ? Math.max(0, match.index - 200) : 0;
+          const tinyText = text.substring(startIndex, startIndex + 2500);
           const previewRes = await fetch("/api/parse-bank-statement", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
