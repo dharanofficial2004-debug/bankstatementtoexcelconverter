@@ -1,7 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { createClient } from "@supabase/supabase-js";
+
+// Service-role client for writing token_usage (bypasses RLS)
+const supabaseAdmin =
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    )
+    : null;
+
+async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
+  try {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ") || !supabaseAdmin) return null;
+    const token = authHeader.slice(7);
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+    return user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
+  const userId = await getUserIdFromRequest(request);
   try {
     const { text } = await request.json();
     if (!text || typeof text !== "string") {
@@ -12,7 +35,8 @@ export async function POST(request: NextRequest) {
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
+    // "gpt-4.1-mini";
 
     if (!apiKey) {
       console.error("OpenAI API Key is missing");
@@ -71,7 +95,7 @@ Output format:
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
             ],
-            temperature: 0.0,
+            temperature: 1,
           }),
         });
 
@@ -89,14 +113,29 @@ Output format:
         // Calculate and log stats
         const inputWords = (systemPrompt + " " + userPrompt).split(/\s+/).filter(Boolean).length;
         const outputWords = content.split(/\s+/).filter(Boolean).length;
-        const inputTokens = data.usage?.prompt_tokens || 0;
-        const outputTokens = data.usage?.completion_tokens || 0;
+        const inputTokens: number = data.usage?.prompt_tokens || 0;
+        const outputTokens: number = data.usage?.completion_tokens || 0;
 
         console.log(`OpenAI API Usage Stats (Attempt ${attempts}):`);
         console.log(`- Input Words: ${inputWords}`);
         console.log(`- Output Words: ${outputWords}`);
         console.log(`- Input Tokens: ${inputTokens}`);
         console.log(`- Output Tokens: ${outputTokens}`);
+
+        // Persist token usage to Supabase (fire-and-forget)
+        if (supabaseAdmin && (inputTokens > 0 || outputTokens > 0)) {
+          supabaseAdmin
+            .from("token_usage")
+            .insert({
+              user_id: userId ?? null,
+              model,
+              input_tokens: inputTokens,
+              output_tokens: outputTokens,
+            })
+            .then(({ error: dbErr }) => {
+              if (dbErr) console.warn("token_usage insert failed:", dbErr.message);
+            });
+        }
 
         // Clean any markdown wrapper if present
         let cleanedContent = content;
@@ -133,7 +172,7 @@ Output format:
         parsedResponse.transactions = parsedResponse.transactions.map((tx: RawTransactionInput, idx: number) => {
           const date = tx.date || "";
           const description = tx.description || `Transaction ${idx + 1}`;
-          
+
           let debitVal = typeof tx.debit === "number" ? tx.debit : parseFloat(String(tx.debit || "0").replace(/,/g, "")) || 0;
           let creditVal = typeof tx.credit === "number" ? tx.credit : parseFloat(String(tx.credit || "0").replace(/,/g, "")) || 0;
           const balanceVal = typeof tx.balance === "number" ? tx.balance : parseFloat(String(tx.balance || "0").replace(/,/g, "")) || 0;

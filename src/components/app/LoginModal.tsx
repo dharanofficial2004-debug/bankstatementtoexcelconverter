@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Shield, Loader2 } from "lucide-react";
+import { X, Mail, Lock, Eye, EyeOff, Shield, Loader2, UserPlus, LogIn } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface LoginModalProps {
@@ -10,33 +10,36 @@ interface LoginModalProps {
   onLoginSuccess: () => void;
 }
 
-export default function LoginModal({
-  isOpen,
-  onClose,
-  onLoginSuccess,
-}: LoginModalProps) {
+type Tab = "signup" | "signin";
+
+export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
+  const [tab, setTab] = useState<Tab>("signup");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!isOpen || !isSupabaseConfigured() || !supabase) return;
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        onLoginSuccess();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [isOpen, onLoginSuccess]);
 
   if (!isOpen) return null;
 
-  const handleSendMagicLink = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setError(null);
+    setShowPassword(false);
+    setShowConfirm(false);
+  };
+
+  const switchTab = (t: Tab) => {
+    setTab(t);
+    resetForm();
+  };
+
+  /* ── Sign Up ──────────────────────────────────────────── */
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -44,29 +47,89 @@ export default function LoginModal({
       setError("Please enter a valid email address.");
       return;
     }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
 
+    // Demo / no-Supabase mode
     if (!isSupabaseConfigured() || !supabase) {
       onLoginSuccess();
       return;
     }
 
     setIsLoading(true);
-
     try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/app`,
-        },
-      });
+      const { data, error: authError } = await supabase.auth.signUp({ email, password });
 
       if (authError) {
         setError(authError.message);
+        return;
+      }
+
+      // If Supabase returns a session immediately (email confirm disabled), log in
+      if (data.session) {
+        onLoginSuccess();
+        return;
+      }
+
+      // If email confirmation is enabled, try signing in anyway
+      // (works when "Confirm email" is OFF in Supabase dashboard)
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (!signInError) {
+        onLoginSuccess();
       } else {
-        setIsSent(true);
+        // Confirmation required – tell the user
+        setError("Account created! Please check your email to confirm, then sign in.");
+        setTab("signin");
       }
     } catch {
-      setError("Failed to send magic link. Please try again.");
+      setError("Sign up failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /* ── Sign In ──────────────────────────────────────────── */
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    // Demo / no-Supabase mode
+    if (!isSupabaseConfigured() || !supabase) {
+      onLoginSuccess();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (authError) {
+        if (authError.message.toLowerCase().includes("invalid")) {
+          setError("Incorrect email or password.");
+        } else {
+          setError(authError.message);
+        }
+        return;
+      }
+
+      onLoginSuccess();
+    } catch {
+      setError("Sign in failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -82,99 +145,236 @@ export default function LoginModal({
 
       {/* Modal */}
       <div className="relative w-full max-w-md mx-4 animate-slide-up">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          {/* Close button */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          {/* Close */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 z-10"
           >
             <X size={20} />
           </button>
 
-          {!isSent ? (
-            <>
-              {/* Header */}
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary-50 flex items-center justify-center">
-                  <Mail size={28} className="text-primary-600" />
-                </div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">
-                  Sign in to continue
-                </h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  Create a free account to unlock your conversion.
-                  <br />
-                  We&apos;ll send a magic link — no password needed.
-                </p>
-              </div>
+          {/* Tab Bar */}
+          <div className="flex border-b border-slate-100">
+            <button
+              onClick={() => switchTab("signup")}
+              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
+                tab === "signup"
+                  ? "text-primary-600 border-b-2 border-primary-600 bg-primary-50/40"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <UserPlus size={15} />
+              Sign Up
+            </button>
+            <button
+              onClick={() => switchTab("signin")}
+              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
+                tab === "signin"
+                  ? "text-primary-600 border-b-2 border-primary-600 bg-primary-50/40"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <LogIn size={15} />
+              Sign In
+            </button>
+          </div>
 
-              {/* Form */}
-              <form onSubmit={handleSendMagicLink} className="space-y-4">
-                <div>
+          <div className="p-8">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary-50 flex items-center justify-center">
+                {tab === "signup" ? (
+                  <UserPlus size={24} className="text-primary-600" />
+                ) : (
+                  <LogIn size={24} className="text-primary-600" />
+                )}
+              </div>
+              {tab === "signup" ? (
+                <>
+                  <h2 className="text-xl font-bold text-slate-900 mb-1">Create your account</h2>
+                  <p className="text-sm text-slate-500">
+                    Your first conversion is <span className="font-semibold text-emerald-600">free 🎉</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold text-slate-900 mb-1">Welcome back</h2>
+                  <p className="text-sm text-slate-500">Sign in to download your Excel file</p>
+                </>
+              )}
+            </div>
+
+            {/* Sign Up Form */}
+            {tab === "signup" && (
+              <form onSubmit={handleSignUp} className="space-y-3">
+                {/* Email */}
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="signup-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     autoFocus
-                    className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl
+                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                       placeholder:text-slate-400"
                   />
                 </div>
 
+                {/* Password */}
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password (min. 6 characters)"
+                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                      placeholder:text-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="signup-confirm-password"
+                    type={showConfirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm password"
+                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                      placeholder:text-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+
                 {error && (
-                  <p className="text-sm text-error-600 bg-error-50 px-3 py-2 rounded-lg">
-                    {error}
-                  </p>
+                  <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
                 )}
 
                 <button
+                  id="signup-submit"
                   type="submit"
                   disabled={isLoading}
-                  className="btn-primary w-full"
+                  className="btn-primary w-full mt-1"
                 >
                   {isLoading ? (
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
-                    "Send Magic Link"
+                    "Create Account & Download Free"
                   )}
                 </button>
-              </form>
 
-              {/* Reassurance */}
-              <div className="mt-6 space-y-2">
-                <p className="text-xs text-center text-slate-400">
-                  Takes 10 seconds. No password. No credit card.
+                <p className="text-xs text-center text-slate-400 mt-2">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => switchTab("signin")}
+                    className="text-primary-600 hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
                 </p>
-                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
-                  <Shield size={12} />
-                  <span>Your data stays private</span>
+              </form>
+            )}
+
+            {/* Sign In Form */}
+            {tab === "signin" && (
+              <form onSubmit={handleSignIn} className="space-y-3">
+                {/* Email */}
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="signin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    autoFocus
+                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                      placeholder:text-slate-400"
+                  />
                 </div>
-              </div>
-            </>
-          ) : (
-            /* Success State */
-            <div className="text-center py-4">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-success-50 flex items-center justify-center">
-                <Mail size={28} className="text-success-600" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                Check your email
-              </h2>
-              <p className="text-sm text-slate-500 mb-1">
-                We sent a magic link to
-              </p>
-              <p className="text-sm font-semibold text-slate-800 mb-4">
-                {email}
-              </p>
-              <p className="text-sm text-slate-500">
-                Click the link in your email to sign in.
-                <br />
-                Payment will open automatically after login.
-              </p>
+
+                {/* Password */}
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="signin-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                      placeholder:text-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+                )}
+
+                <button
+                  id="signin-submit"
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full mt-1"
+                >
+                  {isLoading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    "Sign In & Download"
+                  )}
+                </button>
+
+                <p className="text-xs text-center text-slate-400 mt-2">
+                  New here?{" "}
+                  <button
+                    type="button"
+                    onClick={() => switchTab("signup")}
+                    className="text-primary-600 hover:underline font-medium"
+                  >
+                    Create a free account
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {/* Trust badges */}
+            <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+              <Shield size={12} />
+              <span>Your data stays private. No credit card required.</span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

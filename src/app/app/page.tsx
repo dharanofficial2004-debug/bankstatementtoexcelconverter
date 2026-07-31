@@ -7,10 +7,9 @@ import UploadZone from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
 
 const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr: false });
-const ExportModal = dynamic(() => import("@/components/app/ExportModal"), { ssr: false });
 const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 import { useToast } from "@/components/ui/Toast";
-import { Transaction, ConvertResponse, GHOST_DATA } from "@/lib/types";
+import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getPrice, DocumentMetrics } from "@/lib/pricing";
 import {
@@ -19,6 +18,7 @@ import {
   FileDown,
   User,
   LogOut,
+  Lock,
 } from "lucide-react";
 
 // Add Razorpay window typing
@@ -29,7 +29,7 @@ declare global {
   }
 }
 
-type AppState = "upload" | "processing" | "preview" | "spreadsheet";
+type AppState = "upload" | "processing" | "spreadsheet";
 
 interface Sheet {
   id: string;
@@ -51,20 +51,19 @@ export default function AppPage() {
   } | null>(null);
 
   const [fileName, setFileName] = useState("");
-  const [exportModalOpen, setExportModalOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"csv" | "xlsx" | "json">("csv");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<number>(0);
   const { showToast } = useToast();
 
-  // Payment flow state
+  // Payment / usage flow state
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [extractionMeta, setExtractionMeta] = useState<DocumentMetrics | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [previewTransactions, setPreviewTransactions] = useState<Transaction[]>([]);
+  const [conversionsUsed, setConversionsUsed] = useState<number | null>(null);
+  const [pendingExportFormat, setPendingExportFormat] = useState<"csv" | "xlsx" | "json" | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const activeSheet = useMemo(() => {
     return sheets.find((s) => s.id === activeSheetId) || null;
@@ -80,6 +79,19 @@ export default function AppPage() {
     );
   }, [activeSheetId]);
 
+  // Fetch conversions_used for the current user
+  const fetchUserUsage = useCallback(async (accessToken: string) => {
+    try {
+      const res = await fetch("/api/usage/get", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const data = await res.json();
+      setConversionsUsed(data.conversions_used ?? 0);
+    } catch {
+      setConversionsUsed(0);
+    }
+  }, []);
+
   // Check auth state
   React.useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) return;
@@ -88,6 +100,7 @@ export default function AppPage() {
       if (session) {
         setIsAuthenticated(true);
         setUserEmail(session.user.email || null);
+        fetchUserUsage(session.access_token);
       }
     });
 
@@ -96,10 +109,12 @@ export default function AppPage() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
       setUserEmail(session?.user.email || null);
+      if (session) fetchUserUsage(session.access_token);
+      else setConversionsUsed(null);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUserUsage]);
 
   const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
     // Dynamically import PDF.js as an ES module natively in the browser, bypassing Webpack parsing.
@@ -143,63 +158,42 @@ export default function AppPage() {
     async (file: File) => {
       setFileName(file.name);
       setAppState("processing");
-      setProcessingStep(0); // Uploading PDF...
+      setProcessingStep(0);
 
       try {
-        // Step 1: Extract PDF text locally
-        setProcessingStep(1); // Extracting text...
+        setProcessingStep(1);
         const { text, pages } = await extractPdfText(file);
-
-        // Step 2: Calculate metrics
         const words = text.split(/\s+/).filter(Boolean).length;
         const characters = text.length;
-
         setExtractedText(text);
         setExtractionMeta({ pages, words, characters });
-        
-        // Generate Real Preview Data
-        setProcessingStep(2);
-        try {
-          // Sniff for the first date-like string to skip headers
-          const dateRegex = /(?:\d{1,4}[./-]\d{1,2}[./-]\d{1,4})|(?:\d{1,2}[\s./-]+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s./-]+\d{2,4})/i;
-          const match = text.match(dateRegex);
-          const startIndex = match?.index !== undefined ? Math.max(0, match.index - 200) : 0;
-          const tinyText = text.substring(startIndex, startIndex + 2500);
-          const previewRes = await fetch("/api/parse-bank-statement", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: tinyText }),
-          });
-          if (previewRes.ok) {
-            const previewData = await previewRes.json();
-            if (previewData.success && previewData.transactions) {
-              setPreviewTransactions(previewData.transactions.slice(0, 6)); 
-            }
-          }
-        } catch (e) {
-          console.error("Preview generation failed:", e);
-        }
-
-        // Show preview instead of going directly to AI
-        setAppState("preview");
-
+        // Run full AI conversion immediately — no partial preview
+        await startAIConversion(text);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
         showToast(errorMsg, "error");
         setAppState("upload");
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [showToast, extractPdfText]
   );
 
   const startAIConversion = async (text: string) => {
-    setIsConverting(true);
     setProcessingStep(2); // Analyzing with AI...
     
     try {
+      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          fetchHeaders["Authorization"] = `Bearer ${session.access_token}`;
+        }
+      }
+
       const response = await fetch("/api/parse-bank-statement", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: fetchHeaders,
         body: JSON.stringify({ text }),
       });
 
@@ -241,7 +235,7 @@ export default function AppPage() {
       showToast(errorMsg, "error");
       setAppState("upload");
     } finally {
-      setIsConverting(false);
+      // conversion complete
     }
   };
 
@@ -345,6 +339,74 @@ export default function AppPage() {
     }
   };
 
+  const handleLoginSuccess = useCallback(() => {
+    setShowLoginModal(false);
+    setIsAuthenticated(true);
+    supabase?.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUserEmail(session.user.email || null);
+        fetchUserUsage(session.access_token).then(() => {
+          // Re-trigger the pending export after login
+          if (pendingExportFormat) {
+            const fmt = pendingExportFormat;
+            setPendingExportFormat(null);
+            // Give state time to update
+            setTimeout(() => handleExportAfterAuth(fmt, session.access_token), 100);
+          }
+        });
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchUserUsage, pendingExportFormat]);
+
+  const handleExportAfterAuth = async (format: "csv" | "xlsx" | "json", accessToken: string) => {
+    // Re-fetch latest usage to ensure freshness
+    let used = conversionsUsed ?? 0;
+    try {
+      const res = await fetch("/api/usage/get", { headers: { Authorization: `Bearer ${accessToken}` } });
+      const d = await res.json();
+      used = d.conversions_used ?? 0;
+      setConversionsUsed(used);
+    } catch { /* use cached value */ }
+
+    if (used >= 1) {
+      setShowPaywall(true);
+    } else {
+      await performExport(format);
+      // Increment usage counter
+      try {
+        await fetch("/api/usage/increment", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setConversionsUsed(1);
+      } catch { /* non-critical */ }
+      showToast("Your first conversion is free 🎉", "success");
+    }
+  };
+
+  const handleExport = useCallback(
+    async (format: "csv" | "xlsx" | "json") => {
+      if (!isAuthenticated || !isSupabaseConfigured()) {
+        // Not logged in — show auth modal, remember format
+        setPendingExportFormat(format);
+        setShowLoginModal(true);
+        return;
+      }
+
+      const { data: { session } } = await supabase!.auth.getSession();
+      if (!session) {
+        setPendingExportFormat(format);
+        setShowLoginModal(true);
+        return;
+      }
+
+      await handleExportAfterAuth(format, session.access_token);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isAuthenticated, conversionsUsed, transactions, sheets]
+  );
+
   const handlePayAndUnlock = () => {
     if (!isAuthenticated) {
       setShowLoginModal(true);
@@ -352,32 +414,6 @@ export default function AppPage() {
       initRazorpayPayment();
     }
   };
-
-  const handleLoginSuccess = () => {
-    setShowLoginModal(false);
-    setIsAuthenticated(true);
-    // After successful login, check session and initiate payment
-    supabase?.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUserEmail(session.user.email || null);
-        initRazorpayPayment();
-      }
-    });
-  };
-
-  const handleExport = useCallback(
-    (format: "csv" | "xlsx" | "json") => {
-      if (!isAuthenticated && isSupabaseConfigured()) {
-        setExportFormat(format);
-        setExportModalOpen(true);
-        return;
-      }
-
-      performExport(format);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, transactions, sheets]
-  );
 
   const performExport = async (format: "csv" | "xlsx" | "json") => {
     try {
@@ -408,7 +444,6 @@ export default function AppPage() {
       URL.revokeObjectURL(url);
 
       showToast(`Downloaded successfully ✓`, "success");
-      setExportModalOpen(false);
     } catch {
       showToast("Export failed. Please try again.", "error");
     }
@@ -425,30 +460,27 @@ export default function AppPage() {
 
   // Calculate dynamic stats
   const summary = useMemo(() => {
-    const txsToUse = appState === "preview" 
-      ? (previewTransactions.length > 0 ? previewTransactions : GHOST_DATA) 
-      : transactions;
-    const totalTransactions = txsToUse.length;
+    const totalTransactions = transactions.length;
     let totalDebit = 0;
     let totalCredit = 0;
     let openingBalance = 0;
     let closingBalance = 0;
 
-    txsToUse.forEach((tx) => {
+    transactions.forEach((tx) => {
       const debitVal = parseFloat(String(tx.debit).replace(/,/g, "")) || 0;
       const creditVal = parseFloat(String(tx.credit).replace(/,/g, "")) || 0;
       totalDebit += debitVal;
       totalCredit += creditVal;
     });
 
-    if (txsToUse.length > 0) {
-      const opRow = txsToUse.find((tx) =>
+    if (transactions.length > 0) {
+      const opRow = transactions.find((tx) =>
         tx.description.toLowerCase().includes("opening balance")
       );
       if (opRow) {
         openingBalance = parseFloat(String(opRow.balance).replace(/,/g, "")) || 0;
       } else {
-        const firstWithBal = txsToUse.find(
+        const firstWithBal = transactions.find(
           (tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, "")))
         );
         if (firstWithBal) {
@@ -459,7 +491,7 @@ export default function AppPage() {
         }
       }
 
-      const lastWithBal = [...txsToUse]
+      const lastWithBal = [...transactions]
         .reverse()
         .find((tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, ""))));
       if (lastWithBal) {
@@ -469,19 +501,8 @@ export default function AppPage() {
       }
     }
 
-    return {
-      totalTransactions,
-      totalDebit,
-      totalCredit,
-      openingBalance,
-      closingBalance,
-    };
-  }, [transactions, appState, previewTransactions]);
-
-  const currentPricing = useMemo(() => {
-    if (!extractionMeta) return null;
-    return getPrice(extractionMeta);
-  }, [extractionMeta]);
+    return { totalTransactions, totalDebit, totalCredit, openingBalance, closingBalance };
+  }, [transactions]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -583,9 +604,9 @@ export default function AppPage() {
           />
         )}        
         
-        {(appState === "preview" || appState === "spreadsheet") && (
+        {appState === "spreadsheet" && (
           <div className="h-full p-4 flex flex-col overflow-hidden relative">
-            {/* Dynamic Summary Cards */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4 flex-shrink-0">
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-primary-200">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Transactions</p>
@@ -617,77 +638,68 @@ export default function AppPage() {
               </div>
             </div>
 
-            {/* Grid */}
-            <div className="flex-1 min-h-0 relative">
+            {/* Spreadsheet Grid */}
+            <div className="flex-1 min-h-0">
               <Spreadsheet
-                transactions={appState === "preview" ? previewTransactions : transactions}
-                bankDetected={appState === "preview" ? "Preview Mode" : bankDetected}
-                isGhostMode={appState === "preview"}
+                transactions={transactions}
+                bankDetected={bankDetected}
+                isGhostMode={false}
                 onTransactionsChange={handleTransactionsChange}
                 sheets={sheets}
                 activeSheetId={activeSheetId}
                 onSheetsChange={setSheets}
                 onActiveSheetIdChange={setActiveSheetId}
               />
-              
-              {/* Inline Payment Overlay for preview mode */}
-              {appState === "preview" && (
-                <div className="absolute bottom-0 left-0 right-0 h-[300px] z-[30] bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-end pb-8">
-                  <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md text-center mx-4">
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">Preview Ready</h3>
-                    <p className="text-sm text-slate-500 mb-5">
-                      We've extracted a preview from your {extractionMeta?.pages || 0} page document. 
-                      Unlock the full conversion to access all data and export options.
-                    </p>
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
-                      <span className="text-sm font-medium text-slate-600">Conversion Price</span>
-                      <span className="text-xl font-bold text-slate-800">
-                        ${currentPricing?.priceUSD.toFixed(2)} <span className="text-xs text-slate-500">USD</span>
-                      </span>
-                    </div>
-                    <button
-                      onClick={handlePayAndUnlock}
-                      disabled={isProcessingPayment || isConverting}
-                      className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-medium transition-all shadow-sm shadow-primary-600/20 disabled:opacity-70"
-                    >
-                      {isProcessingPayment || isConverting ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>Processing...</span>
-                        </div>
-                      ) : (
-                        <>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                          <span>Pay & Unlock Full Conversion</span>
-                        </>
-                      )}
-                    </button>
-                    <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                      <span>Secure payment via Razorpay</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
       </main>
 
-      {/* Login Modal for Auth flow */}
-      <LoginModal 
+      {/* Auth Modal */}
+      <LoginModal
         isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
+        onClose={() => { setShowLoginModal(false); setPendingExportFormat(null); }}
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Export Modal */}
-      <ExportModal
-        isOpen={exportModalOpen}
-        onClose={() => setExportModalOpen(false)}
-        onExportDirect={() => performExport(exportFormat)}
-        format={exportFormat}
-      />
+      {/* Paywall Modal — shown when free limit reached */}
+      {showPaywall && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowPaywall(false)} />
+          <div className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 flex items-center justify-center">
+              <Lock size={28} className="text-amber-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Free limit reached</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Upgrade to continue converting bank statements without limits.
+            </p>
+            {extractionMeta && (
+              <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
+                <span className="text-sm font-medium text-slate-600">Conversion Price</span>
+                <span className="text-xl font-bold text-slate-800">
+                  ${getPrice(extractionMeta)?.priceUSD.toFixed(2)}{" "}
+                  <span className="text-xs text-slate-500">USD</span>
+                </span>
+              </div>
+            )}
+            <button
+              onClick={() => { setShowPaywall(false); handlePayAndUnlock(); }}
+              disabled={isProcessingPayment}
+              className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-medium transition-all shadow-sm disabled:opacity-70"
+            >
+              {isProcessingPayment ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span>Pay &amp; Unlock Conversion</span>
+              )}
+            </button>
+            <button onClick={() => setShowPaywall(false)} className="mt-3 text-xs text-slate-400 hover:text-slate-600">
+              Maybe later
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Merge/New Sheet Prompt Modal */}
       {pendingUploadData && (
