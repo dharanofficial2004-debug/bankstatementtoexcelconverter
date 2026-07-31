@@ -3,6 +3,14 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["pdf-parse", "pdfjs-dist", "pdfexcavator"],
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "api.producthunt.com",
+      },
+    ],
+  },
   async headers() {
     return [
       {

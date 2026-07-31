@@ -2,11 +2,13 @@
 
 import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import UploadZone from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
-import Spreadsheet from "@/components/app/Spreadsheet";
-import ExportModal from "@/components/app/ExportModal";
-import LoginModal from "@/components/app/LoginModal";
+
+const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr: false });
+const ExportModal = dynamic(() => import("@/components/app/ExportModal"), { ssr: false });
+const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, ConvertResponse, GHOST_DATA } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";

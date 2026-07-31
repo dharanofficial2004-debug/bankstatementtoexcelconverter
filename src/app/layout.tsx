@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bankstatementtoexcelconverter.com"),
@@ -137,7 +150,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className={`antialiased ${inter.variable} ${jetbrainsMono.variable}`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -145,7 +158,7 @@ export default function RootLayout({
         <ToastProvider>{children}</ToastProvider>
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </body>
     </html>
