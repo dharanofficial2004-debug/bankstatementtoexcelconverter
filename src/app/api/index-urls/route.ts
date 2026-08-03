@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { indianBanks } from "@/lib/indianBanks";
+import { usBanks } from "@/lib/usBanks";
 
 const BASE_URL = "https://bankstatementtoexcelconverter.com";
 
@@ -31,6 +32,10 @@ const ALL_PSEO_URLS: string[] = [
   // ── Indian Banks PSEO pages ────────────────────────────────────
   `${BASE_URL}/banks/in`,
   ...Object.keys(indianBanks).map((slug) => `${BASE_URL}/banks/in/${slug}`),
+
+  // ── US Banks PSEO pages ────────────────────────────────────────
+  `${BASE_URL}/banks/us`,
+  ...Object.keys(usBanks).map((slug) => `${BASE_URL}/banks/us/${slug}`),
 ];
 
 // ─── Google OAuth2 JWT helper (no external library needed) ────────────────────
@@ -144,12 +149,42 @@ async function submitUrl(
 
 export async function POST(request: NextRequest) {
   try {
-    // Require admin password to prevent public abuse
-    const { password, urls, section } = await request.json() as {
-      password: string;
-      urls?: string[];        // optional: pass specific URLs to index
-      section?: "all" | "fr" | "banks" | "main"; // or index by section
-    };
+    const rawBody = await request.text();
+    let payload: {
+      password?: string;
+      urls?: string[];
+      section?: "all" | "fr" | "banks" | "main";
+    } = {};
+
+    if (rawBody) {
+      const trimmedBody = rawBody.trim();
+
+      try {
+        payload = JSON.parse(trimmedBody) as typeof payload;
+      } catch {
+        try {
+          const formData = new URLSearchParams(trimmedBody);
+          payload = {
+            password: formData.get("password") ?? undefined,
+            section: (formData.get("section") as "all" | "fr" | "banks" | "main" | null) ?? undefined,
+            urls: formData.getAll("urls"),
+          };
+        } catch {
+          try {
+            const unquotedBody = trimmedBody.startsWith('"') && trimmedBody.endsWith('"')
+              ? trimmedBody.slice(1, -1)
+              : trimmedBody;
+            payload = JSON.parse(unquotedBody) as typeof payload;
+          } catch {
+            payload = {};
+          }
+        }
+      }
+    }
+
+    const password = typeof payload.password === "string" ? payload.password : "";
+    const urls = Array.isArray(payload.urls) ? payload.urls : undefined;
+    const section = payload.section;
 
     if (password !== process.env.ADMIN_PASSWORD && password !== "Dharan1424#$") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -164,10 +199,10 @@ export async function POST(request: NextRequest) {
     } else if (section === "fr") {
       targetUrls = ALL_PSEO_URLS.filter((u) => u.includes("/fr"));
     } else if (section === "banks") {
-      targetUrls = ALL_PSEO_URLS.filter((u) => u.includes("/banks/in"));
+      targetUrls = ALL_PSEO_URLS.filter((u) => u.includes("/banks/in") || u.includes("/banks/us"));
     } else if (section === "main") {
       targetUrls = ALL_PSEO_URLS.filter(
-        (u) => !u.includes("/fr") && !u.includes("/banks/in")
+        (u) => !u.includes("/fr") && !u.includes("/banks/in") && !u.includes("/banks/us")
       );
     } else {
       // Default: all PSEO URLs

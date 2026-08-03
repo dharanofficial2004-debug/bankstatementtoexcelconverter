@@ -45,32 +45,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const dynamicRoutes = getRoutes(appDir);
   const bankRoutes = Object.keys(usBanks).map((slug) => `/${slug}`);
 
-  const routes: MetadataRoute.Sitemap = [...dynamicRoutes, ...bankRoutes].map((route) => {
-    const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
-    const url = normalizedRoute === "" ? baseUrl : `${baseUrl}${normalizedRoute}`;
+  const routes: MetadataRoute.Sitemap = [...dynamicRoutes, ...bankRoutes].map(
+    (route) => {
+      const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
+      const url =
+        normalizedRoute === "" ? baseUrl : `${baseUrl}${normalizedRoute}`;
 
-    let priority = 0.8;
-    let changeFrequency:
-      | "daily"
-      | "weekly"
-      | "monthly"
-      | "yearly"
-      | "hourly"
-      | "always"
-      | "never" = "weekly";
+      let priority = 0.8;
+      let changeFrequency:
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "yearly"
+        | "hourly"
+        | "always"
+        | "never" = "weekly";
 
-    if (route === "") {
-      priority = 1.0;
-      changeFrequency = "daily";
-    }
+      if (route === "") {
+        priority = 1.0;
+        changeFrequency = "daily";
+      }
 
-    return {
-      url,
-      lastModified,
-      changeFrequency,
-      priority,
-    };
-  });
+      return {
+        url,
+        lastModified,
+        changeFrequency,
+        priority,
+      };
+    },
+  );
 
   return routes;
 }
