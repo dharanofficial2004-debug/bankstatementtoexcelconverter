@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       "https://bankstatementtoexcelconverter.com/sitemap.xml",
       "https://bankstatementtoexcelconverter.com/fr/sitemap.xml",
       "https://bankstatementtoexcelconverter.com/banks/in/sitemap.xml",
+      "https://bankstatementtoexcelconverter.com/banks/us/sitemap.xml",
     ],
   };
 }
