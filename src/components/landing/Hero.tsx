@@ -17,7 +17,8 @@ export default function Hero({
   badgeText = "Trusted by accountants, CFOs, and small business owners",
   headline = (
     <>
-      Convert bank statements to <span className="gradient-text">editable Excel</span> in minutes
+      Convert bank statements to{" "}
+      <span className="gradient-text">editable Excel</span> in minutes
     </>
   ),
   subheadline = "Upload PDF statements from any major bank, review a live spreadsheet preview, and export clean Excel or CSV files without manual retyping.",
@@ -54,18 +55,27 @@ export default function Hero({
           </p>
 
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href={ctaLink} className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base">
+            <Link
+              href={ctaLink}
+              className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base"
+            >
               {ctaText}
               <ArrowRight size={18} />
             </Link>
-            <a href="#how-it-works" className="btn-ghost inline-flex items-center justify-center px-8 py-3.5 text-base">
+            <a
+              href="#how-it-works"
+              className="btn-ghost inline-flex items-center justify-center px-8 py-3.5 text-base"
+            >
               {ctaSecondaryText}
             </a>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-600">
             {trustBadges.map((badge) => (
-              <div key={badge} className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-2 shadow-sm">
+              <div
+                key={badge}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-2 shadow-sm"
+              >
                 <CheckCircle2 size={15} className="text-success-600" />
                 {badge}
               </div>
@@ -84,7 +94,9 @@ export default function Hero({
             <div className="rounded-2xl bg-slate-900/80 p-4">
               <div className="mb-4 flex items-center justify-between text-sm">
                 <div>
-                  <p className="font-semibold text-slate-100">Statement detected</p>
+                  <p className="font-semibold text-slate-100">
+                    Statement detected
+                  </p>
                   <p className="text-slate-400">HDFC Bank • 47 transactions</p>
                 </div>
                 <div className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">
@@ -93,16 +105,21 @@ export default function Hero({
               </div>
               <div className="space-y-2">
                 {[
-                  ['01/06/2026', 'UPI payment', '2,500.00'],
-                  ['02/06/2026', 'Salary credit', '65,000.00'],
-                  ['03/06/2026', 'ATM withdrawal', '10,000.00'],
+                  ["01/06/2026", "UPI payment", "2,500.00"],
+                  ["02/06/2026", "Salary credit", "65,000.00"],
+                  ["03/06/2026", "ATM withdrawal", "10,000.00"],
                 ].map(([date, desc, amount]) => (
-                  <div key={date} className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm">
+                  <div
+                    key={date}
+                    className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm"
+                  >
                     <div>
                       <p className="font-medium text-slate-100">{desc}</p>
                       <p className="text-slate-500">{date}</p>
                     </div>
-                    <span className="font-semibold text-slate-100">{amount}</span>
+                    <span className="font-semibold text-slate-100">
+                      {amount}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -111,8 +128,15 @@ export default function Hero({
         </div>
       </div>
 
-      <div className="mx-auto mt-10 flex max-w-5xl justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-        <a href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel" target="_blank" rel="noopener noreferrer">
+      <div
+        className="mx-auto mt-10 flex max-w-5xl justify-center animate-fade-in-up"
+        style={{ animationDelay: "0.4s" }}
+      >
+        <a
+          href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Image
             alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt"
             width={250}

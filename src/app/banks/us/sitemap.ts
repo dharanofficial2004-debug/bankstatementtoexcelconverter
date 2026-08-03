@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import fs from "fs";
 import path from "path";
+import { usBanks } from "@/lib/usBanks";
 
 function getRoutes(baseDir: string, currentDir: string = ""): string[] {
   const routes: string[] = [];
@@ -42,12 +43,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const appDir = fs.existsSync(srcAppDir) ? srcAppDir : rootAppDir;
   const dynamicRoutes = getRoutes(appDir);
+  const bankRoutes = Object.keys(usBanks).map((slug) => `/${slug}`);
 
-  const routes: MetadataRoute.Sitemap = dynamicRoutes.map((route) => {
-    const url = route === "" ? baseUrl : `${baseUrl}/${route.replace(/\\/g, "/")}`;
+  const routes: MetadataRoute.Sitemap = [...dynamicRoutes, ...bankRoutes].map((route) => {
+    const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
+    const url = normalizedRoute === "" ? baseUrl : `${baseUrl}${normalizedRoute}`;
 
     let priority = 0.8;
-    let changeFrequency: "daily" | "weekly" | "monthly" | "yearly" | "hourly" | "always" | "never" = "weekly";
+    let changeFrequency:
+      | "daily"
+      | "weekly"
+      | "monthly"
+      | "yearly"
+      | "hourly"
+      | "always"
+      | "never" = "weekly";
 
     if (route === "") {
       priority = 1.0;

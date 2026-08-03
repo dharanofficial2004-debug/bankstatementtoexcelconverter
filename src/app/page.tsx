@@ -11,19 +11,23 @@ import FaqSection from "@/components/landing/FaqSection";
 const homeFaqs = [
   {
     question: "Is the preview really free?",
-    answer: "Yes. You can upload a statement, review the extracted spreadsheet, and verify the output before paying for any export."
+    answer:
+      "Yes. You can upload a statement, review the extracted spreadsheet, and verify the output before paying for any export.",
   },
   {
     question: "Can I use this for tax and bookkeeping work?",
-    answer: "Absolutely. The exported Excel or CSV files are formatted for reconciliations, cash-flow tracking, tax prep, and QuickBooks imports."
+    answer:
+      "Absolutely. The exported Excel or CSV files are formatted for reconciliations, cash-flow tracking, tax prep, and QuickBooks imports.",
   },
   {
     question: "Do you support international banks?",
-    answer: "Yes. The converter supports major Indian, US, UK, and global banks, with more regional banks added regularly."
+    answer:
+      "Yes. The converter supports major Indian, US, UK, and global banks, with more regional banks added regularly.",
   },
   {
     question: "Will my PDF data be stored?",
-    answer: "No. Files are processed securely and the tool is designed to keep your statements private while you work inside the browser."
+    answer:
+      "No. Files are processed securely and the tool is designed to keep your statements private while you work inside the browser.",
   },
 ];
 

@@ -5,9 +5,18 @@ import { usBanks } from "@/lib/usBanks";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import ProductPreview from "@/components/landing/ProductPreview";
-import { ArrowRight, CheckCircle2, DollarSign, Download, Upload, Table2 } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  DollarSign,
+  Download,
+  Upload,
+  Table2,
+} from "lucide-react";
 
-interface Props { params: { bank: string } }
+interface Props {
+  params: { bank: string };
+}
 
 export async function generateStaticParams() {
   return Object.keys(usBanks).map((bank) => ({ bank }));
@@ -69,7 +78,10 @@ export default function USBankPage({ params }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
 
       {/* ── Hero ── */}
@@ -85,16 +97,25 @@ export default function USBankPage({ params }: Props) {
                 {bank.name} · {bank.type}
               </div>
               <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
-                Convert{" "}
-                <span style={{ color: bank.color }}>{bank.name}</span>{" "}
+                Convert <span style={{ color: bank.color }}>{bank.name}</span>{" "}
                 Statement to Excel
               </h1>
               <p className="text-lg text-slate-600 mb-6">
-                Upload your {bank.name} PDF and get a clean, editable spreadsheet instantly. Works with all {bank.name} account types — checking, savings, business, and credit card.
+                Upload your {bank.name} PDF and get a clean, editable
+                spreadsheet instantly. Works with all {bank.name} account types
+                — checking, savings, business, and credit card.
               </p>
               <div className="flex flex-wrap gap-3 mb-6 justify-center lg:justify-start">
-                {["Free preview", "Starts at $1", "QuickBooks ready", "CSV & Excel"].map((b) => (
-                  <span key={b} className="flex items-center gap-1.5 text-sm text-slate-600">
+                {[
+                  "Free preview",
+                  "Starts at $1",
+                  "QuickBooks ready",
+                  "CSV & Excel",
+                ].map((b) => (
+                  <span
+                    key={b}
+                    className="flex items-center gap-1.5 text-sm text-slate-600"
+                  >
                     <CheckCircle2 size={14} className="text-green-500" />
                     {b}
                   </span>
@@ -116,7 +137,10 @@ export default function USBankPage({ params }: Props) {
                 { label: "HQ", value: bank.headquarters },
                 { label: "From", value: "$1" },
               ].map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
+                <div
+                  key={s.label}
+                  className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center"
+                >
                   <p className="text-xs text-slate-400 mb-1">{s.label}</p>
                   <p className="font-bold text-slate-800 text-sm">{s.value}</p>
                 </div>
@@ -137,16 +161,24 @@ export default function USBankPage({ params }: Props) {
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">
             How to Download Your {bank.name} Statement PDF
           </h2>
-          <p className="text-slate-500 text-center mb-12">Step-by-step for every method</p>
+          <p className="text-slate-500 text-center mb-12">
+            Step-by-step for every method
+          </p>
           <div className="grid md:grid-cols-2 gap-6">
             {bank.downloadInstructions.map((method, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+              >
                 <h3 className="font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100">
                   {method.title}
                 </h3>
                 <ol className="space-y-3">
                   {method.steps.map((step, si) => (
-                    <li key={si} className="flex items-start gap-3 text-sm text-slate-600">
+                    <li
+                      key={si}
+                      className="flex items-start gap-3 text-sm text-slate-600"
+                    >
                       <span
                         className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
                         style={{ backgroundColor: bank.color }}
@@ -166,13 +198,29 @@ export default function USBankPage({ params }: Props) {
       {/* ── How it works (3 steps) ── */}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">3 Steps to Convert</h2>
-          <p className="text-slate-500 mb-14">No signup needed for the free preview</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            3 Steps to Convert
+          </h2>
+          <p className="text-slate-500 mb-14">
+            No signup needed for the free preview
+          </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Upload, label: "Upload PDF", desc: `Drop your ${bank.name} statement PDF — any account type, any date range` },
-              { icon: Table2, label: "Review Transactions", desc: "Our AI extracts every row into a live editable spreadsheet. Fix anything before downloading." },
-              { icon: Download, label: "Export from $1", desc: "Download as Excel (.xlsx), CSV for QuickBooks, or JSON for developers." },
+              {
+                icon: Upload,
+                label: "Upload PDF",
+                desc: `Drop your ${bank.name} statement PDF — any account type, any date range`,
+              },
+              {
+                icon: Table2,
+                label: "Review Transactions",
+                desc: "Our AI extracts every row into a live editable spreadsheet. Fix anything before downloading.",
+              },
+              {
+                icon: Download,
+                label: "Export from $1",
+                desc: "Download as Excel (.xlsx), CSV for QuickBooks, or JSON for developers.",
+              },
             ].map((s, i) => (
               <div key={i} className="flex flex-col items-center">
                 <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
@@ -195,20 +243,24 @@ export default function USBankPage({ params }: Props) {
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">
             Supported {bank.name} Statement Formats
           </h2>
-          <p className="text-slate-500 text-center mb-10">All account types and delivery methods covered</p>
+          <p className="text-slate-500 text-center mb-10">
+            All account types and delivery methods covered
+          </p>
           <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
             <div className="grid sm:grid-cols-2 gap-4">
               {bank.statementFormats.map((f, i) => (
                 <div key={i} className="flex items-center gap-3 text-slate-700">
-                  <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
+                  <CheckCircle2
+                    size={18}
+                    className="text-green-500 flex-shrink-0"
+                  />
                   <span className="font-medium text-sm">{f}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-800">
-            <strong>Popular for:</strong>{" "}
-            {bank.popularFor.join(" · ")}
+            <strong>Popular for:</strong> {bank.popularFor.join(" · ")}
           </div>
         </div>
       </section>
@@ -243,7 +295,9 @@ export default function USBankPage({ params }: Props) {
                 className="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm"
               >
                 <h3 className="font-bold text-slate-900 mb-2">{uc.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{uc.body}</p>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  {uc.body}
+                </p>
               </div>
             ))}
           </div>
@@ -254,9 +308,12 @@ export default function USBankPage({ params }: Props) {
       <section className="py-16 px-4" style={{ backgroundColor: bank.color }}>
         <div className="max-w-2xl mx-auto text-center">
           <DollarSign size={36} className="text-white/70 mx-auto mb-3" />
-          <h2 className="text-2xl font-bold text-white mb-2">Pricing starts at $1</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Pricing starts at $1
+          </h2>
           <p className="text-white/80 mb-6">
-            First conversion free. Pay only per document — no subscription. Short {bank.name} statements start at $1.
+            First conversion free. Pay only per document — no subscription.
+            Short {bank.name} statements start at $1.
           </p>
           <Link
             href="/app"
@@ -276,9 +333,14 @@ export default function USBankPage({ params }: Props) {
           </h2>
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm"
+              >
                 <h3 className="font-semibold text-slate-900 mb-2">{faq.q}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{faq.a}</p>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {faq.a}
+                </p>
               </div>
             ))}
           </div>
@@ -288,7 +350,9 @@ export default function USBankPage({ params }: Props) {
       {/* ── Related banks ── */}
       <section className="py-16 px-4 bg-white border-t border-slate-100">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Also works with:</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-6">
+            Also works with:
+          </h2>
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {related.map((s) => (
               <Link
@@ -300,7 +364,10 @@ export default function USBankPage({ params }: Props) {
               </Link>
             ))}
           </div>
-          <Link href="/banks/us" className="text-blue-600 hover:underline font-medium">
+          <Link
+            href="/banks/us"
+            className="text-blue-600 hover:underline font-medium"
+          >
             View all 20 US banks →
           </Link>
         </div>

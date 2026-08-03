@@ -37,7 +37,9 @@ export default function BanksList({
           <p className="mb-3 inline-flex rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700">
             Broad bank coverage
           </p>
-          <h2 className="mb-4 text-3xl font-bold text-slate-900 sm:text-4xl">{title}</h2>
+          <h2 className="mb-4 text-3xl font-bold text-slate-900 sm:text-4xl">
+            {title}
+          </h2>
           <p className="mx-auto max-w-2xl text-lg text-slate-600">{subtitle}</p>
         </div>
 

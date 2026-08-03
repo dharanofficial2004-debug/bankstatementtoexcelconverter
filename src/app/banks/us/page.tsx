@@ -7,7 +7,8 @@ import { ArrowRight, Building2, DollarSign, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Convert US Bank Statements to Excel | All Major American Banks",
-  description: "Convert Chase, Bank of America, Wells Fargo, Citibank, and 16 more US bank statement PDFs to Excel or CSV instantly. Free preview. Starts at $1.",
+  description:
+    "Convert Chase, Bank of America, Wells Fargo, Citibank, and 16 more US bank statement PDFs to Excel or CSV instantly. Free preview. Starts at $1.",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/banks/us",
   },
@@ -16,33 +17,60 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  "name": "US Bank Statement to Excel Converters",
-  "description": "Convert any US bank statement PDF to Excel or CSV",
-  "url": "https://bankstatementtoexcelconverter.com/banks/us",
-  "numberOfItems": 20,
+  name: "US Bank Statement to Excel Converters",
+  description: "Convert any US bank statement PDF to Excel or CSV",
+  url: "https://bankstatementtoexcelconverter.com/banks/us",
+  numberOfItems: 20,
 };
 
 const useCases = [
-  { icon: "📊", title: "QuickBooks Import", desc: "Export clean CSV files and import them directly into QuickBooks Online or Desktop" },
-  { icon: "🧾", title: "Tax Preparation", desc: "Organize transactions for Schedule C, CPA review, and TurboTax-ready summaries" },
-  { icon: "📋", title: "Expense Reporting", desc: "Build monthly expense reports from checking or business account activity" },
-  { icon: "🏦", title: "Loan Applications", desc: "Submit structured Excel statements for mortgage, SBA, or personal loan review" },
-  { icon: "📈", title: "Financial Analysis", desc: "Analyze spending patterns, cash flow, and category breakdowns in Excel" },
-  { icon: "🤝", title: "Bookkeeping", desc: "Hand structured spreadsheets to your accountant instead of raw PDFs" },
+  {
+    icon: "📊",
+    title: "QuickBooks Import",
+    desc: "Export clean CSV files and import them directly into QuickBooks Online or Desktop",
+  },
+  {
+    icon: "🧾",
+    title: "Tax Preparation",
+    desc: "Organize transactions for Schedule C, CPA review, and TurboTax-ready summaries",
+  },
+  {
+    icon: "📋",
+    title: "Expense Reporting",
+    desc: "Build monthly expense reports from checking or business account activity",
+  },
+  {
+    icon: "🏦",
+    title: "Loan Applications",
+    desc: "Submit structured Excel statements for mortgage, SBA, or personal loan review",
+  },
+  {
+    icon: "📈",
+    title: "Financial Analysis",
+    desc: "Analyze spending patterns, cash flow, and category breakdowns in Excel",
+  },
+  {
+    icon: "🤝",
+    title: "Bookkeeping",
+    desc: "Hand structured spreadsheets to your accountant instead of raw PDFs",
+  },
 ];
 
 const usFaqs = [
   {
     question: "Does the tool support all US banks?",
-    answer: "It covers the most common major US banks and many regional institutions, with support expanding as more statement formats are added."
+    answer:
+      "It covers the most common major US banks and many regional institutions, with support expanding as more statement formats are added.",
   },
   {
     question: "Can I convert business statements too?",
-    answer: "Yes. The workflow is designed for personal checking statements, business accounts, and merchant statements alike."
+    answer:
+      "Yes. The workflow is designed for personal checking statements, business accounts, and merchant statements alike.",
   },
   {
     question: "Is there a free preview?",
-    answer: "Yes. You can preview the extracted spreadsheet before exporting, so you can confirm the output without paying upfront."
+    answer:
+      "Yes. You can preview the extracted spreadsheet before exporting, so you can confirm the output without paying upfront.",
   },
 ];
 
@@ -69,24 +97,42 @@ export default function USBanksIndexPage() {
               All major US banks supported
             </div>
             <h1 className="mb-5 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
-              Convert US bank statements to <span className="text-blue-600">Excel or CSV</span> without manual retyping
+              Convert US bank statements to{" "}
+              <span className="text-blue-600">Excel or CSV</span> without manual
+              retyping
             </h1>
             <p className="mb-8 max-w-2xl text-lg leading-8 text-slate-600">
-              Upload Chase, Bank of America, Wells Fargo, Citibank, and other US bank PDFs. Review a structured spreadsheet preview and export a clean workbook in seconds.
+              Upload Chase, Bank of America, Wells Fargo, Citibank, and other US
+              bank PDFs. Review a structured spreadsheet preview and export a
+              clean workbook in seconds.
             </p>
             <div className="mb-8 flex flex-wrap gap-3">
-              {['Free preview', 'Starts at $1', 'QuickBooks ready', 'No data stored'].map((b) => (
-                <div key={b} className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-sm text-slate-600 shadow-sm">
+              {[
+                "Free preview",
+                "Starts at $1",
+                "QuickBooks ready",
+                "No data stored",
+              ].map((b) => (
+                <div
+                  key={b}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-sm text-slate-600 shadow-sm"
+                >
                   <CheckCircle2 size={15} className="text-blue-500" />
                   {b}
                 </div>
               ))}
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/app" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700">
+              <Link
+                href="/app"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700"
+              >
                 Try free now <ArrowRight size={18} />
               </Link>
-              <Link href="#faq" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 font-semibold text-slate-700 transition-all hover:border-blue-300 hover:text-blue-700">
+              <Link
+                href="#faq"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 font-semibold text-slate-700 transition-all hover:border-blue-300 hover:text-blue-700"
+              >
                 See FAQs
               </Link>
             </div>
@@ -105,16 +151,21 @@ export default function USBanksIndexPage() {
               </div>
               <div className="space-y-2">
                 {[
-                  ['05/06/2026', 'Payroll deposit', '$8,450.00'],
-                  ['06/06/2026', 'Amazon purchase', '$129.99'],
-                  ['07/06/2026', 'Rent transfer', '$2,100.00'],
+                  ["05/06/2026", "Payroll deposit", "$8,450.00"],
+                  ["06/06/2026", "Amazon purchase", "$129.99"],
+                  ["07/06/2026", "Rent transfer", "$2,100.00"],
                 ].map(([date, desc, amount]) => (
-                  <div key={date} className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm">
+                  <div
+                    key={date}
+                    className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm"
+                  >
                     <div>
                       <p className="font-medium text-slate-100">{desc}</p>
                       <p className="text-slate-500">{date}</p>
                     </div>
-                    <span className="font-semibold text-slate-100">{amount}</span>
+                    <span className="font-semibold text-slate-100">
+                      {amount}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -126,11 +177,18 @@ export default function USBanksIndexPage() {
       {/* Use Cases */}
       <section className="py-20 px-4 bg-slate-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">Why Americans Use This Tool</h2>
-          <p className="text-slate-500 text-center mb-12">From freelancers to CFOs — the most common US use cases</p>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">
+            Why Americans Use This Tool
+          </h2>
+          <p className="text-slate-500 text-center mb-12">
+            From freelancers to CFOs — the most common US use cases
+          </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {useCases.map((uc) => (
-              <div key={uc.title} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+              <div
+                key={uc.title}
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
+              >
                 <div className="text-3xl mb-3">{uc.icon}</div>
                 <h3 className="font-bold text-slate-900 mb-1">{uc.title}</h3>
                 <p className="text-sm text-slate-500">{uc.desc}</p>
@@ -143,8 +201,12 @@ export default function USBanksIndexPage() {
       {/* Banks Grid */}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">Select Your Bank</h2>
-          <p className="text-slate-500 text-center mb-12">Click your bank for a detailed guide and instant conversion</p>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">
+            Select Your Bank
+          </h2>
+          <p className="text-slate-500 text-center mb-12">
+            Click your bank for a detailed guide and instant conversion
+          </p>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {bankSlugs.map((slug) => {
               const bank = usBanks[slug];
@@ -164,9 +226,14 @@ export default function USBanksIndexPage() {
                     <p className="font-semibold text-slate-800 text-sm truncate group-hover:text-blue-600 transition-colors">
                       {bank.name}
                     </p>
-                    <p className="text-xs text-slate-400 truncate">{bank.type}</p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {bank.type}
+                    </p>
                   </div>
-                  <ArrowRight size={14} className="ml-auto text-slate-300 group-hover:text-blue-400 flex-shrink-0" />
+                  <ArrowRight
+                    size={14}
+                    className="ml-auto text-slate-300 group-hover:text-blue-400 flex-shrink-0"
+                  />
                 </Link>
               );
             })}
@@ -178,9 +245,12 @@ export default function USBanksIndexPage() {
       <section className="py-16 px-4 bg-blue-600">
         <div className="max-w-3xl mx-auto text-center">
           <DollarSign size={40} className="text-blue-200 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-white mb-3">Pricing starts at just $1</h2>
+          <h2 className="text-3xl font-bold text-white mb-3">
+            Pricing starts at just $1
+          </h2>
           <p className="text-blue-100 mb-6 text-lg">
-            First conversion is always free. After that, pay only per document — starting at $1 for short statements.
+            First conversion is always free. After that, pay only per document —
+            starting at $1 for short statements.
           </p>
           <Link
             href="/pricing"
@@ -191,14 +261,27 @@ export default function USBanksIndexPage() {
         </div>
       </section>
 
-      <section id="faq" className="py-20 px-4 bg-white border-t border-slate-100">
+      <section
+        id="faq"
+        className="py-20 px-4 bg-white border-t border-slate-100"
+      >
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">Common questions about US bank statement conversion</h2>
-          <p className="text-center text-slate-600 mb-10">Everything you need to know if you are converting US statements for accounting, taxes, or reporting.</p>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-3">
+            Common questions about US bank statement conversion
+          </h2>
+          <p className="text-center text-slate-600 mb-10">
+            Everything you need to know if you are converting US statements for
+            accounting, taxes, or reporting.
+          </p>
           <div className="grid gap-6 lg:grid-cols-2">
             {usFaqs.map((faq) => (
-              <div key={faq.question} className="rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{faq.question}</h3>
+              <div
+                key={faq.question}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+              >
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  {faq.question}
+                </h3>
                 <p className="text-sm leading-7 text-slate-600">{faq.answer}</p>
               </div>
             ))}
@@ -209,19 +292,51 @@ export default function USBanksIndexPage() {
       {/* General pages internal links */}
       <section className="py-16 px-4 bg-white border-t border-slate-100">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">More US Resources</h2>
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
+            More US Resources
+          </h2>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { href: "/banks/us/bank-statement-to-excel-usa", label: "Bank Statement to Excel USA" },
-              { href: "/banks/us/quickbooks-bank-statement-import", label: "QuickBooks Import" },
-              { href: "/banks/us/bank-statement-for-taxes", label: "Taxes & CPA Use" },
-              { href: "/banks/us/bank-statement-csv-usa", label: "Bank Statement CSV USA" },
-              { href: "/banks/us/convert-bank-statement-pdf-usa", label: "Convert PDF USA" },
-              { href: "/banks/us/free-bank-statement-converter-usa", label: "Free Converter USA" },
-              { href: "/banks/us/bank-statement-excel-template-usa", label: "Excel Template USA" },
-              { href: "/banks/us/business-bank-statement-converter", label: "Business Converter" },
-              { href: "/banks/us/bank-statement-to-json-usa", label: "Bank Statement to JSON" },
-              { href: "/banks/us/us-bank-statement-analyzer", label: "Statement Analyzer" },
+              {
+                href: "/banks/us/bank-statement-to-excel-usa",
+                label: "Bank Statement to Excel USA",
+              },
+              {
+                href: "/banks/us/quickbooks-bank-statement-import",
+                label: "QuickBooks Import",
+              },
+              {
+                href: "/banks/us/bank-statement-for-taxes",
+                label: "Taxes & CPA Use",
+              },
+              {
+                href: "/banks/us/bank-statement-csv-usa",
+                label: "Bank Statement CSV USA",
+              },
+              {
+                href: "/banks/us/convert-bank-statement-pdf-usa",
+                label: "Convert PDF USA",
+              },
+              {
+                href: "/banks/us/free-bank-statement-converter-usa",
+                label: "Free Converter USA",
+              },
+              {
+                href: "/banks/us/bank-statement-excel-template-usa",
+                label: "Excel Template USA",
+              },
+              {
+                href: "/banks/us/business-bank-statement-converter",
+                label: "Business Converter",
+              },
+              {
+                href: "/banks/us/bank-statement-to-json-usa",
+                label: "Bank Statement to JSON",
+              },
+              {
+                href: "/banks/us/us-bank-statement-analyzer",
+                label: "Statement Analyzer",
+              },
             ].map((l) => (
               <Link
                 key={l.href}
