@@ -39,3 +39,11 @@ next-env.d.ts
 fallback_*.txt
 fallback_text.txt
 uploaded_sample.pdf
+
+# Google service account credentials — NEVER commit
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!postcss.config.json
+!.eslintrc.json
