@@ -1,157 +1,117 @@
 import React from "react";
 import Link from "next/link";
-import { FileSpreadsheet, Shield } from "lucide-react";
+import { FileSpreadsheet, Shield, PlayCircle } from "lucide-react";
+import { usBanks } from "@/lib/usBanks";
+
+const featuredUSBanks = ["chase-bank", "bank-of-america", "wells-fargo", "citibank"];
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-slate-100">
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row items-start justify-between gap-8">
-          {/* Logo and Tagline */}
-          <div className="max-w-xs">
-            <Link href="/" className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-                <FileSpreadsheet size={18} className="text-white" />
+    <footer className="bg-white border-t border-slate-200">
+      <div className="max-w-7xl mx-auto px-4 py-14">
+        <div className="grid gap-10 xl:grid-cols-[1.8fr_1fr_1fr_1fr_1fr]">
+          <div className="space-y-4">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-sm shadow-primary-200">
+                <FileSpreadsheet size={20} />
               </div>
-              <span className="font-bold text-lg text-slate-900">
-                StatementToExcel
-              </span>
+              <div>
+                <p className="text-xl font-semibold text-slate-900">
+                  StatementToExcel
+                </p>
+                <p className="text-sm text-slate-500">
+                  Convert bank statement PDFs to editable Excel files with live previews and fast exports.
+                </p>
+              </div>
             </Link>
-            <p className="text-sm text-slate-500 leading-relaxed mb-4">
-              Convert bank statement PDFs to editable Excel files instantly.
-              Preview, edit, and export.
-            </p>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <Shield size={14} />
-              Secure. Private. PDFs deleted after processing.
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Shield size={16} className="text-slate-400" />
+              Secure conversion, no PDF data retained after processing.
             </div>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-12 md:gap-16">
-            <div>
-              <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                Product
-              </h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/pricing"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Pricing
-                </Link>
-                <Link
-                  href="/app"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Try Free
-                </Link>
-              </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.18em] mb-4">
+              Product
+            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              <Link href="/pricing" className="block hover:text-primary-600 transition-colors">
+                Pricing
+              </Link>
+              <Link href="/app" className="block hover:text-primary-600 transition-colors">
+                Try free
+              </Link>
+              <Link href="https://www.youtube.com/@smartpost_sheduler" className="inline-flex items-center gap-2 hover:text-primary-600 transition-colors" target="_blank" rel="noreferrer">
+                <PlayCircle size={14} className="text-red-600" />
+                YouTube channel
+              </Link>
             </div>
+          </div>
 
-            <div>
-              <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                Indian Banks
-              </h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/banks/in/hdfc-bank"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  HDFC Bank
-                </Link>
-                <Link
-                  href="/banks/in/sbi-bank"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  SBI Bank
-                </Link>
-                <Link
-                  href="/banks/in/icici-bank"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  ICICI Bank
-                </Link>
-                <Link
-                  href="/banks/in/axis-bank"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Axis Bank
-                </Link>
-                <Link
-                  href="/banks/in"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  View all banks →
-                </Link>
-              </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.18em] mb-4">
+              U.S. Banks
+            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              {featuredUSBanks.map((slug) => {
+                const bank = usBanks[slug];
+                if (!bank) return null;
+                return (
+                  <Link
+                    key={slug}
+                    href={`/banks/us/${slug}`}
+                    className="block hover:text-primary-600 transition-colors"
+                  >
+                    {bank.name}
+                  </Link>
+                );
+              })}
+              <Link href="/banks/us" className="block hover:text-primary-600 transition-colors">
+                View all U.S. banks →
+              </Link>
             </div>
+          </div>
 
-            <div>
-              <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                Français
-              </h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/fr"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Accueil
-                </Link>
-                <Link
-                  href="/fr/convertisseur-releve-bancaire-excel"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Convertisseur Excel
-                </Link>
-                <Link
-                  href="/fr/releve-bancaire-csv"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Relevé Bancaire CSV
-                </Link>
-                <Link
-                  href="/fr"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Voir tout →
-                </Link>
-              </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.18em] mb-4">
+              Sitemaps
+            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              <Link href="/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+                Main sitemap
+              </Link>
+              <Link href="/fr/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+                French sitemap
+              </Link>
+              <Link href="/banks/us/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+                U.S. sitemap
+              </Link>
             </div>
+          </div>
 
-            <div>
-              <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                Legal
-              </h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="#"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Privacy
-                </Link>
-                <Link
-                  href="#"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Terms
-                </Link>
-                <Link
-                  href="#"
-                  className="text-sm text-slate-500 hover:text-primary-600 transition-colors"
-                >
-                  Contact
-                </Link>
-              </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.18em] mb-4">
+              Français
+            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              <Link href="/fr" className="block hover:text-primary-600 transition-colors">
+                Accueil
+              </Link>
+              <Link href="/fr/convertisseur-releve-bancaire-excel" className="block hover:text-primary-600 transition-colors">
+                Convertisseur Excel
+              </Link>
+              <Link href="/fr/releve-bancaire-csv" className="block hover:text-primary-600 transition-colors">
+                Relevé Bancaire CSV
+              </Link>
+              <Link href="/fr" className="block hover:text-primary-600 transition-colors">
+                Voir tout →
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-10 pt-6 border-t border-slate-100 text-center">
-          <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} StatementToExcel. All rights reserved.
-          </p>
+        <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500 text-center">
+          © {new Date().getFullYear()} StatementToExcel. All rights reserved.
         </div>
       </div>
     </footer>

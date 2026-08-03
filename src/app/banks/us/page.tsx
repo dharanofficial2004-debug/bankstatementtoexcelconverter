@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { usBanks } from "@/lib/usBanks";
 import Navbar from "@/components/landing/Navbar";
-import USFooter from "@/components/landing/USFooter";
+import Footer from "@/components/landing/Footer";
 import { ArrowRight, Building2, DollarSign, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -86,19 +86,19 @@ export default function USBanksIndexPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_42%),linear-gradient(135deg,_#f8fbff_0%,_#f3f8ff_52%,_#eef5ff_100%)] px-4 pb-24 pt-32">
+      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.16),_transparent_42%),linear-gradient(135deg,_#f8fbff_0%,_#f3f8ff_52%,_#eef5ff_100%)] px-4 pb-24 pt-32">
         <div className="absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-0 h-[620px] w-[720px] -translate-x-1/2 rounded-full bg-gradient-to-b from-blue-100/80 via-blue-50/20 to-transparent blur-3xl" />
         </div>
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="text-left">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-4 py-2 text-sm font-medium text-blue-700 shadow-sm">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/90 px-4 py-2 text-sm font-medium text-primary-700 shadow-sm">
               <Building2 size={15} />
               All major US banks supported
             </div>
             <h1 className="mb-5 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
               Convert US bank statements to{" "}
-              <span className="text-blue-600">Excel or CSV</span> without manual
+              <span className="text-primary-600">Excel or CSV</span> without manual
               retyping
             </h1>
             <p className="mb-8 max-w-2xl text-lg leading-8 text-slate-600">
@@ -117,7 +117,7 @@ export default function USBanksIndexPage() {
                   key={b}
                   className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-sm text-slate-600 shadow-sm"
                 >
-                  <CheckCircle2 size={15} className="text-blue-500" />
+                  <CheckCircle2 size={15} className="text-primary-500" />
                   {b}
                 </div>
               ))}
@@ -125,13 +125,13 @@ export default function USBanksIndexPage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/app"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-primary-200 transition-all hover:bg-primary-700"
               >
                 Try free now <ArrowRight size={18} />
               </Link>
               <Link
                 href="#faq"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 font-semibold text-slate-700 transition-all hover:border-blue-300 hover:text-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 font-semibold text-slate-700 transition-all hover:border-primary-300 hover:text-primary-700"
               >
                 See FAQs
               </Link>
@@ -214,7 +214,7 @@ export default function USBanksIndexPage() {
                 <Link
                   key={slug}
                   href={`/banks/us/${slug}`}
-                  className="group flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
+                  className="group flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200 hover:border-primary-300 hover:shadow-md transition-all"
                 >
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
@@ -232,7 +232,7 @@ export default function USBanksIndexPage() {
                   </div>
                   <ArrowRight
                     size={14}
-                    className="ml-auto text-slate-300 group-hover:text-blue-400 flex-shrink-0"
+                    className="ml-auto text-slate-300 group-hover:text-primary-400 flex-shrink-0"
                   />
                 </Link>
               );
@@ -341,7 +341,7 @@ export default function USBanksIndexPage() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm text-slate-600 hover:border-blue-300 hover:text-blue-700 transition-all"
+                className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm text-slate-600 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 {l.label}
               </Link>
@@ -350,7 +350,7 @@ export default function USBanksIndexPage() {
         </div>
       </section>
 
-      <USFooter />
+      <Footer />
     </div>
   );
 }
