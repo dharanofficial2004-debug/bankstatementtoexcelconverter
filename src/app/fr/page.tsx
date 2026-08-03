@@ -6,6 +6,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
 import FrenchPseoLinks from "@/components/landing/FrenchPseoLinks";
+import FaqSection from "@/components/landing/FaqSection";
 
 export const metadata: Metadata = {
   title: "Convertisseur Relevé Bancaire Excel Gratuit — Aperçu Éditable En Direct",
@@ -56,26 +57,45 @@ const frenchBanks = [
   "CIC",
 ];
 
+const frenchFaqs = [
+  {
+    question: "Est-ce que l’aperçu est vraiment gratuit ?",
+    answer: "Oui. Vous pouvez télécharger votre relevé, vérifier l’aperçu dans un tableau modifiable et seulement payer si vous souhaitez exporter le fichier final."
+  },
+  {
+    question: "Le convertisseur est-il adapté à la comptabilité ?",
+    answer: "Oui. Les fichiers exportés sont idéaux pour le rapprochement bancaire, la préparation fiscale et l’import dans Excel ou CSV pour vos dossiers comptables."
+  },
+  {
+    question: "Quelles banques françaises sont prises en charge ?",
+    answer: "Nous prenons en charge les grandes banques françaises ainsi que de nombreuses banques régionales, avec une couverture qui s’étend régulièrement."
+  },
+  {
+    question: "Mes données sont-elles sécurisées ?",
+    answer: "Les relevés sont traités rapidement et le flux a été conçu pour garder vos documents privés pendant la conversion."
+  },
+];
+
 export default function FrenchHomePage() {
   return (
     <div className="min-h-screen">
       <Navbar />
       
       <Hero 
-        badgeText="Gratuit — Sans carte de crédit"
+        badgeText="Convertisseur fiable pour les professionnels et particuliers"
         headline={
           <>
-            Convertisseur <span className="gradient-text">Relevé Bancaire Excel</span> Gratuit
+            Transformez votre <span className="gradient-text">relevé bancaire PDF</span> en fichier Excel propre
           </>
         }
-        subheadline="Convertissez votre relevé bancaire PDF en Excel instantanément. Aperçu en direct modifiable avant téléchargement. Gratuit — sans inscription."
-        ctaText="Essayer Gratuitement"
-        ctaSecondaryText="Comment ça marche"
+        subheadline="Convertissez rapidement vos PDFs de banque en tableau Excel exploitables. Vérifiez les données dans un aperçu modifiable avant de télécharger votre fichier final."
+        ctaText="Essayer gratuitement"
+        ctaSecondaryText="Voir la méthode"
         trustBadges={[
           "Aperçu gratuit",
-          "Éditez avant d'exporter",
-          "100+ banques supportées",
-          "Aucune donnée stockée",
+          "Export Excel ou CSV",
+          "Supporte les banques françaises",
+          "Sans abonnement",
         ]}
         ctaLink="/app"
       />
@@ -95,28 +115,12 @@ export default function FrenchHomePage() {
         moreText="+ 100 autres"
       />
 
-      {/* FAQ Section */}
-      <section className="py-24 px-4 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Questions Fréquemment Posées</h2>
-          </div>
-          <div className="space-y-6">
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Est-ce gratuit?</h3>
-              <p className="text-slate-600">Oui, les 3 premières conversions sont gratuites sans inscription.</p>
-            </div>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Quelles banques sont supportées?</h3>
-              <p className="text-slate-600">Plus de 100 banques dont BNP Paribas, Crédit Agricole, Société Générale et toutes les grandes banques françaises.</p>
-            </div>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Mes données sont-elles sécurisées?</h3>
-              <p className="text-slate-600">Vos PDF sont traités immédiatement et jamais stockés sur nos serveurs.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <FaqSection
+        title="Questions fréquentes sur le convertisseur de relevés bancaires"
+        subtitle="Tout ce qu’il faut savoir avant de convertir votre premier document PDF en tableau Excel."
+        items={frenchFaqs}
+        variant="cards"
+      />
 
       {/* Unique Body Content Section */}
       <section className="py-20 px-4 bg-slate-50 border-t border-slate-100">
