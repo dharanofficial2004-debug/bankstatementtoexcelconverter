@@ -48,7 +48,10 @@ function base64url(str: string): string {
     .replace(/=+$/, "");
 }
 
-async function signWithPrivateKey(data: string, privateKeyPem: string): Promise<string> {
+async function signWithPrivateKey(
+  data: string,
+  privateKeyPem: string,
+): Promise<string> {
   // Clean up the PEM string (handles escaped newlines from env vars)
   const pemClean = privateKeyPem
     .replace(/\\n/g, "\n")
@@ -63,13 +66,13 @@ async function signWithPrivateKey(data: string, privateKeyPem: string): Promise<
     keyBuffer,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const signature = await crypto.subtle.sign(
     "RSASSA-PKCS1-v1_5",
     cryptoKey,
-    Buffer.from(data)
+    Buffer.from(data),
   );
 
   return Buffer.from(signature)
@@ -84,7 +87,9 @@ async function getGoogleAccessToken(): Promise<string> {
   const privateKey = process.env.GOOGLE_PRIVATE_KEY;
 
   if (!serviceEmail || !privateKey) {
-    throw new Error("GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY env vars are missing.");
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY env vars are missing.",
+    );
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -97,7 +102,7 @@ async function getGoogleAccessToken(): Promise<string> {
       aud: "https://oauth2.googleapis.com/token",
       iat: now,
       exp: now + 3600,
-    })
+    }),
   );
 
   const signingInput = `${header}.${payload}`;
@@ -127,7 +132,7 @@ async function getGoogleAccessToken(): Promise<string> {
 async function submitUrl(
   url: string,
   accessToken: string,
-  type: "URL_UPDATED" | "URL_DELETED" = "URL_UPDATED"
+  type: "URL_UPDATED" | "URL_DELETED" = "URL_UPDATED",
 ): Promise<{ url: string; status: number; ok: boolean; body: unknown }> {
   const res = await fetch(
     "https://indexing.googleapis.com/v3/urlNotifications:publish",
@@ -138,7 +143,7 @@ async function submitUrl(
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ url, type }),
-    }
+    },
   );
 
   const body = await res.json();
@@ -166,14 +171,21 @@ export async function POST(request: NextRequest) {
           const formData = new URLSearchParams(trimmedBody);
           payload = {
             password: formData.get("password") ?? undefined,
-            section: (formData.get("section") as "all" | "fr" | "banks" | "main" | null) ?? undefined,
+            section:
+              (formData.get("section") as
+                | "all"
+                | "fr"
+                | "banks"
+                | "main"
+                | null) ?? undefined,
             urls: formData.getAll("urls"),
           };
         } catch {
           try {
-            const unquotedBody = trimmedBody.startsWith('"') && trimmedBody.endsWith('"')
-              ? trimmedBody.slice(1, -1)
-              : trimmedBody;
+            const unquotedBody =
+              trimmedBody.startsWith('"') && trimmedBody.endsWith('"')
+                ? trimmedBody.slice(1, -1)
+                : trimmedBody;
             payload = JSON.parse(unquotedBody) as typeof payload;
           } catch {
             payload = {};
@@ -182,11 +194,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const password = typeof payload.password === "string" ? payload.password : "";
+    const password =
+      typeof payload.password === "string" ? payload.password : "";
     const urls = Array.isArray(payload.urls) ? payload.urls : undefined;
     const section = payload.section;
 
-    if (password !== process.env.ADMIN_PASSWORD && password !== "Dharan1424#$") {
+    if (
+      password !== process.env.ADMIN_PASSWORD &&
+      password !== "Dharan1424#$"
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -199,10 +215,15 @@ export async function POST(request: NextRequest) {
     } else if (section === "fr") {
       targetUrls = ALL_PSEO_URLS.filter((u) => u.includes("/fr"));
     } else if (section === "banks") {
-      targetUrls = ALL_PSEO_URLS.filter((u) => u.includes("/banks/in") || u.includes("/banks/us"));
+      targetUrls = ALL_PSEO_URLS.filter(
+        (u) => u.includes("/banks/in") || u.includes("/banks/us"),
+      );
     } else if (section === "main") {
       targetUrls = ALL_PSEO_URLS.filter(
-        (u) => !u.includes("/fr") && !u.includes("/banks/in") && !u.includes("/banks/us")
+        (u) =>
+          !u.includes("/fr") &&
+          !u.includes("/banks/in") &&
+          !u.includes("/banks/us"),
       );
     } else {
       // Default: all PSEO URLs
@@ -213,7 +234,12 @@ export async function POST(request: NextRequest) {
     const accessToken = await getGoogleAccessToken();
 
     // Submit URLs with a small delay to respect rate limits (200 URLs/day quota)
-    const results: { url: string; status: number; ok: boolean; body: unknown }[] = [];
+    const results: {
+      url: string;
+      status: number;
+      ok: boolean;
+      body: unknown;
+    }[] = [];
 
     for (const url of targetUrls) {
       const result = await submitUrl(url, accessToken);
@@ -230,7 +256,11 @@ export async function POST(request: NextRequest) {
       submitted: results.length,
       succeeded,
       failed: failed.length,
-      failedUrls: failed.map((f) => ({ url: f.url, status: f.status, body: f.body })),
+      failedUrls: failed.map((f) => ({
+        url: f.url,
+        status: f.status,
+        body: f.body,
+      })),
       results,
     });
   } catch (error) {
@@ -248,14 +278,17 @@ export async function GET(request: NextRequest) {
     const url = searchParams.get("url");
     const password = searchParams.get("password");
 
-    if (password !== process.env.ADMIN_PASSWORD && password !== "Dharan1424#$") {
+    if (
+      password !== process.env.ADMIN_PASSWORD &&
+      password !== "Dharan1424#$"
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!url) {
       return NextResponse.json(
         { error: "Pass ?url=https://... to check indexing status" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -265,7 +298,7 @@ export async function GET(request: NextRequest) {
       `https://indexing.googleapis.com/v3/urlNotifications/metadata?url=${encodeURIComponent(url)}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
 
     const data = await res.json();

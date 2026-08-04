@@ -3,7 +3,12 @@ import Link from "next/link";
 import { FileSpreadsheet, Shield, PlayCircle } from "lucide-react";
 import { usBanks } from "@/lib/usBanks";
 
-const featuredUSBanks = ["chase-bank", "bank-of-america", "wells-fargo", "citibank"];
+const featuredUSBanks = [
+  "chase-bank",
+  "bank-of-america",
+  "wells-fargo",
+  "citibank",
+];
 
 export default function Footer() {
   return (
@@ -20,7 +25,8 @@ export default function Footer() {
                   StatementToExcel
                 </p>
                 <p className="text-sm text-slate-500">
-                  Convert bank statement PDFs to editable Excel files with live previews and fast exports.
+                  Convert bank statement PDFs to editable Excel files with live
+                  previews and fast exports.
                 </p>
               </div>
             </Link>
@@ -35,13 +41,24 @@ export default function Footer() {
               Product
             </p>
             <div className="space-y-3 text-sm text-slate-600">
-              <Link href="/pricing" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/pricing"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Pricing
               </Link>
-              <Link href="/app" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/app"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Try free
               </Link>
-              <Link href="https://www.youtube.com/@smartpost_sheduler" className="inline-flex items-center gap-2 hover:text-primary-600 transition-colors" target="_blank" rel="noreferrer">
+              <Link
+                href="https://www.youtube.com/@smartpost_sheduler"
+                className="inline-flex items-center gap-2 hover:text-primary-600 transition-colors"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <PlayCircle size={14} className="text-red-600" />
                 YouTube channel
               </Link>
@@ -66,7 +83,10 @@ export default function Footer() {
                   </Link>
                 );
               })}
-              <Link href="/banks/us" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/banks/us"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 View all U.S. banks →
               </Link>
             </div>
@@ -77,13 +97,22 @@ export default function Footer() {
               Sitemaps
             </p>
             <div className="space-y-3 text-sm text-slate-600">
-              <Link href="/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/sitemap.xml"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Main sitemap
               </Link>
-              <Link href="/fr/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/fr/sitemap.xml"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 French sitemap
               </Link>
-              <Link href="/banks/us/sitemap.xml" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/banks/us/sitemap.xml"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 U.S. sitemap
               </Link>
             </div>
@@ -94,16 +123,28 @@ export default function Footer() {
               Français
             </p>
             <div className="space-y-3 text-sm text-slate-600">
-              <Link href="/fr" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/fr"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Accueil
               </Link>
-              <Link href="/fr/convertisseur-releve-bancaire-excel" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/fr/convertisseur-releve-bancaire-excel"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Convertisseur Excel
               </Link>
-              <Link href="/fr/releve-bancaire-csv" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/fr/releve-bancaire-csv"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Relevé Bancaire CSV
               </Link>
-              <Link href="/fr" className="block hover:text-primary-600 transition-colors">
+              <Link
+                href="/fr"
+                className="block hover:text-primary-600 transition-colors"
+              >
                 Voir tout →
               </Link>
             </div>

@@ -98,8 +98,8 @@ export default function USBanksIndexPage() {
             </div>
             <h1 className="mb-5 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
               Convert US bank statements to{" "}
-              <span className="text-primary-600">Excel or CSV</span> without manual
-              retyping
+              <span className="text-primary-600">Excel or CSV</span> without
+              manual retyping
             </h1>
             <p className="mb-8 max-w-2xl text-lg leading-8 text-slate-600">
               Upload Chase, Bank of America, Wells Fargo, Citibank, and other US
