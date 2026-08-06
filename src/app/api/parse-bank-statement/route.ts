@@ -34,17 +34,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
-    // "gpt-4.1-mini";
+    // ==== GEMINI (current) ====
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const geminiModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
 
-    if (!apiKey) {
-      console.error("OpenAI API Key is missing");
+    if (!geminiApiKey) {
+      console.error("Gemini API Key is missing");
       return NextResponse.json(
-        { success: false, error: "OpenAI API Key is not configured on the server." },
+        { success: false, error: "Gemini API Key is not configured on the server." },
         { status: 500 }
       );
     }
+
+    // ==== OPENAI (commented out — kept for future use) ====
+    // const apiKey = process.env.OPENAI_API_KEY;
+    // const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
+    // // "gpt-4.1-mini";
+    //
+    // if (!apiKey) {
+    //   console.error("OpenAI API Key is missing");
+    //   return NextResponse.json(
+    //     { success: false, error: "OpenAI API Key is not configured on the server." },
+    //     { status: 500 }
+    //   );
+    // }
 
     const systemPrompt = `You are a bank statement extraction engine.
 
@@ -82,41 +95,71 @@ Output format:
     while (attempts < 2) {
       attempts++;
       try {
-        console.log(`Calling OpenAI API (Attempt ${attempts})...`);
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            temperature: 1,
-          }),
-        });
+        console.log(`Calling Gemini API (Attempt ${attempts})...`);
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-goog-api-key": geminiApiKey,
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `${systemPrompt}\n\n${userPrompt}`,
+                    },
+                  ],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.2,
+                responseMimeType: "application/json",
+              },
+            }),
+          }
+        );
+
+        // ==== OPENAI (commented out — kept for future use) ====
+        // console.log(`Calling OpenAI API (Attempt ${attempts})...`);
+        // const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //     Authorization: `Bearer ${apiKey}`,
+        //   },
+        //   body: JSON.stringify({
+        //     model: model,
+        //     messages: [
+        //       { role: "system", content: systemPrompt },
+        //       { role: "user", content: userPrompt },
+        //     ],
+        //     temperature: 1,
+        //   }),
+        // });
 
         if (!response.ok) {
           const errText = await response.text();
-          throw new Error(`OpenAI API returned status ${response.status}: ${errText}`);
+          throw new Error(`Gemini API returned status ${response.status}: ${errText}`);
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
+        const content = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (!content) {
-          throw new Error("Empty response content from OpenAI");
+          throw new Error("Empty response content from Gemini");
         }
 
         // Calculate and log stats
         const inputWords = (systemPrompt + " " + userPrompt).split(/\s+/).filter(Boolean).length;
         const outputWords = content.split(/\s+/).filter(Boolean).length;
-        const inputTokens: number = data.usage?.prompt_tokens || 0;
-        const outputTokens: number = data.usage?.completion_tokens || 0;
+        const inputTokens: number = data.usageMetadata?.promptTokenCount || 0;
+        const outputTokens: number = data.usageMetadata?.candidatesTokenCount || 0;
+        const model = geminiModel;
 
-        console.log(`OpenAI API Usage Stats (Attempt ${attempts}):`);
+        console.log(`Gemini API Usage Stats (Attempt ${attempts}):`);
         console.log(`- Input Words: ${inputWords}`);
         console.log(`- Output Words: ${outputWords}`);
         console.log(`- Input Tokens: ${inputTokens}`);

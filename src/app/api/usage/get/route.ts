@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get or create the usage row
+    // Base fields always exist on user_usage
     const { data, error } = await supabaseAdmin
       .from("user_usage")
       .select("conversions_used")
@@ -34,8 +34,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    // First-time user: no row yet → 0 conversions
-    return NextResponse.json({ conversions_used: data?.conversions_used ?? 0 });
+    // Extra fields require migration 004 — read them defensively
+    let plan = "free";
+    let paidCredits = 0;
+    try {
+      const { data: extra } = await supabaseAdmin
+        .from("user_usage")
+        .select("plan, paid_credits")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (extra) {
+        plan = extra.plan ?? "free";
+        paidCredits = extra.paid_credits ?? 0;
+      }
+    } catch (e) {
+      console.warn("usage/get extra fields unavailable:", (e as Error).message);
+    }
+
+    // First-time user: no row yet → 0 conversions, free plan
+    return NextResponse.json({
+      conversions_used: data?.conversions_used ?? 0,
+      plan,
+      paid_credits: paidCredits,
+    });
   } catch (err) {
     console.error("usage/get unexpected error:", err);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });

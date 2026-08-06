@@ -1,3 +1,23 @@
+export type PlanType = "free" | "lifetime" | "payg";
+
+export const LIFETIME_PRICE_INR = 59;
+export const PER_CONVERSION_PRICE_INR = 19;
+export const LIFETIME_OFFER_LIMIT = 100;
+
+export const PLAN_NAMES: Record<PlanType, string> = {
+  free: "Free",
+  lifetime: "Lifetime",
+  payg: "Pay per Conversion",
+};
+
+export function inrToPaisa(amountINR: number): number {
+  return Math.round(amountINR * 100);
+}
+
+export function formatINR(amountINR: number): string {
+  return `₹${amountINR.toLocaleString("en-IN")}`;
+}
+
 export interface DocumentMetrics {
   pages: number;
   words: number;

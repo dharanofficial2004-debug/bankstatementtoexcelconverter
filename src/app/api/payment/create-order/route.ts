@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getPrice, priceToSmallestUnit } from "@/lib/pricing";
+import {
+  LIFETIME_PRICE_INR,
+  PER_CONVERSION_PRICE_INR,
+  LIFETIME_OFFER_LIMIT,
+  inrToPaisa,
+} from "@/lib/pricing";
 
 export async function POST(request: NextRequest) {
   try {
-    const { pages, words, characters, filename } = await request.json();
+    const { plan } = await request.json();
 
-    if (!pages || !words || !characters || !filename) {
+    if (plan !== "lifetime" && plan !== "per_conversion") {
       return NextResponse.json(
-        { success: false, error: "Missing required fields: pages, words, characters, filename" },
+        { success: false, error: "Missing or invalid plan. Use 'lifetime' or 'per_conversion'." },
         { status: 400 }
       );
     }
@@ -54,9 +59,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate pricing
-    const pricing = getPrice({ pages, words, characters });
-    const amountInCents = priceToSmallestUnit(pricing.priceUSD);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Determine fixed INR price for the plan
+    const priceINR = plan === "lifetime" ? LIFETIME_PRICE_INR : PER_CONVERSION_PRICE_INR;
+    const filename = plan === "lifetime" ? "Lifetime Access" : "Per Conversion Credit";
+    const documentSize = "Plan";
+
+    // Lifetime offer sold-out check
+    if (plan === "lifetime") {
+      const { count, error: countError } = await supabaseAdmin
+        .from("payments")
+        .select("id", { count: "exact", head: true })
+        .eq("plan", "lifetime")
+        .eq("payment_status", "paid");
+
+      if (countError) {
+        console.error("Failed to count lifetime purchases:", countError);
+        return NextResponse.json(
+          { success: false, error: "Failed to check offer availability." },
+          { status: 500 }
+        );
+      }
+
+      if (count !== null && count >= LIFETIME_OFFER_LIMIT) {
+        return NextResponse.json(
+          { success: false, error: "Lifetime offer sold out." },
+          { status: 400 }
+        );
+      }
+    }
 
     // Create Razorpay order
     const razorpayAuth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString("base64");
@@ -67,12 +101,11 @@ export async function POST(request: NextRequest) {
         Authorization: `Basic ${razorpayAuth}`,
       },
       body: JSON.stringify({
-        amount: amountInCents,
-        currency: "USD",
+        amount: inrToPaisa(priceINR),
+        currency: "INR",
         receipt: `receipt_${Date.now()}`,
         notes: {
-          filename,
-          pages: String(pages),
+          plan,
           user_id: user.id,
         },
       }),
@@ -90,24 +123,21 @@ export async function POST(request: NextRequest) {
     const razorpayOrder = await razorpayResponse.json();
 
     // Insert payment record into Supabase
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
     const { data: paymentRecord, error: insertError } = await supabaseAdmin
       .from("payments")
       .insert({
         user_id: user.id,
         filename,
-        pages,
-        words,
-        characters,
-        size_score: pricing.sizeScore,
-        document_size: pricing.documentSize,
-        price: pricing.priceUSD,
-        currency: "USD",
+        pages: 0,
+        words: 0,
+        characters: 0,
+        size_score: 0,
+        document_size: documentSize,
+        price: priceINR,
+        currency: "INR",
         payment_status: "created",
         razorpay_order_id: razorpayOrder.id,
+        plan,
       })
       .select("id")
       .single();
@@ -123,12 +153,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orderId: razorpayOrder.id,
-      amount: amountInCents,
-      currency: "USD",
+      amount: inrToPaisa(priceINR),
+      currency: "INR",
       paymentRecordId: paymentRecord.id,
-      priceUSD: pricing.priceUSD,
-      sizeScore: pricing.sizeScore,
-      documentSize: pricing.documentSize,
+      plan,
+      priceINR,
     });
   } catch (error) {
     console.error("Payment create-order error:", error);

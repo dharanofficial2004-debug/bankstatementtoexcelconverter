@@ -572,29 +572,6 @@ export default function Spreadsheet({
         e.preventDefault();
         handleRedo();
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-        if (rangeStart && rangeEnd) {
-          e.preventDefault();
-          const minRow = Math.min(rangeStart.row, rangeEnd.row);
-          const maxRow = Math.max(rangeStart.row, rangeEnd.row);
-          const minCol = Math.min(rangeStart.col, rangeEnd.col);
-          const maxCol = Math.max(rangeStart.col, rangeEnd.col);
-
-          let textGrid = "";
-          for (let r = minRow; r <= maxRow; r++) {
-            const rowVals: string[] = [];
-            for (let c = minCol; c <= maxCol; c++) {
-              rowVals.push(getCellValue(r, c));
-            }
-            textGrid += rowVals.join("\t") + "\n";
-          }
-          navigator.clipboard.writeText(textGrid.trim());
-        } else if (selectedCell) {
-          e.preventDefault();
-          const val = getCellValue(selectedCell.row, selectedCell.col);
-          navigator.clipboard.writeText(val);
-        }
-      }
       if ((e.ctrlKey || e.metaKey) && e.key === "v") {
         if (isGhostMode) return;
         e.preventDefault();
@@ -735,11 +712,6 @@ export default function Spreadsheet({
     handleEdit(contextMenu.row, contextMenu.col, "");
   }, [contextMenu.row, contextMenu.col, handleEdit]);
 
-  const handleCopyValue = useCallback(() => {
-    const val = getCellValue(contextMenu.row, contextMenu.col);
-    navigator.clipboard.writeText(val);
-  }, [contextMenu.row, contextMenu.col, getCellValue]);
-
   // Select whole column
   const handleColumnClick = useCallback(
     (colIndex: number) => {
@@ -795,7 +767,7 @@ export default function Spreadsheet({
       {/* Spreadsheet Grid */}
       <div
         ref={containerRef}
-        className="spreadsheet-container flex-1"
+        className="spreadsheet-container flex-1 select-none"
         role="grid"
       >
         <table
@@ -969,7 +941,6 @@ export default function Spreadsheet({
             handleDeleteRow();
           }}
           onClearCell={handleClearCell}
-          onCopyValue={handleCopyValue}
           onMoveColumnLeft={() => {
             if (contextMenu.col > 0) {
               const colKey = COL_KEYS[contextMenu.col - 1];

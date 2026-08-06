@@ -58,6 +58,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
     // Verify Razorpay signature
     const expectedSignature = crypto
       .createHmac("sha256", razorpayKeySecret)
@@ -66,11 +70,6 @@ export async function POST(request: NextRequest) {
 
     if (expectedSignature !== razorpay_signature) {
       console.error("Razorpay signature mismatch");
-
-      // Update payment status to failed
-      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
 
       await supabaseAdmin
         .from("payments")
@@ -85,10 +84,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Signature valid — update payment record
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
     const { error: updateError } = await supabaseAdmin
       .from("payments")
       .update({
@@ -107,14 +102,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create conversion record
-    const { data: paymentData } = await supabaseAdmin
+    // Read the payment record to know which plan was bought
+    const { data: paymentData, error: paymentReadError } = await supabaseAdmin
       .from("payments")
-      .select("filename, pages")
+      .select("filename, pages, plan")
       .eq("id", payment_record_id)
       .single();
 
-    if (paymentData) {
+    if (paymentReadError || !paymentData) {
+      console.error("Failed to read payment record:", paymentReadError?.message);
+      return NextResponse.json(
+        { success: false, error: "Payment verified but record could not be read." },
+        { status: 500 }
+      );
+    }
+
+    const plan = paymentData.plan;
+
+    if (plan === "lifetime") {
+      // Grant lifetime access
+      const { error: planError } = await supabaseAdmin
+        .from("user_usage")
+        .upsert(
+          { user_id: user.id, plan: "lifetime", updated_at: new Date().toISOString() },
+          { onConflict: "user_id" }
+        );
+
+      if (planError) {
+        console.error("Failed to grant lifetime plan:", planError);
+      }
+    } else if (plan === "per_conversion") {
+      // Add one paid conversion credit
+      const { data: existing } = await supabaseAdmin
+        .from("user_usage")
+        .select("paid_credits")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const newCredits = (existing?.paid_credits || 0) + 1;
+      const { error: creditError } = await supabaseAdmin
+        .from("user_usage")
+        .upsert(
+          {
+            user_id: user.id,
+            plan: "payg",
+            paid_credits: newCredits,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
+
+      if (creditError) {
+        console.error("Failed to add paid credit:", creditError);
+      }
+    } else {
+      // Legacy document payment — create conversion record
       await supabaseAdmin.from("conversions").insert({
         payment_id: payment_record_id,
         user_id: user.id,

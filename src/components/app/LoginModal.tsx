@@ -1,8 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Lock, Eye, EyeOff, Shield, Loader2, UserPlus, LogIn } from "lucide-react";
+import { X, Mail, Lock, Eye, EyeOff, Shield, Loader2, UserPlus, LogIn, UserRound } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+export const PROFESSIONS = [
+  "Accountant",
+  "Bookkeeper",
+  "CA / Chartered Accountant",
+  "Business Owner",
+  "Student",
+  "Bank / Finance Professional",
+  "Other",
+] as const;
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,6 +27,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profession, setProfession] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,6 +39,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setProfession("");
     setError(null);
     setShowPassword(false);
     setShowConfirm(false);
@@ -55,6 +67,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       setError("Passwords do not match.");
       return;
     }
+    if (!profession) {
+      setError("Please select your profession.");
+      return;
+    }
 
     // Demo / no-Supabase mode
     if (!isSupabaseConfigured() || !supabase) {
@@ -64,7 +80,11 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
     setIsLoading(true);
     try {
-      const { data, error: authError } = await supabase.auth.signUp({ email, password });
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { profession } },
+      });
 
       if (authError) {
         setError(authError.message);
@@ -73,6 +93,15 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
       // If Supabase returns a session immediately (email confirm disabled), log in
       if (data.session) {
+        // Store profession in user_usage (best-effort, RLS allows own row)
+        try {
+          await supabase.from("user_usage").upsert(
+            { user_id: data.session.user.id, profession, updated_at: new Date().toISOString() },
+            { onConflict: "user_id" }
+          );
+        } catch {
+          // non-critical
+        }
         onLoginSuccess();
         return;
       }
@@ -266,6 +295,30 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   >
                     {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
+                </div>
+
+                {/* Profession */}
+                <div className="relative">
+                  <UserRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <select
+                    id="signup-profession"
+                    value={profession}
+                    onChange={(e) => setProfession(e.target.value)}
+                    className={`w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                      appearance-none bg-white ${
+                        profession ? "text-slate-900" : "text-slate-400"
+                      }`}
+                  >
+                    <option value="" disabled>
+                      Select your profession
+                    </option>
+                    {PROFESSIONS.map((p) => (
+                      <option key={p} value={p} className="text-slate-900">
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {error && (

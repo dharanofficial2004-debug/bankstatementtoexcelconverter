@@ -7,7 +7,6 @@ import {
   ArrowDownFromLine,
   Trash2,
   Eraser,
-  Copy,
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
@@ -21,7 +20,6 @@ interface ContextMenuProps {
   onInsertRowBelow: () => void;
   onDeleteRow: () => void;
   onClearCell: () => void;
-  onCopyValue: () => void;
   onMoveColumnLeft?: () => void;
   onMoveColumnRight?: () => void;
 }
@@ -35,7 +33,6 @@ export default function ContextMenu({
   onInsertRowBelow,
   onDeleteRow,
   onClearCell,
-  onCopyValue,
   onMoveColumnLeft,
   onMoveColumnRight,
 }: ContextMenuProps) {
@@ -85,7 +82,6 @@ export default function ContextMenu({
     },
     { type: "separator" as const },
     { icon: <Eraser size={14} />, label: "Clear cell", onClick: onClearCell },
-    { icon: <Copy size={14} />, label: "Copy value", onClick: onCopyValue },
     { type: "separator" as const },
     {
       icon: <ArrowLeft size={14} />,

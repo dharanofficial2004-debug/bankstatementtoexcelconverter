@@ -36,7 +36,7 @@ export default function PdfToExcelBankStatementPage() {
     },
     {
       q: "How can I contact support if an extraction fails?",
-      a: "Our Pro members have access to direct priority support. You can reach out via email to support@bankstatementtoexcelconverter.com and our engineering team will inspect the parsing rules."
+      a: "Our Pro members have access to direct priority support. You can reach out via email to dharan.official.2004@gmail.com and our engineering team will inspect the parsing rules."
     }
   ];
 

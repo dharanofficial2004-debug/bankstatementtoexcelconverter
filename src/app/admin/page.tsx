@@ -92,7 +92,7 @@ export default function AdminPage() {
     setLoginError(null);
 
     const cleanEmail = emailInput.trim().toLowerCase();
-    const validEmails = ["dharan.official2004@gmail.com", "dharan.official@2004gmail.com"];
+    const validEmails = ["dharan.official.2004@gmail.com"];
 
     if (!validEmails.includes(cleanEmail)) {
       setLoginError("Invalid admin email address.");
@@ -148,7 +148,7 @@ export default function AdminPage() {
                   type="email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="dharan.official2004@gmail.com"
+                  placeholder="dharan.official.2004@gmail.com"
                   required
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary-600 focus:bg-white transition-all"
                 />

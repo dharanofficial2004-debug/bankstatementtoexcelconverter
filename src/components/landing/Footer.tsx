@@ -14,7 +14,7 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 py-14">
-        <div className="grid gap-10 xl:grid-cols-[1.8fr_1fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 xl:grid-cols-[1.8fr_1fr_1fr_1fr_1fr_1fr]">
           <div className="space-y-4">
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-sm shadow-primary-200">
@@ -88,6 +88,26 @@ export default function Footer() {
                 className="block hover:text-primary-600 transition-colors"
               >
                 View all U.S. banks →
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.18em] mb-4">
+              Contact
+            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              <a
+                href="mailto:dharan.official.2004@gmail.com"
+                className="block hover:text-primary-600 transition-colors"
+              >
+                dharan.official.2004@gmail.com
+              </a>
+              <Link
+                href="/pdf-to-excel-bank-statement"
+                className="block hover:text-primary-600 transition-colors"
+              >
+                Help & FAQ
               </Link>
             </div>
           </div>

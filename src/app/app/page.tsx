@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import UploadZone from "@/components/app/UploadZone";
+import UploadZone, { UploadZoneHandle } from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
 
 const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr: false });
@@ -11,14 +11,21 @@ const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: f
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { getPrice, DocumentMetrics } from "@/lib/pricing";
+import {
+  LIFETIME_PRICE_INR,
+  PER_CONVERSION_PRICE_INR,
+  LIFETIME_OFFER_LIMIT,
+  formatINR,
+} from "@/lib/pricing";
 import {
   FileSpreadsheet,
   Download,
   FileDown,
   User,
-  LogOut,
-  Lock,
+  Sparkles,
+  Zap,
+  X,
+  Clock,
 } from "lucide-react";
 
 // Add Razorpay window typing
@@ -57,13 +64,17 @@ export default function AppPage() {
   const { showToast } = useToast();
 
   // Payment / usage flow state
-  const [extractedText, setExtractedText] = useState<string | null>(null);
-  const [extractionMeta, setExtractionMeta] = useState<DocumentMetrics | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [conversionsUsed, setConversionsUsed] = useState<number | null>(null);
   const [pendingExportFormat, setPendingExportFormat] = useState<"csv" | "xlsx" | "json" | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPickerIntent, setPendingPickerIntent] = useState(false);
+  const [offerSoldOut, setOfferSoldOut] = useState(false);
+  const [offerRemaining, setOfferRemaining] = useState<number>(LIFETIME_OFFER_LIMIT);
+  const [countdown, setCountdown] = useState<string>("");
+  const uploadZoneRef = useRef<UploadZoneHandle>(null);
+  const pickerBusyRef = useRef(false);
 
   const activeSheet = useMemo(() => {
     return sheets.find((s) => s.id === activeSheetId) || null;
@@ -82,13 +93,11 @@ export default function AppPage() {
   // Fetch conversions_used for the current user
   const fetchUserUsage = useCallback(async (accessToken: string) => {
     try {
-      const res = await fetch("/api/usage/get", {
+      await fetch("/api/usage/get", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const data = await res.json();
-      setConversionsUsed(data.conversions_used ?? 0);
     } catch {
-      setConversionsUsed(0);
+      // ignore
     }
   }, []);
 
@@ -110,16 +119,40 @@ export default function AppPage() {
       setIsAuthenticated(!!session);
       setUserEmail(session?.user.email || null);
       if (session) fetchUserUsage(session.access_token);
-      else setConversionsUsed(null);
     });
 
     return () => subscription.unsubscribe();
   }, [fetchUserUsage]);
 
+  // Daily countdown for the lifetime offer ("Offer ends soon")
+  React.useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diff = Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+      const h = String(Math.floor(diff / 3600)).padStart(2, "0");
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
+      const s = String(diff % 60).padStart(2, "0");
+      setCountdown(`${h}:${m}:${s}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
     // Dynamically import PDF.js as an ES module natively in the browser, bypassing Webpack parsing.
-    // @ts-expect-error: unpkg CDN ESM dynamic import is not resolvable at build time
-    const pdfjs = (await import(/* webpackIgnore: true */ "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs")) as {
+    const PDFJS_URLS = [
+      "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs",
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs",
+    ];
+    const PDFJS_WORKER_URLS = [
+      "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs",
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs",
+    ];
+
+    interface PdfJsModule {
       GlobalWorkerOptions: { workerSrc: string };
       getDocument: (args: { data: ArrayBuffer }) => {
         promise: Promise<{
@@ -131,20 +164,50 @@ export default function AppPage() {
           }>;
         }>;
       };
-    };
+    }
 
-    pdfjs.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs";
+    let pdfjs: PdfJsModule | null = null;
+
+    for (let i = 0; i < PDFJS_URLS.length; i++) {
+      try {
+        const mod = (await import(/* webpackIgnore: true */ PDFJS_URLS[i])) as PdfJsModule;
+        pdfjs = mod;
+        pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URLS[i];
+        break;
+      } catch {
+        // Try the next CDN if this one is blocked or unreachable.
+      }
+    }
+
+    if (!pdfjs) {
+      throw new Error("Could not load the PDF reader. Please check your internet connection and try again.");
+    }
 
     const arrayBuffer = await file.arrayBuffer();
     const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
+
+    const pdf = await Promise.race([
+      loadingTask.promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Timed out reading this PDF. Please try a smaller file.")),
+          60000
+        )
+      ),
+    ]);
 
     if (pdf.numPages > 100) {
       throw new Error("File has too many pages. Maximum page limit is 100.");
     }
 
     let fullText = "";
+    const startedAt = Date.now();
     for (let i = 1; i <= pdf.numPages; i++) {
+      if (Date.now() - startedAt > 120000) {
+        throw new Error("Timed out extracting text. Please try a smaller file.");
+      }
+      // Yield to the browser so the page stays responsive while parsing large statements.
+      await new Promise((resolve) => setTimeout(resolve, 0));
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       const strings = content.items.map((item) => (item as { str: string }).str);
@@ -154,30 +217,136 @@ export default function AppPage() {
     return { text: fullText, pages: pdf.numPages };
   }, []);
 
-  const handleFileSelect = useCallback(
-    async (file: File) => {
-      setFileName(file.name);
-      setAppState("processing");
-      setProcessingStep(0);
+  const startUpload = async (file: File) => {
+    setFileName(file.name);
+    setAppState("processing");
+    setProcessingStep(0);
+
+    try {
+      setProcessingStep(1);
+      const { text } = await extractPdfText(file);
+      await startAIConversion(text);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
+      showToast(errorMsg, "error");
+      setAppState("upload");
+    }
+  };
+
+  const fetchOfferStatus = async () => {
+    try {
+      const res = await fetch("/api/payment/offer-status");
+      const d = await res.json();
+      if (d && typeof d.soldOut === "boolean") {
+        setOfferSoldOut(d.soldOut);
+        setOfferRemaining(d.remaining ?? 0);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // Called when the user clicks the upload area but BEFORE the file picker opens.
+  // If the free conversion is used, show payment first; only open the picker when allowed.
+  const attemptOpenPicker = async () => {
+    if (pickerBusyRef.current) return;
+    pickerBusyRef.current = true;
+    try {
+      if (!isSupabaseConfigured() || !supabase) {
+        uploadZoneRef.current?.openPicker();
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        uploadZoneRef.current?.openPicker();
+        return;
+      }
 
       try {
-        setProcessingStep(1);
-        const { text, pages } = await extractPdfText(file);
-        const words = text.split(/\s+/).filter(Boolean).length;
-        const characters = text.length;
-        setExtractedText(text);
-        setExtractionMeta({ pages, words, characters });
-        // Run full AI conversion immediately — no partial preview
-        await startAIConversion(text);
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
-        showToast(errorMsg, "error");
-        setAppState("upload");
+        const res = await fetch("/api/usage/get", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) throw new Error("Failed to load usage");
+        const d = await res.json();
+
+        const isFree = (d.conversions_used ?? 0) === 0;
+        if (d.plan === "lifetime" || isFree || (d.paid_credits ?? 0) > 0) {
+          uploadZoneRef.current?.openPicker();
+        } else {
+          setPendingPickerIntent(true);
+          setShowPlanModal(true);
+          fetchOfferStatus();
+        }
+      } catch {
+        setPendingPickerIntent(true);
+        setShowPlanModal(true);
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showToast, extractPdfText]
-  );
+    } finally {
+      pickerBusyRef.current = false;
+    }
+  };
+
+  const handleAreaClick = () => {
+    attemptOpenPicker();
+  };
+
+  const processPendingUpload = async (file: File) => {
+    if (!isSupabaseConfigured() || !supabase) {
+      await startUpload(file);
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setPendingFile(null);
+      await startUpload(file);
+      return;
+    }
+
+    // Refresh usage server-side for a fresh gate decision
+    try {
+      const res = await fetch("/api/usage/get", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load usage");
+      const d = await res.json();
+
+      const isFree = (d.conversions_used ?? 0) === 0;
+      if (d.plan === "lifetime" || isFree) {
+        await startUpload(file);
+      } else if ((d.paid_credits ?? 0) > 0) {
+        // Consume one credit, then proceed
+        await fetch("/api/usage/consume", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        await startUpload(file);
+      } else {
+        setPendingFile(file);
+        setShowPlanModal(true);
+        fetchOfferStatus();
+      }
+    } catch {
+      setPendingFile(file);
+      setShowPlanModal(true);
+    }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    if (!isSupabaseConfigured() || !supabase) {
+      await startUpload(file);
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setPendingFile(null);
+      await startUpload(file);
+      return;
+    }
+    setPendingFile(file);
+    await processPendingUpload(file);
+  };
 
   const startAIConversion = async (text: string) => {
     setProcessingStep(2); // Analyzing with AI...
@@ -226,6 +395,22 @@ export default function AppPage() {
           setActiveSheetId(newSheet.id);
           setAppState("spreadsheet");
         }
+
+        // Count this conversion towards usage
+        try {
+          if (supabase) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              const incRes = await fetch("/api/usage/increment", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+              });
+              await incRes.json();
+            }
+          }
+        } catch {
+          // non-critical
+        }
       } else {
         showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
         setAppState("upload");
@@ -239,14 +424,17 @@ export default function AppPage() {
     }
   };
 
-  const initRazorpayPayment = async () => {
-    if (!extractionMeta || !supabase) return;
+  const initPlanPayment = async (plan: "lifetime" | "per_conversion") => {
+    if (!isSupabaseConfigured() || !supabase) return;
     setIsProcessingPayment(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error("Not authenticated");
+        setIsProcessingPayment(false);
+        setShowPlanModal(false);
+        setShowLoginModal(true);
+        return;
       }
 
       // Create order
@@ -256,16 +444,11 @@ export default function AppPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({
-          pages: extractionMeta.pages,
-          words: extractionMeta.words,
-          characters: extractionMeta.characters,
-          filename: fileName
-        }),
+        body: JSON.stringify({ plan }),
       });
 
       const orderData = await createOrderRes.json();
-      
+
       if (!orderData.success) {
         throw new Error(orderData.error || "Failed to create payment order");
       }
@@ -275,7 +458,7 @@ export default function AppPage() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "StatementToExcel",
-        description: `Unlock ${fileName} Conversion`,
+        description: plan === "lifetime" ? "Lifetime Access (₹59)" : "Per Conversion Credit (₹19)",
         order_id: orderData.orderId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         handler: async function (response: any) {
@@ -296,11 +479,23 @@ export default function AppPage() {
             });
 
             const verifyData = await verifyRes.json();
-            
+
             if (verifyData.success) {
-              showToast("Payment successful! Starting conversion...", "success");
-              if (extractedText) {
-                startAIConversion(extractedText);
+              showToast(
+                plan === "lifetime"
+                  ? "Lifetime access unlocked! 🎉"
+                  : "Credit added! You can convert your file now.",
+                "success"
+              );
+              setShowPlanModal(false);
+              setIsProcessingPayment(false);
+              setPendingPickerIntent(false);
+              if (pendingFile) {
+                const fileToProcess = pendingFile;
+                setPendingFile(null);
+                await processPendingUpload(fileToProcess);
+              } else {
+                attemptOpenPicker();
               }
             } else {
               throw new Error(verifyData.error || "Payment verification failed");
@@ -331,7 +526,7 @@ export default function AppPage() {
         setIsProcessingPayment(false);
       });
       rzp.open();
-      
+
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Payment initialization failed";
       showToast(errorMsg, "error");
@@ -350,45 +545,30 @@ export default function AppPage() {
           if (pendingExportFormat) {
             const fmt = pendingExportFormat;
             setPendingExportFormat(null);
-            // Give state time to update
-            setTimeout(() => handleExportAfterAuth(fmt, session.access_token), 100);
+            setTimeout(() => handleExport(fmt), 100);
+          }
+          // Re-trigger the pending upload after login
+          if (pendingFile) {
+            const fileToProcess = pendingFile;
+            setPendingFile(null);
+            setTimeout(() => processPendingUpload(fileToProcess), 100);
+          }
+          // Re-trigger the file picker after login
+          if (pendingPickerIntent) {
+            setPendingPickerIntent(false);
+            setTimeout(() => attemptOpenPicker(), 100);
           }
         });
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchUserUsage, pendingExportFormat]);
-
-  const handleExportAfterAuth = async (format: "csv" | "xlsx" | "json", accessToken: string) => {
-    // Re-fetch latest usage to ensure freshness
-    let used = conversionsUsed ?? 0;
-    try {
-      const res = await fetch("/api/usage/get", { headers: { Authorization: `Bearer ${accessToken}` } });
-      const d = await res.json();
-      used = d.conversions_used ?? 0;
-      setConversionsUsed(used);
-    } catch { /* use cached value */ }
-
-    if (used >= 1) {
-      setShowPaywall(true);
-    } else {
-      await performExport(format);
-      // Increment usage counter
-      try {
-        await fetch("/api/usage/increment", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        setConversionsUsed(1);
-      } catch { /* non-critical */ }
-      showToast("Your first conversion is free 🎉", "success");
-    }
-  };
+  }, [fetchUserUsage, pendingExportFormat, pendingFile]);
 
   const handleExport = useCallback(
     async (format: "csv" | "xlsx" | "json") => {
       if (!isAuthenticated || !isSupabaseConfigured()) {
-        // Not logged in — show auth modal, remember format
+        // Not logged in — ask for signup at export time
+        showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
         setShowLoginModal(true);
         return;
@@ -396,24 +576,17 @@ export default function AppPage() {
 
       const { data: { session } } = await supabase!.auth.getSession();
       if (!session) {
+        showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
         setShowLoginModal(true);
         return;
       }
 
-      await handleExportAfterAuth(format, session.access_token);
+      await performExport(format);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, conversionsUsed, transactions, sheets]
+    [isAuthenticated, transactions, sheets]
   );
-
-  const handlePayAndUnlock = () => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-    } else {
-      initRazorpayPayment();
-    }
-  };
 
   const performExport = async (format: "csv" | "xlsx" | "json") => {
     try {
@@ -446,15 +619,6 @@ export default function AppPage() {
       showToast(`Downloaded successfully ✓`, "success");
     } catch {
       showToast("Export failed. Please try again.", "error");
-    }
-  };
-
-  const handleLogout = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-      setIsAuthenticated(false);
-      setUserEmail(null);
-      showToast("Signed out successfully", "info");
     }
   };
 
@@ -526,7 +690,7 @@ export default function AppPage() {
 
         {/* Upload another */}
         {appState === "spreadsheet" && (
-          <UploadZone onFileSelect={handleFileSelect} isCollapsed={true} />
+          <UploadZone onFileSelect={handleFileSelect} isCollapsed={true} ref={uploadZoneRef} onAreaClick={handleAreaClick} />
         )}
 
         {/* Spacer */}
@@ -571,13 +735,6 @@ export default function AppPage() {
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
               {userEmail?.charAt(0).toUpperCase() || "U"}
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-              title="Sign out"
-            >
-              <LogOut size={16} />
-            </button>
           </div>
         ) : (
           <button
@@ -594,7 +751,7 @@ export default function AppPage() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative">
         {appState === "upload" && (
-          <UploadZone onFileSelect={handleFileSelect} isCollapsed={false} />
+          <UploadZone onFileSelect={handleFileSelect} isCollapsed={false} ref={uploadZoneRef} onAreaClick={handleAreaClick} />
         )}
 
         {appState === "processing" && (
@@ -662,41 +819,92 @@ export default function AppPage() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Paywall Modal — shown when free limit reached */}
-      {showPaywall && (
+      {/* Plan Modal — shown before upload when the free conversion is used */}
+      {showPlanModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowPaywall(false)} />
-          <div className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 flex items-center justify-center">
-              <Lock size={28} className="text-amber-500" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Free limit reached</h2>
-            <p className="text-sm text-slate-500 mb-6">
-              Upgrade to continue converting bank statements without limits.
-            </p>
-            {extractionMeta && (
-              <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
-                <span className="text-sm font-medium text-slate-600">Conversion Price</span>
-                <span className="text-xl font-bold text-slate-800">
-                  ${getPrice(extractionMeta)?.priceUSD.toFixed(2)}{" "}
-                  <span className="text-xs text-slate-500">USD</span>
-                </span>
-              </div>
-            )}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowPlanModal(false)} />
+          <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl p-8">
             <button
-              onClick={() => { setShowPaywall(false); handlePayAndUnlock(); }}
-              disabled={isProcessingPayment}
-              className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-medium transition-all shadow-sm disabled:opacity-70"
+              onClick={() => setShowPlanModal(false)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+              aria-label="Close"
             >
-              {isProcessingPayment ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <span>Pay &amp; Unlock Conversion</span>
-              )}
+              <X size={20} />
             </button>
-            <button onClick={() => setShowPaywall(false)} className="mt-3 text-xs text-slate-400 hover:text-slate-600">
-              Maybe later
-            </button>
+
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-extrabold text-slate-900 mb-1">You've used your free conversion</h2>
+              <p className="text-sm text-slate-500">Pick a plan to keep converting bank statements to Excel.</p>
+            </div>
+
+            <div className="grid gap-4">
+              {/* Lifetime Access */}
+              <div className="relative rounded-2xl border-2 border-primary-500 p-5 shadow-sm">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <div className="flex items-center gap-1 px-3 py-1 bg-rose-600 text-white text-[10px] font-bold rounded-full shadow">
+                    <Clock size={11} />
+                    {offerSoldOut ? "SOLD OUT" : `OFFER ENDS IN ${countdown}`}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                    <Sparkles size={22} className="text-primary-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-slate-900">Lifetime Access</h3>
+                    <p className="text-xs text-slate-500">Pay once, convert unlimited statements forever</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-end justify-between">
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{formatINR(LIFETIME_PRICE_INR)}</span>
+                    <span className="text-sm text-slate-500 ml-1">one-time</span>
+                  </div>
+                  <button
+                    onClick={() => initPlanPayment("lifetime")}
+                    disabled={isProcessingPayment || offerSoldOut}
+                    className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
+                  >
+                    {isProcessingPayment ? "Processing..." : offerSoldOut ? "Sold Out" : "Get Lifetime Access"}
+                  </button>
+                </div>
+                <p className="mt-3 text-[11px] text-slate-400">
+                  {offerSoldOut
+                    ? "This offer is no longer available."
+                    : `Limited to ${LIFETIME_OFFER_LIMIT} users — only ${offerRemaining} spots left.`}
+                </p>
+              </div>
+
+              {/* Pay Per Conversion */}
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <Zap size={22} className="text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-slate-900">Pay Per Conversion</h3>
+                    <p className="text-xs text-slate-500">Pay only when you need to convert a statement</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-end justify-between">
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{formatINR(PER_CONVERSION_PRICE_INR)}</span>
+                    <span className="text-sm text-slate-500 ml-1">per file</span>
+                  </div>
+                  <button
+                    onClick={() => initPlanPayment("per_conversion")}
+                    disabled={isProcessingPayment}
+                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
+                  >
+                    {isProcessingPayment ? "Processing..." : `Pay ${formatINR(PER_CONVERSION_PRICE_INR)} & Convert`}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-5 text-center text-xs text-slate-400">
+              Secure payments via Razorpay. Your file is processed right after payment.
+            </p>
           </div>
         </div>
       )}
