@@ -26,16 +26,38 @@ export default function PricingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [offerSoldOut, setOfferSoldOut] = useState(false);
   const [offerRemaining, setOfferRemaining] = useState(LIFETIME_OFFER_LIMIT);
+  const [userPlan, setUserPlan] = useState<string>("free");
+
+  const isLifetime = userPlan === "lifetime";
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) return;
+
+    const loadUser = async (accessToken?: string) => {
+      if (!accessToken) {
+        setUserPlan("free");
+        return;
+      }
+      try {
+        const res = await fetch("/api/usage/get", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const d = await res.json();
+        if (d && typeof d.plan === "string") setUserPlan(d.plan);
+      } catch {
+        // ignore
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session) loadUser(session.access_token);
     });
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      if (session) loadUser(session.access_token);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -112,6 +134,16 @@ export default function PricingPage() {
             </p>
           </div>
 
+          {/* Lifetime subscribed banner */}
+          {isLifetime && (
+            <div className="mb-10 rounded-2xl bg-success-50 border border-success-200 px-5 py-4 text-center">
+              <p className="text-sm font-semibold text-success-700">
+                <Sparkles size={15} className="inline mr-1.5 -mt-0.5" />
+                You already have Lifetime Access — enjoy unlimited conversions forever.
+              </p>
+            </div>
+          )}
+
           {/* Plans */}
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
             {/* Free Plan */}
@@ -142,9 +174,17 @@ export default function PricingPage() {
             <div className="relative flex flex-col bg-white rounded-2xl border-2 border-primary-500 p-8 shadow-lg shadow-primary-100/50">
               {/* Badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div className="flex items-center gap-1 px-3 py-1 bg-rose-600 text-white text-[10px] font-bold rounded-full shadow">
+                <div
+                  className={`flex items-center gap-1 px-3 py-1 text-white text-[10px] font-bold rounded-full shadow ${
+                    isLifetime ? "bg-success-600" : "bg-rose-600"
+                  }`}
+                >
                   <Clock size={11} />
-                  {offerSoldOut ? "SOLD OUT" : "LIMITED OFFER"}
+                  {isLifetime
+                    ? "ACTIVE"
+                    : offerSoldOut
+                      ? "SOLD OUT"
+                      : "LIMITED OFFER"}
                 </div>
               </div>
 
@@ -163,14 +203,25 @@ export default function PricingPage() {
                 No subscription. No recurring fees. Ever.
               </p>
 
-              <button
-                onClick={() => handleBuy("lifetime")}
-                disabled={isProcessing || offerSoldOut}
-                className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Sparkles size={16} />
-                {isProcessing ? "Processing..." : offerSoldOut ? "Sold Out" : "Get Lifetime Access"}
-              </button>
+              {isLifetime ? (
+                <div className="w-full mb-8 rounded-xl bg-success-50 border border-success-200 px-4 py-3.5 text-center">
+                  <p className="text-sm font-bold text-success-700">
+                    ✓ Already subscribed for lifetime
+                  </p>
+                  <p className="text-xs text-success-600/80 mt-0.5">
+                    You have unlimited conversions.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleBuy("lifetime")}
+                  disabled={isProcessing || offerSoldOut}
+                  className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <Sparkles size={16} />
+                  {isProcessing ? "Processing..." : offerSoldOut ? "Sold Out" : "Get Lifetime Access"}
+                </button>
+              )}
 
               <div className="space-y-3">
                 <Feature included>Unlimited conversions forever</Feature>
@@ -202,13 +253,22 @@ export default function PricingPage() {
 
               <button
                 onClick={() => handleBuy("per_conversion")}
-                disabled={isProcessing}
+                disabled={isProcessing || isLifetime}
                 className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Zap size={16} />
-                {isProcessing
-                  ? "Processing..."
-                  : `Pay ${formatINR(PER_CONVERSION_PRICE_INR)} & Convert`}
+                {isLifetime ? (
+                  <>
+                    <Check size={16} />
+                    Included in Lifetime ✓
+                  </>
+                ) : (
+                  <>
+                    <Zap size={16} />
+                    {isProcessing
+                      ? "Processing..."
+                      : `Pay ${formatINR(PER_CONVERSION_PRICE_INR)} & Convert`}
+                  </>
+                )}
               </button>
 
               <div className="space-y-3">
