@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic";
+
 import {
   LIFETIME_PRICE_INR,
   PER_CONVERSION_PRICE_INR,

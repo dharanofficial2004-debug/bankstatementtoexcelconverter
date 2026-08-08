@@ -2,6 +2,9 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["pdf-parse", "pdfjs-dist", "pdfexcavator"],
+    // Limit parallel build workers so static generation fits in memory on
+    // small machines (prevents "Fatal process out of memory" during build).
+    cpus: 2,
   },
   images: {
     remotePatterns: [

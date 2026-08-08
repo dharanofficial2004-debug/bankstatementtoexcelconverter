@@ -11,6 +11,7 @@ const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: f
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { uploadPdfToStorage, uploadUnlockedPdfToStorage } from "@/lib/storage";
 import {
   LIFETIME_PRICE_INR,
   PER_CONVERSION_PRICE_INR,
@@ -26,6 +27,7 @@ import {
   Zap,
   X,
   Clock,
+  Lock,
 } from "lucide-react";
 
 // Add Razorpay window typing
@@ -75,6 +77,15 @@ export default function AppPage() {
   const [countdown, setCountdown] = useState<string>("");
   const uploadZoneRef = useRef<UploadZoneHandle>(null);
   const pickerBusyRef = useRef(false);
+
+  // PDF password prompt state
+  const [pdfPasswordPrompt, setPdfPasswordPrompt] = useState<{
+    incorrect: boolean;
+    fileName: string;
+  } | null>(null);
+  const [pdfPassword, setPdfPassword] = useState("");
+  const pendingPdfPasswordRef = useRef<{ resolve: (pw: string) => void } | null>(null);
+  const submittedPdfPasswordRef = useRef<string | null>(null);
 
   const activeSheet = useMemo(() => {
     return sheets.find((s) => s.id === activeSheetId) || null;
@@ -154,7 +165,10 @@ export default function AppPage() {
 
     interface PdfJsModule {
       GlobalWorkerOptions: { workerSrc: string };
-      getDocument: (args: { data: ArrayBuffer }) => {
+      getDocument: (args: {
+        data: ArrayBuffer;
+      }) => {
+        onPassword?: (updatePassword: (pw: string) => void, reason: number) => void;
         promise: Promise<{
           numPages: number;
           getPage: (index: number) => Promise<{
@@ -184,17 +198,49 @@ export default function AppPage() {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
 
-    const pdf = await Promise.race([
-      loadingTask.promise,
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Timed out reading this PDF. Please try a smaller file.")),
-          60000
-        )
-      ),
-    ]);
+    // Load the PDF. If it is password protected, ask the user for the password
+    // (via the modal) and then continue loading exactly as before.
+    const pdf = await new Promise<{
+      numPages: number;
+      getPage: (index: number) => Promise<{
+        getTextContent: () => Promise<{ items: Array<{ str: string }> }>;
+      }>;
+    }>((resolve, reject) => {
+      let loadTimer: ReturnType<typeof setTimeout> | null = null;
+      const startLoadTimer = () => {
+        if (loadTimer) clearTimeout(loadTimer);
+        loadTimer = setTimeout(() => {
+          reject(new Error("Timed out reading this PDF. Please try a smaller file."));
+        }, 60000);
+      };
+
+      const loadingTask = pdfjs.getDocument({
+        data: arrayBuffer,
+      });
+      loadingTask.onPassword = (updatePassword, reason) => {
+        setPdfPassword("");
+        setPdfPasswordPrompt({ incorrect: reason === 2, fileName: file.name });
+        pendingPdfPasswordRef.current = {
+          resolve: (pw: string) => {
+            startLoadTimer();
+            updatePassword(pw);
+          },
+        };
+      };
+
+      startLoadTimer();
+      loadingTask.promise.then(
+        (loadedPdf) => {
+          if (loadTimer) clearTimeout(loadTimer);
+          resolve(loadedPdf);
+        },
+        (err) => {
+          if (loadTimer) clearTimeout(loadTimer);
+          reject(err);
+        }
+      );
+    });
 
     if (pdf.numPages > 100) {
       throw new Error("File has too many pages. Maximum page limit is 100.");
@@ -221,16 +267,49 @@ export default function AppPage() {
     setFileName(file.name);
     setAppState("processing");
     setProcessingStep(0);
+    setPdfPasswordPrompt(null);
+    setPdfPassword("");
+    pendingPdfPasswordRef.current = null;
+    submittedPdfPasswordRef.current = null;
+
+    // Background: save a copy of the original PDF to Supabase Storage.
+    // Fire-and-forget — never blocks the extract → AI → preview flow.
+    void uploadPdfToStorage(file);
 
     try {
       setProcessingStep(1);
       const { text } = await extractPdfText(file);
+
+      // Background: if the PDF was password protected, save an unlocked copy
+      // to Storage so it can be opened without a prompt. Fire-and-forget.
+      if (submittedPdfPasswordRef.current) {
+        void uploadUnlockedPdfToStorage(file, submittedPdfPasswordRef.current);
+      }
+
       await startAIConversion(text);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
       showToast(errorMsg, "error");
       setAppState("upload");
     }
+  };
+
+  const submitPdfPassword = () => {
+    const pw = pdfPassword;
+    submittedPdfPasswordRef.current = pw;
+    pendingPdfPasswordRef.current?.resolve(pw);
+    pendingPdfPasswordRef.current = null;
+    setPdfPassword("");
+    setPdfPasswordPrompt(null);
+  };
+
+  const cancelPdfPassword = () => {
+    // Resolve with an empty password — pdf.js throws "No password given"
+    // and the upload is aborted like before.
+    pendingPdfPasswordRef.current?.resolve("");
+    pendingPdfPasswordRef.current = null;
+    setPdfPassword("");
+    setPdfPasswordPrompt(null);
   };
 
   const fetchOfferStatus = async () => {
@@ -905,6 +984,58 @@ export default function AppPage() {
             <p className="mt-5 text-center text-xs text-slate-400">
               Secure payments via Razorpay. Your file is processed right after payment.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Password Modal — shown when the uploaded PDF is password protected */}
+      {pdfPasswordPrompt && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={cancelPdfPassword}
+          />
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-8">
+            <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
+              <Lock size={24} className="text-primary-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-1">
+              {pdfPasswordPrompt.incorrect
+                ? "Incorrect password"
+                : "This PDF is password protected"}
+            </h2>
+            <p className="text-sm text-slate-500 mb-5">
+              {pdfPasswordPrompt.incorrect
+                ? "The password you entered is wrong. Please try again."
+                : `Enter the password to unlock "${pdfPasswordPrompt.fileName}".`}
+            </p>
+            <input
+              type="password"
+              value={pdfPassword}
+              onChange={(e) => setPdfPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitPdfPassword();
+              }}
+              placeholder="Enter PDF password"
+              autoFocus
+              className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                placeholder:text-slate-400"
+            />
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={cancelPdfPassword}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitPdfPassword}
+                className="flex-1 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors"
+              >
+                Unlock
+              </button>
+            </div>
           </div>
         </div>
       )}

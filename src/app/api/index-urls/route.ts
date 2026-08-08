@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { indianBanks } from "@/lib/indianBanks";
 import { usBanks } from "@/lib/usBanks";
 
+export const dynamic = "force-dynamic";
+
 const BASE_URL = "https://bankstatementtoexcelconverter.com";
 
 // All PSEO pages grouped by section
