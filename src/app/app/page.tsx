@@ -326,7 +326,7 @@ export default function AppPage() {
   };
 
   // Called when the user clicks the upload area but BEFORE the file picker opens.
-  // If the free conversion is used, show payment first; only open the picker when allowed.
+  // If the free conversion is used, block the picker and show payment.
   const attemptOpenPicker = async () => {
     if (pickerBusyRef.current) return;
     pickerBusyRef.current = true;
@@ -346,20 +346,21 @@ export default function AppPage() {
         const res = await fetch("/api/usage/get", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        if (!res.ok) throw new Error("Failed to load usage");
-        const d = await res.json();
-
-        const isFree = (d.conversions_used ?? 0) === 0;
-        if (d.plan === "lifetime" || isFree || (d.paid_credits ?? 0) > 0) {
-          uploadZoneRef.current?.openPicker();
+        if (res.ok) {
+          const d = await res.json();
+          const isFree = (d.conversions_used ?? 0) === 0;
+          if (d.plan === "lifetime" || isFree || (d.paid_credits ?? 0) > 0) {
+            uploadZoneRef.current?.openPicker();
+          } else {
+            setPendingPickerIntent(true);
+            setShowPlanModal(true);
+            fetchOfferStatus();
+          }
         } else {
-          setPendingPickerIntent(true);
-          setShowPlanModal(true);
-          fetchOfferStatus();
+          uploadZoneRef.current?.openPicker();
         }
       } catch {
-        setPendingPickerIntent(true);
-        setShowPlanModal(true);
+        uploadZoneRef.current?.openPicker();
       }
     } finally {
       pickerBusyRef.current = false;
@@ -371,6 +372,8 @@ export default function AppPage() {
   };
 
   const processPendingUpload = async (file: File) => {
+    setPendingFile(null);
+
     if (!isSupabaseConfigured() || !supabase) {
       await startUpload(file);
       return;
@@ -378,37 +381,42 @@ export default function AppPage() {
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      setPendingFile(null);
       await startUpload(file);
       return;
     }
 
-    // Refresh usage server-side for a fresh gate decision
+    // Block the conversion when the free one is already used
     try {
       const res = await fetch("/api/usage/get", {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (!res.ok) throw new Error("Failed to load usage");
-      const d = await res.json();
-
-      const isFree = (d.conversions_used ?? 0) === 0;
-      if (d.plan === "lifetime" || isFree) {
-        await startUpload(file);
-      } else if ((d.paid_credits ?? 0) > 0) {
-        // Consume one credit, then proceed
-        await fetch("/api/usage/consume", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        await startUpload(file);
+      if (res.ok) {
+        const d = await res.json();
+        const isFree = (d.conversions_used ?? 0) === 0;
+        if (d.plan === "lifetime" || isFree) {
+          await startUpload(file);
+        } else if ((d.paid_credits ?? 0) > 0) {
+          const cRes = await fetch("/api/usage/consume", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (cRes.ok) {
+            await startUpload(file);
+          } else {
+            setPendingFile(file);
+            setShowPlanModal(true);
+            fetchOfferStatus();
+          }
+        } else {
+          setPendingFile(file);
+          setShowPlanModal(true);
+          fetchOfferStatus();
+        }
       } else {
-        setPendingFile(file);
-        setShowPlanModal(true);
-        fetchOfferStatus();
+        await startUpload(file);
       }
     } catch {
-      setPendingFile(file);
-      setShowPlanModal(true);
+      await startUpload(file);
     }
   };
 
@@ -475,7 +483,7 @@ export default function AppPage() {
           setAppState("spreadsheet");
         }
 
-        // Count this conversion towards usage
+        // Count this conversion towards usage (only when signed in)
         try {
           if (supabase) {
             const { data: { session } } = await supabase.auth.getSession();
@@ -484,12 +492,16 @@ export default function AppPage() {
                 method: "POST",
                 headers: { Authorization: `Bearer ${session.access_token}` },
               });
-              await incRes.json();
+              if (!incRes.ok) {
+                const errBody = await incRes.json().catch(() => ({}));
+                console.error("[usage] increment failed:", incRes.status, errBody);
+              }
             }
           }
-        } catch {
-          // non-critical
+        } catch (e) {
+          console.error("[usage] increment error:", e);
         }
+
       } else {
         showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
         setAppState("upload");
@@ -573,6 +585,10 @@ export default function AppPage() {
                 const fileToProcess = pendingFile;
                 setPendingFile(null);
                 await processPendingUpload(fileToProcess);
+              } else if (pendingExportFormat) {
+                const fmt = pendingExportFormat;
+                setPendingExportFormat(null);
+                await handleExport(fmt);
               } else {
                 attemptOpenPicker();
               }
@@ -646,7 +662,6 @@ export default function AppPage() {
   const handleExport = useCallback(
     async (format: "csv" | "xlsx" | "json") => {
       if (!isAuthenticated || !isSupabaseConfigured()) {
-        // Not logged in — ask for signup at export time
         showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
         setShowLoginModal(true);
