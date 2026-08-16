@@ -51,7 +51,7 @@ export async function startPlanCheckout(
       amount: orderData.amount,
       currency: orderData.currency,
       name: "StatementToExcel",
-      description: plan === "lifetime" ? "Lifetime Access (₹59)" : "Per Conversion Credit (₹19)",
+      description: plan === "lifetime" ? "Lifetime Access ($100)" : "Per Conversion Credit ($2)",
       order_id: orderData.orderId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async function (response: any) {

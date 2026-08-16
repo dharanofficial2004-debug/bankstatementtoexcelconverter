@@ -10,10 +10,7 @@ import { Check, X, Sparkles, Zap, Clock, ShieldCheck } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { startPlanCheckout } from "@/lib/checkout";
 import {
-  LIFETIME_PRICE_INR,
-  PER_CONVERSION_PRICE_INR,
   LIFETIME_OFFER_LIMIT,
-  formatINR,
 } from "@/lib/pricing";
 
 type Plan = "lifetime" | "per_conversion";
@@ -154,7 +151,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-8">
-                <span className="text-4xl font-extrabold text-slate-900">₹0</span>
+                <span className="text-4xl font-extrabold text-slate-900">$0</span>
                 <span className="text-sm text-slate-500 ml-1">/ first file</span>
               </div>
 
@@ -194,9 +191,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-2">
-                <span className="text-4xl font-extrabold text-slate-900">
-                  {formatINR(LIFETIME_PRICE_INR)}
-                </span>
+                <span className="text-4xl font-extrabold text-slate-900">$100</span>
                 <span className="text-sm text-slate-500 ml-1">one-time</span>
               </div>
               <p className="text-xs text-slate-400 mb-8">
@@ -245,9 +240,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-8">
-                <span className="text-4xl font-extrabold text-slate-900">
-                  {formatINR(PER_CONVERSION_PRICE_INR)}
-                </span>
+                <span className="text-4xl font-extrabold text-slate-900">$2</span>
                 <span className="text-sm text-slate-500 ml-1">/ per file</span>
               </div>
 
@@ -266,7 +259,7 @@ export default function PricingPage() {
                     <Zap size={16} />
                     {isProcessing
                       ? "Processing..."
-                      : `Pay ${formatINR(PER_CONVERSION_PRICE_INR)} & Convert`}
+                      : `Pay $2 & Convert`}
                   </>
                 )}
               </button>

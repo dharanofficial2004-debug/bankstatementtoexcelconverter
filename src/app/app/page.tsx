@@ -13,10 +13,10 @@ import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { uploadPdfToStorage, uploadUnlockedPdfToStorage } from "@/lib/storage";
 import {
-  LIFETIME_PRICE_INR,
-  PER_CONVERSION_PRICE_INR,
+  LIFETIME_PRICE_USD,
+  PER_CONVERSION_PRICE_USD,
   LIFETIME_OFFER_LIMIT,
-  formatINR,
+  formatUSD,
 } from "@/lib/pricing";
 import {
   FileSpreadsheet,
@@ -549,7 +549,7 @@ export default function AppPage() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "StatementToExcel",
-        description: plan === "lifetime" ? "Lifetime Access (₹59)" : "Per Conversion Credit (₹19)",
+        description: plan === "lifetime" ? "Lifetime Access ($100)" : "Per Conversion Credit ($2)",
         order_id: orderData.orderId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         handler: async function (response: any) {
@@ -951,7 +951,7 @@ export default function AppPage() {
                 </div>
                 <div className="mt-4 flex items-end justify-between">
                   <div>
-                    <span className="text-3xl font-extrabold text-slate-900">{formatINR(LIFETIME_PRICE_INR)}</span>
+                    <span className="text-3xl font-extrabold text-slate-900">{formatUSD(LIFETIME_PRICE_USD)}</span>
                     <span className="text-sm text-slate-500 ml-1">one-time</span>
                   </div>
                   <button
@@ -982,7 +982,7 @@ export default function AppPage() {
                 </div>
                 <div className="mt-4 flex items-end justify-between">
                   <div>
-                    <span className="text-3xl font-extrabold text-slate-900">{formatINR(PER_CONVERSION_PRICE_INR)}</span>
+                    <span className="text-3xl font-extrabold text-slate-900">{formatUSD(PER_CONVERSION_PRICE_USD)}</span>
                     <span className="text-sm text-slate-500 ml-1">per file</span>
                   </div>
                   <button
@@ -990,7 +990,7 @@ export default function AppPage() {
                     disabled={isProcessingPayment}
                     className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
                   >
-                    {isProcessingPayment ? "Processing..." : `Pay ${formatINR(PER_CONVERSION_PRICE_INR)} & Convert`}
+                    {isProcessingPayment ? "Processing..." : `Pay ${formatUSD(PER_CONVERSION_PRICE_USD)} & Convert`}
                   </button>
                 </div>
               </div>
