@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
-import ProductPreview from "@/components/landing/ProductPreview";
+import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -41,7 +41,7 @@ export default function Page() {
       </section>
 
       <div className="bg-white px-4 pb-10">
-        <ProductPreview />
+        <VideoDemo />
       </div>
 
       {/* Why AI section */}

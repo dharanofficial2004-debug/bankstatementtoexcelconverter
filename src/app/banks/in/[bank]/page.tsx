@@ -4,7 +4,7 @@ import Link from "next/link";
 import { indianBanks } from "@/lib/indianBanks";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import ProductPreview from "@/components/landing/ProductPreview";
+import VideoDemo from "@/components/landing/VideoDemo";
 import Footer from "@/components/landing/Footer";
 
 interface BankPageProps {
@@ -361,9 +361,7 @@ export default function BankPage({ params }: BankPageProps) {
               ))}
             </div>
             <div className="-mt-6 relative z-10 px-4">
-              <ProductPreview
-                detectedBankName={isCanaraBank ? "Canara Bank" : bank.name}
-              />
+              <VideoDemo />
             </div>
             <p className="mt-8 text-center text-sm text-slate-600">
               Convert Canara Bank Statement to Excel Free and use the same

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import ProductPreview from "@/components/landing/ProductPreview";
+import VideoDemo from "@/components/landing/VideoDemo";
 import HowItWorks from "@/components/landing/HowItWorks";
 import BanksList from "@/components/landing/BanksList";
 import Footer from "@/components/landing/Footer";
@@ -78,7 +78,7 @@ export default function Page() {
         ctaLink="/app"
       />
 
-      <ProductPreview />
+      <VideoDemo />
 
       <HowItWorks 
         title="Comment ça marche"

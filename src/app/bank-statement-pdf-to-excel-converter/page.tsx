@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import VideoDemo from "@/components/landing/VideoDemo";
 import {
   ArrowRight,
   Shield,
@@ -83,6 +84,8 @@ export default function BankStatementPdfToExcelConverterPage() {
           </div>
         </div>
       </section>
+
+      <VideoDemo />
 
       {/* Content Section */}
       <main className="max-w-5xl mx-auto px-4 py-16">

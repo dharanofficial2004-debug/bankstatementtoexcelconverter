@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
-import ProductPreview from "@/components/landing/ProductPreview";
+import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2, FileSpreadsheet, TrendingUp, Clock, Shield } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -57,7 +57,7 @@ export default function Page() {
             </div>
           </div>
           <div className="flex-1 w-full">
-            <ProductPreview />
+            <VideoDemo />
           </div>
         </div>
       </section>

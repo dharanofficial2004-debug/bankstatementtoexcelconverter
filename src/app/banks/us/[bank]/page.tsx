@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usBanks } from "@/lib/usBanks";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
-import ProductPreview from "@/components/landing/ProductPreview";
+import VideoDemo from "@/components/landing/VideoDemo";
 import {
   ArrowRight,
   CheckCircle2,
@@ -150,9 +150,9 @@ export default function USBankPage({ params }: Props) {
         </div>
       </section>
 
-      {/* ── Live tool preview ── */}
+      {/* ── Video demo ── */}
       <div className="px-4 -mt-4 mb-16">
-        <ProductPreview />
+        <VideoDemo />
       </div>
 
       {/* ── How to download ── */}
