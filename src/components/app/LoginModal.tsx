@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Mail, Lock, Eye, EyeOff, Shield, Loader2, UserPlus, LogIn, UserRound } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { trackSignupCompleted, trackLoginCompleted } from "@/lib/analytics";
 
 export const PROFESSIONS = [
   "Accountant",
@@ -108,6 +109,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         } catch {
           // non-critical
         }
+        trackSignupCompleted({ method: "email" });
         onLoginSuccess();
         return;
       }
@@ -115,6 +117,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       // If email confirmation is enabled, try signing in anyway
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (!signInError) {
+        trackSignupCompleted({ method: "email" });
         onLoginSuccess();
       } else {
         setError("Account created! Please check your email to confirm, then sign in.");
@@ -160,6 +163,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         return;
       }
 
+      trackLoginCompleted({ method: "email" });
       onLoginSuccess();
     } catch {
       setError("Sign in failed. Please try again.");

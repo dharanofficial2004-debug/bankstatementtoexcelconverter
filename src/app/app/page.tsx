@@ -13,6 +13,20 @@ import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { uploadPdfToStorage, uploadUnlockedPdfToStorage } from "@/lib/storage";
 import {
+  trackUploadPdf,
+  trackConversionStarted,
+  trackPreviewDisplayed,
+  trackSignupStarted,
+  trackDownloadButtonClicked,
+  trackDownloadExcel,
+  trackDownloadCsv,
+  trackPaymentPageViewed,
+  trackPaymentInitiated,
+  trackPaymentSuccess,
+  trackPaymentFailed,
+  detectTrafficSource,
+} from "@/lib/analytics";
+import {
   LIFETIME_PRICE_USD,
   PER_CONVERSION_PRICE_USD,
   LIFETIME_OFFER_LIMIT,
@@ -114,6 +128,9 @@ export default function AppPage() {
 
   // Check auth state
   React.useEffect(() => {
+    // Capture traffic source on first render
+    detectTrafficSource();
+
     if (!isSupabaseConfigured() || !supabase) return;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -271,6 +288,9 @@ export default function AppPage() {
     setPdfPassword("");
     pendingPdfPasswordRef.current = null;
     submittedPdfPasswordRef.current = null;
+
+    // Track upload
+    trackUploadPdf({ file_name: file.name });
 
     // Background: save a copy of the original PDF to Supabase Storage.
     // Fire-and-forget — never blocks the extract → AI → preview flow.
@@ -437,7 +457,10 @@ export default function AppPage() {
 
   const startAIConversion = async (text: string) => {
     setProcessingStep(2); // Analyzing with AI...
-    
+
+    // Track conversion started
+    trackConversionStarted();
+
     try {
       const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
       if (supabase) {
@@ -483,6 +506,12 @@ export default function AppPage() {
           setAppState("spreadsheet");
         }
 
+        // Track preview displayed
+        trackPreviewDisplayed({
+          bank: data.bank_detected ?? undefined,
+          transaction_count: data.transactions.length,
+        });
+
         // Count this conversion towards usage (only when signed in)
         try {
           if (supabase) {
@@ -519,11 +548,15 @@ export default function AppPage() {
     if (!isSupabaseConfigured() || !supabase) return;
     setIsProcessingPayment(true);
 
+    // Track payment page viewed
+    trackPaymentPageViewed({ plan });
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setIsProcessingPayment(false);
         setShowPlanModal(false);
+        trackSignupStarted({ trigger: "payment_gate" });
         setShowLoginModal(true);
         return;
       }
@@ -572,6 +605,13 @@ export default function AppPage() {
             const verifyData = await verifyRes.json();
 
             if (verifyData.success) {
+              // Track successful payment
+              trackPaymentSuccess({
+                plan,
+                value: orderData.priceINR ?? 0,
+                currency: orderData.currency ?? "INR",
+                transaction_id: response.razorpay_payment_id,
+              });
               showToast(
                 plan === "lifetime"
                   ? "Lifetime access unlocked! 🎉"
@@ -617,9 +657,18 @@ export default function AppPage() {
       const rzp = new window.Razorpay(options);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rzp.on("payment.failed", function (response: any) {
+        trackPaymentFailed({ plan, reason: response.error?.description });
         showToast(response.error.description || "Payment failed", "error");
         setIsProcessingPayment(false);
       });
+
+      // Track payment initiated (Razorpay modal about to open)
+      trackPaymentInitiated({
+        plan,
+        value: orderData.priceINR ?? 0,
+        currency: orderData.currency ?? "INR",
+      });
+
       rzp.open();
 
     } catch (err) {
@@ -661,9 +710,13 @@ export default function AppPage() {
 
   const handleExport = useCallback(
     async (format: "csv" | "xlsx" | "json") => {
+      // Track button click immediately (before auth check)
+      trackDownloadButtonClicked({ format });
+
       if (!isAuthenticated || !isSupabaseConfigured()) {
         showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
+        trackSignupStarted({ trigger: "download_gate" });
         setShowLoginModal(true);
         return;
       }
@@ -672,6 +725,7 @@ export default function AppPage() {
       if (!session) {
         showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
+        trackSignupStarted({ trigger: "download_gate" });
         setShowLoginModal(true);
         return;
       }
@@ -709,6 +763,13 @@ export default function AppPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      // Track successful download
+      if (format === "xlsx") {
+        trackDownloadExcel({ bank: bankDetected ?? undefined, transaction_count: transactions.length });
+      } else if (format === "csv") {
+        trackDownloadCsv({ bank: bankDetected ?? undefined, transaction_count: transactions.length });
+      }
 
       showToast(`Downloaded successfully ✓`, "success");
     } catch {
@@ -832,7 +893,10 @@ export default function AppPage() {
           </div>
         ) : (
           <button
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => {
+              trackSignupStarted({ trigger: "navbar" });
+              setShowLoginModal(true);
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600
               hover:text-primary-600 transition-colors ml-2"
           >

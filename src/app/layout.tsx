@@ -132,7 +132,46 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-D1BQKKX3CJ');
+              gtag('config', 'G-D1BQKKX3CJ', {
+                send_page_view: true,
+                allow_google_signals: true,
+                allow_ad_personalization_signals: true
+              });
+            `,
+          }}
+        />
+        <Script
+          id="traffic-source-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  if (sessionStorage.getItem('traffic_source')) return;
+                  var ref = document.referrer.toLowerCase();
+                  var params = new URLSearchParams(window.location.search);
+                  var utmSource = (params.get('utm_source') || '').toLowerCase();
+                  var utmMedium = (params.get('utm_medium') || '').toLowerCase();
+                  var source = 'direct';
+                  if (utmSource) {
+                    if (utmMedium === 'cpc' || utmMedium === 'paid') source = 'paid_search';
+                    else if (utmSource === 'youtube' || utmMedium === 'video') source = 'youtube';
+                    else if (['facebook','instagram','twitter','linkedin','pinterest','tiktok'].indexOf(utmSource) > -1) source = 'social';
+                    else if (utmMedium === 'email') source = 'email';
+                    else source = 'utm_' + utmSource;
+                  } else if (ref) {
+                    if (/google\.|bing\.|yahoo\.|duckduckgo\.|baidu\.|yandex\./.test(ref)) source = 'organic_search';
+                    else if (/youtube\.com/.test(ref)) source = 'youtube';
+                    else if (/facebook\.|instagram\.|twitter\.|t\.co|linkedin\.|pinterest\.|tiktok\./.test(ref)) source = 'social';
+                    else if (/chatgpt\.|perplexity\.|gemini\.|claude\.|copilot\.|you\.com|phind\./.test(ref)) source = 'ai_tools';
+                    else source = 'referral';
+                  }
+                  sessionStorage.setItem('traffic_source', source);
+                  if (typeof gtag === 'function') {
+                    gtag('set', 'user_properties', { traffic_source: source });
+                  }
+                } catch(e) {}
+              })();
             `,
           }}
         />
