@@ -7,7 +7,7 @@ export const PER_CONVERSION_PRICE_INR = 166;    // ≈ $2 USD  — used by Razor
 export const LIFETIME_PRICE_USD = 100;
 export const PER_CONVERSION_PRICE_USD = 2;
 
-export const LIFETIME_OFFER_LIMIT = 10;
+export const LIFETIME_OFFER_LIMIT = 40;
 
 export const PLAN_NAMES: Record<PlanType, string> = {
   free: "Free",
