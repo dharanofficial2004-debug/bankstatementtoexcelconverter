@@ -1,7 +1,7 @@
 export type PlanType = "free" | "lifetime" | "payg";
 
-export const LIFETIME_PRICE_INR = 8300;         // ≈ $100 USD — used by Razorpay (INR only)
-export const PER_CONVERSION_PRICE_INR = 166;    // ≈ $2 USD  — used by Razorpay (INR only)
+export const LIFETIME_PRICE_INR = 9600;         // ≈ $100 USD — used by Razorpay (INR only)
+export const PER_CONVERSION_PRICE_INR = 192;    // ≈ $2 USD  — used by Razorpay (INR only)
 
 // Display-only USD prices (shown to users in the UI)
 export const LIFETIME_PRICE_USD = 100;
