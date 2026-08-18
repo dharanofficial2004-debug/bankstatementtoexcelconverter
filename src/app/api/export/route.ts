@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exportToCsv } from "@/lib/exportCsv";
 import { exportToExcel } from "@/lib/exportExcel";
+import { exportToIif } from "@/lib/exportIif";
 import { Transaction } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { transactions, sheets, format } = body as {
       transactions?: Transaction[];
       sheets?: { name: string; transactions: Transaction[] }[];
-      format: "csv" | "xlsx" | "json";
+      format: "csv" | "xlsx" | "json" | "iif";
     };
 
     const hasData = (transactions && transactions.length > 0) || (sheets && sheets.length > 0);
@@ -20,9 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!format || !["csv", "xlsx", "json"].includes(format)) {
+    if (!format || !["csv", "xlsx", "json", "iif"].includes(format)) {
       return NextResponse.json(
-        { success: false, error: "Invalid format. Use 'csv', 'xlsx', or 'json'." },
+        { success: false, error: "Invalid format. Use 'csv', 'xlsx', 'json', or 'iif'." },
         { status: 400 }
       );
     }
@@ -67,6 +68,17 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
           "Content-Disposition": `attachment; filename="bankstatement_${date}.json"`,
+        },
+      });
+    }
+
+    if (format === "iif") {
+      const txs = transactions || (sheets && sheets.length > 0 ? sheets[0].transactions : []);
+      const iifContent = exportToIif(txs);
+      return new NextResponse(iifContent, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Disposition": `attachment; filename="bankstatement_${date}.iif"`,
         },
       });
     }

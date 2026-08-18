@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
 
     // ==== GEMINI (current) ====
     const geminiApiKey = process.env.GEMINI_API_KEY;
-    const geminiModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
+    const geminiModelPrimary = process.env.GEMINI_MODEL || "gemini-flash-latest";
+    const geminiModelFallback = process.env.GEMINI_MODEL_FALLBACK || "gemini-3.5-flash-lite";
 
     if (!geminiApiKey) {
       console.error("Gemini API Key is missing");
@@ -93,13 +94,15 @@ Output format:
 
     let parsedResponse = null;
     let attempts = 0;
+    const modelsToTry = [geminiModelPrimary, geminiModelFallback];
 
-    while (attempts < 2) {
+    while (attempts < modelsToTry.length) {
+      const currentModel = modelsToTry[attempts];
       attempts++;
       try {
-        console.log(`Calling Gemini API (Attempt ${attempts})...`);
+        console.log(`Calling Gemini API (Attempt ${attempts}, model: ${currentModel})...`);
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`,
           {
             method: "POST",
             headers: {
@@ -159,7 +162,7 @@ Output format:
         const outputWords = content.split(/\s+/).filter(Boolean).length;
         const inputTokens: number = data.usageMetadata?.promptTokenCount || 0;
         const outputTokens: number = data.usageMetadata?.candidatesTokenCount || 0;
-        const model = geminiModel;
+        const model = currentModel;
 
         console.log(`Gemini API Usage Stats (Attempt ${attempts}):`);
         console.log(`- Input Words: ${inputWords}`);
@@ -256,15 +259,22 @@ Output format:
 
         break; // Successfully parsed
       } catch (err) {
-        console.warn(`Attempt ${attempts} failed:`, err);
-        if (attempts >= 2) {
+        console.warn(`Attempt ${attempts} failed (model: ${currentModel}):`, err);
+        const is503 = err instanceof Error && err.message.includes("503");
+        if (attempts >= modelsToTry.length) {
           return NextResponse.json(
             {
               success: false,
-              error: "We could not fully parse this statement. Please upload another file.",
+              error: is503
+                ? "Our AI service is currently busy. Please try again in a moment."
+                : "We could not fully parse this statement. Please upload another file.",
             },
             { status: 422 }
           );
+        }
+        // If 503, log and try next model
+        if (is503) {
+          console.warn(`Model ${currentModel} returned 503, trying fallback model ${modelsToTry[attempts]}...`);
         }
       }
     }

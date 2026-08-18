@@ -42,6 +42,7 @@ import {
   X,
   Clock,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 
 // Add Razorpay window typing
@@ -82,7 +83,7 @@ export default function AppPage() {
   // Payment / usage flow state
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [pendingExportFormat, setPendingExportFormat] = useState<"csv" | "xlsx" | "json" | null>(null);
+  const [pendingExportFormat, setPendingExportFormat] = useState<"csv" | "xlsx" | "json" | "iif" | null>(null);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPickerIntent, setPendingPickerIntent] = useState(false);
@@ -91,6 +92,8 @@ export default function AppPage() {
   const [countdown, setCountdown] = useState<string>("");
   const uploadZoneRef = useRef<UploadZoneHandle>(null);
   const pickerBusyRef = useRef(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   // PDF password prompt state
   const [pdfPasswordPrompt, setPdfPasswordPrompt] = useState<{
@@ -709,7 +712,7 @@ export default function AppPage() {
   }, [fetchUserUsage, pendingExportFormat, pendingFile]);
 
   const handleExport = useCallback(
-    async (format: "csv" | "xlsx" | "json") => {
+    async (format: "csv" | "xlsx" | "json" | "iif") => {
       // Track button click immediately (before auth check)
       trackDownloadButtonClicked({ format });
 
@@ -736,7 +739,7 @@ export default function AppPage() {
     [isAuthenticated, transactions, sheets]
   );
 
-  const performExport = async (format: "csv" | "xlsx" | "json") => {
+  const performExport = async (format: "csv" | "xlsx" | "json" | "iif") => {
     try {
       const bodyPayload = format === "xlsx" 
         ? { sheets: sheets.map(s => ({ name: s.name, transactions: s.transactions })), format }
@@ -851,36 +854,52 @@ export default function AppPage() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Export Buttons */}
+        {/* Export Dropdown */}
         {appState === "spreadsheet" && (
-          <div className="flex items-center gap-1.5">
+          <div className="relative" ref={exportMenuRef}>
             <button
-              onClick={() => handleExport("json")}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                text-slate-600 bg-white border border-slate-200 rounded-lg
-                hover:bg-slate-50 hover:border-slate-300 transition-all"
-            >
-              <Download size={13} />
-              <span>Export JSON</span>
-            </button>
-            <button
-              onClick={() => handleExport("csv")}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                text-slate-600 bg-white border border-slate-200 rounded-lg
-                hover:bg-slate-50 hover:border-slate-300 transition-all"
-            >
-              <Download size={13} />
-              <span>Export CSV</span>
-            </button>
-            <button
-              onClick={() => handleExport("xlsx")}
+              onClick={() => setShowExportMenu((v) => !v)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
                 text-white bg-primary-600 rounded-lg
                 hover:bg-primary-700 transition-all shadow-sm"
             >
               <FileDown size={13} />
-              <span>Export Excel</span>
+              <span>Export</span>
+              <ChevronDown size={12} className={`transition-transform duration-150 ${showExportMenu ? "rotate-180" : ""}`} />
             </button>
+
+            {showExportMenu && (
+              <>
+                {/* backdrop to close on outside click */}
+                <div
+                  className="fixed inset-0 z-[15]"
+                  onClick={() => setShowExportMenu(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-[20] py-1 overflow-hidden">
+                  {(
+                    [
+                      { format: "xlsx", label: "Excel (.xlsx)", icon: <FileDown size={13} /> },
+                      { format: "csv",  label: "CSV (.csv)",    icon: <Download size={13} /> },
+                      { format: "iif",  label: "IIF (QuickBooks)", icon: <Download size={13} /> },
+                      { format: "json", label: "JSON (.json)",  icon: <Download size={13} /> },
+                    ] as const
+                  ).map(({ format, label, icon }) => (
+                    <button
+                      key={format}
+                      onClick={() => {
+                        setShowExportMenu(false);
+                        handleExport(format);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700
+                        hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <span className="text-slate-400">{icon}</span>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
