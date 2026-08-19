@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
         createdAt: string;
         lastSignInAt: string | null;
         conversionsUsed: number;
+        plan: string;
+        profession: string | null;
         inputTokens: number;
         outputTokens: number;
         totalTokens: number;
@@ -75,6 +77,8 @@ export async function POST(request: NextRequest) {
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at || null,
         conversionsUsed: 0,
+        plan: "free",
+        profession: null,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
@@ -87,6 +91,8 @@ export async function POST(request: NextRequest) {
     usageRecords.forEach((u) => {
       if (userMap[u.user_id]) {
         userMap[u.user_id].conversionsUsed = u.conversions_used || 0;
+        userMap[u.user_id].plan = u.plan || "free";
+        userMap[u.user_id].profession = u.profession || null;
       }
     });
 

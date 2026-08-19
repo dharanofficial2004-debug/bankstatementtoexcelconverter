@@ -23,6 +23,8 @@ interface AdminUserStat {
   createdAt: string;
   lastSignInAt: string | null;
   conversionsUsed: number;
+  plan: string;
+  profession: string | null;
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
@@ -315,6 +317,8 @@ export default function AdminPage() {
                   <th className="py-3.5 px-4">Signup Date</th>
                   <th className="py-3.5 px-4">Last Logged In</th>
                   <th className="py-3.5 px-4 text-center">Conversions Used</th>
+                  <th className="py-3.5 px-4 text-center">Plan</th>
+                  <th className="py-3.5 px-4">Profession</th>
                   <th className="py-3.5 px-4 text-right">Input Tokens</th>
                   <th className="py-3.5 px-4 text-right">Output Tokens</th>
                   <th className="py-3.5 px-4 text-right">Total Tokens</th>
@@ -324,7 +328,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400 text-sm">
+                    <td colSpan={10} className="py-8 text-center text-slate-400 text-sm">
                       No registered user accounts found.
                     </td>
                   </tr>
@@ -377,6 +381,22 @@ export default function AdminPage() {
                           >
                             {u.conversionsUsed}
                           </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                              u.plan === "lifetime"
+                                ? "bg-violet-50 text-violet-700 border border-violet-200"
+                                : u.plan === "paid"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            {u.plan || "free"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600">
+                          {u.profession || <span className="text-slate-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4 text-right font-mono text-slate-600">
                           {u.inputTokens.toLocaleString()}
