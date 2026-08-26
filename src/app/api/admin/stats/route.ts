@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Fetch all Auth Users from Supabase Auth
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
     if (usersError) {
       console.error("Error fetching users:", usersError);
     }

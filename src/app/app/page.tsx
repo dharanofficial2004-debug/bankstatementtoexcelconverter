@@ -11,7 +11,7 @@ const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: f
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, ConvertResponse } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { uploadPdfToStorage, uploadUnlockedPdfToStorage } from "@/lib/storage";
+
 import {
   trackUploadPdf,
   trackConversionStarted,
@@ -297,7 +297,7 @@ export default function AppPage() {
 
     // Background: save a copy of the original PDF to Supabase Storage.
     // Fire-and-forget — never blocks the extract → AI → preview flow.
-    void uploadPdfToStorage(file);
+    // void uploadPdfToStorage(file);
 
     try {
       setProcessingStep(1);
@@ -305,9 +305,9 @@ export default function AppPage() {
 
       // Background: if the PDF was password protected, save an unlocked copy
       // to Storage so it can be opened without a prompt. Fire-and-forget.
-      if (submittedPdfPasswordRef.current) {
-        void uploadUnlockedPdfToStorage(file, submittedPdfPasswordRef.current);
-      }
+      // if (submittedPdfPasswordRef.current) {
+      //   void uploadUnlockedPdfToStorage(file, submittedPdfPasswordRef.current);
+      // }
 
       await startAIConversion(text);
     } catch (err) {
