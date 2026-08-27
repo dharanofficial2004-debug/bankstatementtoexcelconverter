@@ -167,6 +167,18 @@ export default function Footer() {
               >
                 Voir tout →
               </Link>
+              <Link
+                href="/es/bancos"
+                className="block hover:text-primary-600 transition-colors"
+              >
+                Conversor en español
+              </Link>
+              <Link
+                href="/pt-br/bancos"
+                className="block hover:text-primary-600 transition-colors"
+              >
+                Conversor em português
+              </Link>
             </div>
           </div>
         </div>

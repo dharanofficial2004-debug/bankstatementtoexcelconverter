@@ -794,6 +794,30 @@ export default function HomePage() {
       </section>
 
       <PseoLinks />
+      <section className="border-t border-slate-100 bg-white px-4 py-16">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="mb-3 text-2xl font-bold text-slate-900">
+            Use StatementToExcel in your language
+          </h2>
+          <p className="mx-auto mb-7 max-w-2xl text-slate-600">
+            Explore our bank statement converter pages in Spanish and Portuguese.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/es/bancos"
+              className="rounded-full border border-slate-200 bg-slate-50 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
+            >
+              Conversor de extractos bancarios en español
+            </Link>
+            <Link
+              href="/pt-br/bancos"
+              className="rounded-full border border-slate-200 bg-slate-50 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
+            >
+              Conversor de extratos bancários em português
+            </Link>
+          </div>
+        </div>
+      </section>
       <Footer />
     </div>
   );
