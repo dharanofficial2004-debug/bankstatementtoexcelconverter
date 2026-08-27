@@ -58,8 +58,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     (route) => {
       // Format the URL
       const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
-      const url =
-        normalizedRoute === "" ? baseUrl : `${baseUrl}${normalizedRoute}`;
+      let url =
+        normalizedRoute === ""
+          ? baseUrl
+          : `${baseUrl}${normalizedRoute.startsWith("/") ? "" : "/"}${normalizedRoute}`;
+
+      // Override for pt-br/bancos as requested to use www.
+      if (normalizedRoute === "pt-br/bancos" || normalizedRoute === "/pt-br/bancos") {
+        url = "https://www.bankstatementtoexcelconverter.com/pt-br/bancos";
+      }
 
       // Assign priorities based on route importance
       let priority = 0.9;

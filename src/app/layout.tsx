@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
+import { headers } from "next/headers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -76,6 +77,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isPtBr = pathname.startsWith("/pt-br");
+  const lang = isPtBr ? "pt-BR" : "en";
+  const dir = "ltr";
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -118,7 +125,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang={lang} dir={dir}>
       <head>
         <Script
           strategy="afterInteractive"
