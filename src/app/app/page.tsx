@@ -78,6 +78,7 @@ export default function AppPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<number>(0);
+  const [pdfPageCount, setPdfPageCount] = useState<number>(0);
   const { showToast } = useToast();
 
   // Payment / usage flow state
@@ -301,7 +302,8 @@ export default function AppPage() {
 
     try {
       setProcessingStep(1);
-      const { text } = await extractPdfText(file);
+      const { text, pages } = await extractPdfText(file);
+      setPdfPageCount(pages);
 
       // Background: if the PDF was password protected, save an unlocked copy
       // to Storage so it can be opened without a prompt. Fire-and-forget.
@@ -935,6 +937,7 @@ export default function AppPage() {
           <ProcessingSteps
             fileName={fileName}
             currentStep={processingStep}
+            pageCount={pdfPageCount}
           />
         )}        
         

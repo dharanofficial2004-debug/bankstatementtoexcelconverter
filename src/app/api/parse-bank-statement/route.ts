@@ -101,6 +101,9 @@ Output format:
       attempts++;
       try {
         console.log(`Calling Gemini API (Attempt ${attempts}, model: ${currentModel})...`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s max per attempt
+
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`,
           {
@@ -109,6 +112,7 @@ Output format:
               "Content-Type": "application/json",
               "X-goog-api-key": geminiApiKey,
             },
+            signal: controller.signal,
             body: JSON.stringify({
               contents: [
                 {
@@ -127,6 +131,7 @@ Output format:
             }),
           }
         );
+        clearTimeout(timeoutId);
 
         // ==== OPENAI (commented out — kept for future use) ====
         // console.log(`Calling OpenAI API (Attempt ${attempts})...`);
@@ -260,21 +265,26 @@ Output format:
         break; // Successfully parsed
       } catch (err) {
         console.warn(`Attempt ${attempts} failed (model: ${currentModel}):`, err);
-        const is503 = err instanceof Error && err.message.includes("503");
+        const isRateLimit = err instanceof Error && err.message.includes("429");
+        const isOverloaded = err instanceof Error && (err.message.includes("503") || err.message.includes("overloaded"));
+        const isTimeout = err instanceof Error && err.name === "AbortError";
+        const shouldRetry = isRateLimit || isOverloaded || isTimeout;
+
         if (attempts >= modelsToTry.length) {
           return NextResponse.json(
             {
               success: false,
-              error: is503
+              error: isRateLimit
+                ? "Our AI is momentarily busy. Please try again in a few seconds."
+                : isOverloaded || isTimeout
                 ? "Our AI service is currently busy. Please try again in a moment."
                 : "We could not fully parse this statement. Please upload another file.",
             },
             { status: 422 }
           );
         }
-        // If 503, log and try next model
-        if (is503) {
-          console.warn(`Model ${currentModel} returned 503, trying fallback model ${modelsToTry[attempts]}...`);
+        if (shouldRetry) {
+          console.warn(`Model ${currentModel} failed (${isRateLimit ? "429 rate limit" : isTimeout ? "timeout" : "503 overloaded"}), switching to fallback model ${modelsToTry[attempts]}...`);
         }
       }
     }
