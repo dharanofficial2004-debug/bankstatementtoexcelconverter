@@ -80,7 +80,8 @@ export default function RootLayout({
   const headersList = headers();
   const pathname = headersList.get("x-pathname") || "";
   const isPtBr = pathname.startsWith("/pt-br");
-  const lang = isPtBr ? "pt-BR" : "en";
+  const isEs = pathname.startsWith("/es");
+  const lang = isPtBr ? "pt-BR" : isEs ? "es" : "en";
   const dir = "ltr";
 
   const jsonLd = {

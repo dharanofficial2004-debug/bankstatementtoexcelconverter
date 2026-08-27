@@ -63,9 +63,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
           ? baseUrl
           : `${baseUrl}${normalizedRoute.startsWith("/") ? "" : "/"}${normalizedRoute}`;
 
-      // Override for pt-br/bancos as requested to use www.
-      if (normalizedRoute === "pt-br/bancos" || normalizedRoute === "/pt-br/bancos") {
-        url = "https://www.bankstatementtoexcelconverter.com/pt-br/bancos";
+      // These locale landing pages use the www canonical URL.
+      if (
+        normalizedRoute === "pt-br/bancos" ||
+        normalizedRoute === "/pt-br/bancos" ||
+        normalizedRoute === "es/bancos" ||
+        normalizedRoute === "/es/bancos"
+      ) {
+        url = `https://www.bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
       }
 
       // Assign priorities based on route importance
