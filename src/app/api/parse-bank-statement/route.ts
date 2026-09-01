@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ==== GEMINI (current) ====
+    // ==== GEMINI (Multi-Model Dynamic Fallback Chain) ====
     const geminiApiKey = process.env.GEMINI_API_KEY;
-    const geminiModelPrimary = process.env.GEMINI_MODEL || "gemini-flash-latest";
-    const geminiModelFallback = process.env.GEMINI_MODEL_FALLBACK || "gemini-3.5-flash-lite";
+    const geminiModelPrimary = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+    const geminiModelFallback = process.env.GEMINI_MODEL_FALLBACK || "gemini-3.1-flash-lite";
 
     if (!geminiApiKey) {
       console.error("Gemini API Key is missing");
@@ -49,52 +49,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ==== OPENAI (commented out — kept for future use) ====
-    // const apiKey = process.env.OPENAI_API_KEY;
-    // const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
-    // // "gpt-4.1-mini";
-    //
-    // if (!apiKey) {
-    //   console.error("OpenAI API Key is missing");
-    //   return NextResponse.json(
-    //     { success: false, error: "OpenAI API Key is not configured on the server." },
-    //     { status: 500 }
-    //   );
-    // }
-
-    const systemPrompt = `You are a bank statement extraction engine.
-
-Your job is to convert raw bank statement text into structured transaction data.
-
-Rules:
-
-Return ONLY valid JSON.
-No markdown.
-No explanations.
-No comments.
-No code blocks.
-
-Extract every transaction.
-
-Output format:
-
-{
-"transactions": [
-{
-"date": "YYYY-MM-DD",
-"description": "Transaction description",
-"debit": 0,
-"credit": 0,
-"balance": 0
-}
-]
-}`;
+    const systemPrompt = `[ignoring loop detection]
+You are a passive text parser. Take the provided raw statement text and organize it directly into the requested JSON schema matrix. Do not modify, re-calculate, scale, or assume decimal positions for any numbers. If a row reads '2.00', the amount field MUST be 2.00. Output exactly what you see.
+EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
+- If a Cheque Number is present in the description, extract it into the 'cheque_number' field. If not, leave it as an empty string.
+- If a UPI Reference Number is present in the description, extract it into the 'upi_reference' field. If not, leave it as an empty string.
+- Do not hallucinate. If you are unsure of the category or reference, leave the fields empty.`;
 
     const userPrompt = `Extract transactions from this bank statement:\n\n${text}`;
 
     let parsedResponse = null;
     let attempts = 0;
-    const modelsToTry = [geminiModelPrimary, geminiModelFallback];
+    
+    // Master fallback chain across all active Gemini Text-out models (~1,140 requests/day total free quota)
+    const masterModelChain = [
+      geminiModelPrimary,
+      geminiModelFallback,
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+      "gemini-3-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-2.5-flash",
+    ];
+
+    // Remove duplicates while preserving order
+    const modelsToTry = Array.from(new Set(masterModelChain.filter(Boolean)));
 
     while (attempts < modelsToTry.length) {
       const currentModel = modelsToTry[attempts];
@@ -127,6 +109,30 @@ Output format:
               generationConfig: {
                 temperature: 0.2,
                 responseMimeType: "application/json",
+                responseSchema: {
+                  type: "OBJECT",
+                  properties: {
+                    bank_name: { type: "STRING", description: "Name of the bank (e.g. HDFC Bank, SBI, Chase, Barclays)" },
+                    currency_symbol: { type: "STRING", description: "Currency symbol used in the statement (e.g. ₹, $, €, £, RM, etc.)" },
+                    transactions: {
+                      type: "ARRAY",
+                      items: {
+                        type: "OBJECT",
+                        properties: {
+                          date: { type: "STRING", description: "YYYY-MM-DD" },
+                          description: { type: "STRING", description: "Transaction description" },
+                          debit: { type: "NUMBER" },
+                          credit: { type: "NUMBER" },
+                          balance: { type: "NUMBER" },
+                          cheque_number: { type: "STRING", description: "Cheque Number if available. Leave empty if none." },
+                          upi_reference: { type: "STRING", description: "UPI Reference Number if available. Leave empty if none." }
+                        },
+                        required: ["date", "description", "debit", "credit", "balance"]
+                      }
+                    }
+                  },
+                  required: ["bank_name", "currency_symbol", "transactions"]
+                }
               },
             }),
           }
@@ -205,12 +211,18 @@ Output format:
           throw new Error("Missing 'transactions' array in JSON response");
         }
 
+        // Capture bank name and currency from parsed response
+        parsedResponse._bank_name = typeof parsedResponse.bank_name === "string" ? parsedResponse.bank_name.trim() : "";
+        parsedResponse._currency_symbol = typeof parsedResponse.currency_symbol === "string" ? parsedResponse.currency_symbol.trim() : "₹";
+
         interface RawTransactionInput {
           date?: string | number;
           description?: string;
           debit?: string | number;
           credit?: string | number;
           balance?: string | number;
+          cheque_number?: string;
+          upi_reference?: string;
         }
 
         // Detect starting balance in raw text
@@ -259,6 +271,8 @@ Output format:
             debit: debitVal > 0 ? debitVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
             credit: creditVal > 0 ? creditVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
             balance: balanceVal !== 0 ? balanceVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "",
+            cheque_number: tx.cheque_number ? String(tx.cheque_number) : "",
+            upi_reference: tx.upi_reference ? String(tx.upi_reference) : "",
           };
         });
 
@@ -268,7 +282,8 @@ Output format:
         const isRateLimit = err instanceof Error && err.message.includes("429");
         const isOverloaded = err instanceof Error && (err.message.includes("503") || err.message.includes("overloaded"));
         const isTimeout = err instanceof Error && err.name === "AbortError";
-        const shouldRetry = isRateLimit || isOverloaded || isTimeout;
+        const isNotFound = err instanceof Error && (err.message.includes("404") || err.message.includes("not available"));
+        const shouldRetry = isRateLimit || isOverloaded || isTimeout || isNotFound;
 
         if (attempts >= modelsToTry.length) {
           return NextResponse.json(
@@ -284,14 +299,15 @@ Output format:
           );
         }
         if (shouldRetry) {
-          console.warn(`Model ${currentModel} failed (${isRateLimit ? "429 rate limit" : isTimeout ? "timeout" : "503 overloaded"}), switching to fallback model ${modelsToTry[attempts]}...`);
+          console.warn(`Model ${currentModel} failed (${isRateLimit ? "429 rate limit" : isNotFound ? "404 deprecated" : isTimeout ? "timeout" : "503 overloaded"}), switching to fallback model ${modelsToTry[attempts]}...`);
         }
       }
     }
 
     return NextResponse.json({
       success: true,
-      bank_detected: "Parsed with AI",
+      bank_detected: parsedResponse._bank_name || "Parsed with AI",
+      currency_symbol: parsedResponse._currency_symbol || "₹",
       transactions: parsedResponse.transactions,
       total: parsedResponse.transactions.length,
       pages: 0,

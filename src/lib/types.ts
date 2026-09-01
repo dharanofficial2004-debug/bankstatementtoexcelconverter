@@ -5,7 +5,18 @@ export interface Transaction {
   debit: string;
   credit: string;
   balance: string;
-  [key: string]: string;
+  cheque_number?: string;
+  upi_reference?: string;
+  [key: string]: string | undefined;
+}
+
+export interface Sheet {
+  id: string;
+  name: string;
+  transactions: Transaction[];
+  bankDetected: string | null;
+  currencySymbol: string;
+  headers: string[];
 }
 
 export interface CellPosition {
@@ -53,6 +64,8 @@ export const COLUMNS: SpreadsheetColumn[] = [
   { key: "debit", label: "Debit", letter: "C", width: 140, type: "currency" },
   { key: "credit", label: "Credit", letter: "D", width: 140, type: "currency" },
   { key: "balance", label: "Balance", letter: "E", width: 140, type: "currency" },
+  { key: "cheque_number", label: "Cheque Number", letter: "F", width: 140, type: "text" },
+  { key: "upi_reference", label: "UPI Reference", letter: "G", width: 180, type: "text" },
 ];
 
 export const GHOST_DATA: Transaction[] = [
@@ -69,6 +82,7 @@ export const GHOST_DATA: Transaction[] = [
 export interface ConvertResponse {
   success: boolean;
   bank_detected: string;
+  currency_symbol: string;
   transactions: Transaction[];
   total: number;
   pages: number;

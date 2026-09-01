@@ -27,8 +27,11 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
     const validateFile = useCallback(
       (file: File): boolean => {
         setError(null);
-        if (file.type !== "application/pdf") {
-          setError("Please upload a PDF file.");
+        const isPdf = file.type === "application/pdf";
+        const isImage = file.type.startsWith("image/");
+        
+        if (!isPdf && !isImage) {
+          setError("Please upload a PDF or an image file.");
           return false;
         }
         if (file.size > 20 * 1024 * 1024) {
@@ -83,7 +86,7 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf"
+            accept=".pdf,image/png,image/jpeg,image/webp"
             onChange={handleChange}
             onClick={(e) => e.stopPropagation()}
             className="hidden"
@@ -107,7 +110,7 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf"
+            accept=".pdf,image/png,image/jpeg,image/webp"
             onChange={handleChange}
             onClick={(e) => e.stopPropagation()}
             className="hidden"
@@ -143,7 +146,7 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
               <span className="w-1 h-1 rounded-full bg-slate-300" />
               <span>Max 20MB</span>
               <span className="w-1 h-1 rounded-full bg-slate-300" />
-              <span>PDF only</span>
+              <span>PDF or Image</span>
             </div>
           </div>
         </div>

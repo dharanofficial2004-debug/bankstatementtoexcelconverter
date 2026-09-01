@@ -7,21 +7,16 @@ import SpreadsheetStatusBar from "./SpreadsheetStatusBar";
 import ContextMenu from "./ContextMenu";
 import {
   Transaction,
+  Sheet,
   CellPosition,
   ContextMenuState,
   UndoAction,
   COLUMNS,
   GHOST_DATA,
 } from "@/lib/types";
+
 import { cellRef as getCellRef, cn } from "@/lib/utils";
 
-interface Sheet {
-  id: string;
-  name: string;
-  transactions: Transaction[];
-  bankDetected: string | null;
-  headers: string[];
-}
 
 interface SpreadsheetProps {
   transactions: Transaction[];
@@ -46,7 +41,7 @@ export default function Spreadsheet({
 }: SpreadsheetProps) {
   const data = isGhostMode ? (transactions.length > 0 ? transactions : GHOST_DATA) : transactions;
 
-  const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance"]);
+  const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance", "cheque_number", "upi_reference"]);
 
   const columns = useMemo(() => {
     return colOrder.map(key => COLUMNS.find(c => c.key === key)!).filter(Boolean);

@@ -4,7 +4,12 @@ export function exportToCsv(transactions: Transaction[]): string {
   // UTF-8 BOM for Excel compatibility
   const BOM = "\uFEFF";
   
+  const hasCheque = transactions.some(t => t.cheque_number && t.cheque_number.trim() !== "");
+  const hasUpi = transactions.some(t => t.upi_reference && t.upi_reference.trim() !== "");
+
   const csvHeaders = ["#", "Date", "Description", "Debit", "Credit", "Balance"];
+  if (hasCheque) csvHeaders.push("Cheque Number");
+  if (hasUpi) csvHeaders.push("UPI Reference");
   
   const escapeField = (field: string | number | null | undefined): string => {
     if (field === undefined || field === null) return "";
@@ -16,7 +21,7 @@ export function exportToCsv(transactions: Transaction[]): string {
   };
   
   const rows = transactions.map((t, i) => {
-    return [
+    const row = [
       String(i + 1),
       escapeField(t.date),
       escapeField(t.description),
@@ -24,6 +29,9 @@ export function exportToCsv(transactions: Transaction[]): string {
       escapeField(t.credit),
       escapeField(t.balance)
     ];
+    if (hasCheque) row.push(escapeField(t.cheque_number));
+    if (hasUpi) row.push(escapeField(t.upi_reference));
+    return row;
   });
   
   const csv = [csvHeaders.join(","), ...rows.map((r) => r.join(","))].join("\r\n");

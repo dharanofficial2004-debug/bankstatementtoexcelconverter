@@ -3,15 +3,9 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
-import { Transaction } from "@/lib/types";
+import { Sheet } from "@/lib/types";
 
-interface Sheet {
-  id: string;
-  name: string;
-  transactions: Transaction[];
-  bankDetected: string | null;
-  headers: string[];
-}
+
 
 interface SpreadsheetStatusBarProps {
   totalRows: number;
@@ -94,11 +88,12 @@ export default function SpreadsheetStatusBar({
         {!isGhostMode && onSheetsChange && onActiveSheetIdChange && (
           <button
             onClick={() => {
-              const newSheet = {
+              const newSheet: Sheet = {
                 id: crypto.randomUUID(),
                 name: `Sheet ${sheets.length + 1}`,
                 transactions: [],
                 bankDetected: null,
+                currencySymbol: "",
                 headers: [],
               };
               onSheetsChange((prev) => [...prev, newSheet]);

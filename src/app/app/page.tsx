@@ -9,7 +9,8 @@ import ProcessingSteps from "@/components/app/ProcessingSteps";
 const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr: false });
 const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 import { useToast } from "@/components/ui/Toast";
-import { Transaction, ConvertResponse } from "@/lib/types";
+import { Transaction, Sheet, ConvertResponse } from "@/lib/types";
+
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 import {
@@ -55,13 +56,6 @@ declare global {
 
 type AppState = "upload" | "processing" | "spreadsheet";
 
-interface Sheet {
-  id: string;
-  name: string;
-  transactions: Transaction[];
-  bankDetected: string | null;
-  headers: string[];
-}
 
 export default function AppPage() {
   const [appState, setAppState] = useState<AppState>("upload");
@@ -70,6 +64,7 @@ export default function AppPage() {
   const [pendingUploadData, setPendingUploadData] = useState<{
     transactions: Transaction[];
     bankDetected: string | null;
+    currencySymbol: string;
     headers: string[];
     fileName: string;
   } | null>(null);
@@ -77,8 +72,11 @@ export default function AppPage() {
   const [fileName, setFileName] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<number>(0);
   const [pdfPageCount, setPdfPageCount] = useState<number>(0);
+  const [isOcrMode, setIsOcrMode] = useState(false);
+  const [ocrPageProgress, setOcrPageProgress] = useState<{ current: number; total: number } | null>(null);
   const { showToast } = useToast();
 
   // Payment / usage flow state
@@ -111,6 +109,7 @@ export default function AppPage() {
 
   const transactions = useMemo(() => activeSheet ? activeSheet.transactions : [], [activeSheet]);
   const bankDetected = activeSheet ? activeSheet.bankDetected : null;
+  const currencySymbol = activeSheet ? (activeSheet.currencySymbol || "₹") : "₹";
   const headers = activeSheet ? activeSheet.headers : [];
 
   const handleTransactionsChange = useCallback((updated: Transaction[]) => {
@@ -122,9 +121,13 @@ export default function AppPage() {
   // Fetch conversions_used for the current user
   const fetchUserUsage = useCallback(async (accessToken: string) => {
     try {
-      await fetch("/api/usage/get", {
+      const res = await fetch("/api/usage/get", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+      if (res.ok) {
+        const d = await res.json();
+        if (d?.plan) setUserPlan(d.plan);
+      }
     } catch {
       // ignore
     }
@@ -284,10 +287,71 @@ export default function AppPage() {
     return { text: fullText, pages: pdf.numPages };
   }, []);
 
+  /**
+   * Quick scan: load the PDF and check whether ANY page has embedded text.
+   * Returns true if the file is a scanned-image-only PDF and needs OCR.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const detectScannedPdf = useCallback(async (file: File): Promise<boolean> => {
+    // Only attempt on PDFs
+    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) return false;
+    try {
+      const { text } = await extractPdfText(file);
+      // If less than 80 characters total, it's almost certainly a scanned PDF
+      return text.replace(/\s/g, "").length < 80;
+    } catch {
+      return false;
+    }
+  }, [extractPdfText]);
+
+  /**
+   * Send the file to the server-side OCR route, streaming page-by-page
+   * progress back to the UI via polling the ocrPageProgress state.
+   */
+  const runOcr = useCallback(async (file: File, pages: number): Promise<string> => {
+    setOcrPageProgress({ current: 0, total: pages });
+
+    const form = new FormData();
+    form.append("file", file);
+
+    // Simulate page-by-page progress while the server is busy.
+    // (The actual OCR runs server-side; we can only estimate progress here.)
+    const avgSecondsPerPage = 2.5;
+    const totalMs = pages * avgSecondsPerPage * 1000;
+    const intervalMs = 1200;
+    let simulatedPage = 0;
+    const progressId = setInterval(() => {
+      simulatedPage = Math.min(simulatedPage + 1, pages - 1);
+      setOcrPageProgress({ current: simulatedPage, total: pages });
+    }, intervalMs);
+
+    try {
+      const res = await fetch("/api/ocr/parse", {
+        method: "POST",
+        body: form,
+        signal: AbortSignal.timeout(Math.max(totalMs + 30_000, 90_000)),
+      });
+
+      clearInterval(progressId);
+      setOcrPageProgress({ current: pages, total: pages });
+
+      const data = await res.json();
+      if (!data.success || !data.text) {
+        throw new Error(data.error || "OCR failed — please try a clearer scan.");
+      }
+      return data.text as string;
+    } catch (err) {
+      clearInterval(progressId);
+      throw err;
+    }
+  }, []);
+
   const startUpload = async (file: File) => {
     setFileName(file.name);
     setAppState("processing");
     setProcessingStep(0);
+    setIsOcrMode(false);
+    setOcrPageProgress(null);
     setPdfPasswordPrompt(null);
     setPdfPassword("");
     pendingPdfPasswordRef.current = null;
@@ -296,22 +360,38 @@ export default function AppPage() {
     // Track upload
     trackUploadPdf({ file_name: file.name });
 
-    // Background: save a copy of the original PDF to Supabase Storage.
-    // Fire-and-forget — never blocks the extract → AI → preview flow.
-    // void uploadPdfToStorage(file);
-
     try {
       setProcessingStep(1);
-      const { text, pages } = await extractPdfText(file);
+
+      // Check if it's an image file — always needs OCR
+      const isImage = file.type.startsWith("image/");
+
+      if (isImage) {
+        // ── Image-only upload path ──────────────────────────────────────
+        setIsOcrMode(true);
+        setProcessingStep(2); // OCR step
+        setPdfPageCount(1);
+        const ocrText = await runOcr(file, 1);
+        await startAIConversion(ocrText);
+        return;
+      }
+
+      // ── PDF path ─────────────────────────────────────────────────────
+      const { text: extractedText, pages } = await extractPdfText(file);
       setPdfPageCount(pages);
 
-      // Background: if the PDF was password protected, save an unlocked copy
-      // to Storage so it can be opened without a prompt. Fire-and-forget.
-      // if (submittedPdfPasswordRef.current) {
-      //   void uploadUnlockedPdfToStorage(file, submittedPdfPasswordRef.current);
-      // }
+      const isScanned = extractedText.replace(/\s/g, "").length < 80;
 
-      await startAIConversion(text);
+      if (isScanned) {
+        // ── Scanned PDF path: use OCR ─────────────────────────────────
+        setIsOcrMode(true);
+        setProcessingStep(2); // OCR step
+        const ocrText = await runOcr(file, pages);
+        await startAIConversion(ocrText);
+      } else {
+        // ── Normal text-based PDF path ────────────────────────────────
+        await startAIConversion(extractedText);
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
       showToast(errorMsg, "error");
@@ -461,7 +541,9 @@ export default function AppPage() {
   };
 
   const startAIConversion = async (text: string) => {
-    setProcessingStep(2); // Analyzing with AI...
+    // In OCR mode the AI step is step 3 (after OCR step 2);
+    // in normal mode it remains step 2.
+    setProcessingStep(isOcrMode ? 3 : 2); // Analyzing with AI...
 
     // Track conversion started
     trackConversionStarted();
@@ -484,8 +566,8 @@ export default function AppPage() {
       const data: ConvertResponse = await response.json();
 
       if (data.success && data.transactions.length > 0) {
-        // Step 3: Preparing spreadsheet...
-        setProcessingStep(3);
+        // Final step: Preparing spreadsheet
+        setProcessingStep(isOcrMode ? 4 : 3);
         await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
         
         const cleanName = fileName.replace(/\.pdf$/i, "");
@@ -494,6 +576,7 @@ export default function AppPage() {
           setPendingUploadData({
             transactions: data.transactions,
             bankDetected: data.bank_detected,
+            currencySymbol: data.currency_symbol || "₹",
             headers: data.headers || [],
             fileName: cleanName,
           });
@@ -504,6 +587,7 @@ export default function AppPage() {
             name: cleanName,
             transactions: data.transactions,
             bankDetected: data.bank_detected,
+            currencySymbol: data.currency_symbol || "₹",
             headers: data.headers || [],
           };
           setSheets([newSheet]);
@@ -908,6 +992,12 @@ export default function AppPage() {
         {/* User */}
         {isAuthenticated ? (
           <div className="flex items-center gap-2 ml-2">
+            {userPlan === "lifetime" && (
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                <Sparkles size={9} />
+                Lifetime
+              </span>
+            )}
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
               {userEmail?.charAt(0).toUpperCase() || "U"}
             </div>
@@ -938,6 +1028,8 @@ export default function AppPage() {
             fileName={fileName}
             currentStep={processingStep}
             pageCount={pdfPageCount}
+            isOcrMode={isOcrMode}
+            ocrPageProgress={ocrPageProgress}
           />
         )}        
         
@@ -949,28 +1041,34 @@ export default function AppPage() {
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Transactions</p>
                 <h4 className="text-xl font-bold text-slate-800">{summary.totalTransactions}</h4>
               </div>
+              {bankDetected && bankDetected !== "Parsed with AI" && (
+                <div className="col-span-2 lg:col-span-1 bg-white p-4 rounded-xl border border-primary-100 shadow-sm transition-all hover:shadow hover:border-primary-200">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Bank Detected</p>
+                  <h4 className="text-base font-bold text-primary-700 truncate" title={bankDetected}>{bankDetected}</h4>
+                </div>
+              )}
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-red-200">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Debit (Out)</p>
                 <h4 className="text-xl font-bold text-rose-600">
-                  {summary.totalDebit > 0 ? `₹${summary.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "₹0.00"}
+                  {summary.totalDebit > 0 ? `${currencySymbol}${summary.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currencySymbol}0.00`}
                 </h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-emerald-200">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Credit (In)</p>
                 <h4 className="text-xl font-bold text-emerald-600">
-                  {summary.totalCredit > 0 ? `₹${summary.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "₹0.00"}
+                  {summary.totalCredit > 0 ? `${currencySymbol}${summary.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currencySymbol}0.00`}
                 </h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-violet-200">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Opening Balance</p>
                 <h4 className="text-xl font-bold text-slate-700">
-                  ₹{summary.openingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {currencySymbol}{summary.openingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-indigo-200">
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Closing Balance</p>
                 <h4 className={`text-xl font-bold ${summary.closingBalance >= 0 ? "text-slate-800" : "text-red-700"}`}>
-                  ₹{summary.closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {currencySymbol}{summary.closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h4>
               </div>
             </div>
@@ -1174,11 +1272,12 @@ export default function AppPage() {
               <button
                 onClick={() => {
                   // Create new sheet
-                  const newSheet = {
+                  const newSheet: Sheet = {
                     id: crypto.randomUUID(),
                     name: pendingUploadData.fileName,
                     transactions: pendingUploadData.transactions,
                     bankDetected: pendingUploadData.bankDetected,
+                    currencySymbol: pendingUploadData.currencySymbol || "",
                     headers: pendingUploadData.headers
                   };
                   setSheets(prev => [...prev, newSheet]);
