@@ -621,7 +621,26 @@ export default function AppPage() {
         }
 
       } else {
-        showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
+        if (data.errorCode === "API_BUSY") {
+          showToast(
+            <span>
+              Our free service is currently busy due to high demand.{" "}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowLoginModal(true);
+                }}
+                className="underline font-bold text-error-700 hover:text-error-800 transition-colors"
+              >
+                Sign up for free
+              </button>{" "}
+              to prioritize your conversion.
+            </span>,
+            "error"
+          );
+        } else {
+          showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
+        }
         setAppState("upload");
       }
     } catch (err) {

@@ -88,6 +88,7 @@ export interface ConvertResponse {
   pages: number;
   headers?: string[];
   error?: string;
+  errorCode?: string;
 }
 
 export const BANK_COLORS: Record<string, { bg: string; text: string; label: string }> = {

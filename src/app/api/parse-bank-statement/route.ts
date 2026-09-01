@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 40;
 
 // Service-role client for writing token_usage (bypasses RLS)
 const supabaseAdmin =
@@ -61,18 +62,16 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
     let parsedResponse = null;
     let attempts = 0;
     
-    // Master fallback chain across all active Gemini Text-out models (~1,140 requests/day total free quota)
+    // Master fallback chain across all active Gemini Text-out models
     const masterModelChain = [
       geminiModelPrimary,
       geminiModelFallback,
-      "gemini-3.5-flash-lite",
-      "gemini-3.1-flash-lite",
-      "gemini-3.7-flash",
-      "gemini-3.6-flash",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+      "gemini-1.5-flash",
+      "gemini-1.5-flash-8b",
       "gemini-3.5-flash",
-      "gemini-3-flash",
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-flash",
+      "gemini-3.5-flash-lite",
     ];
 
     // Remove duplicates while preserving order
@@ -84,7 +83,7 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
       try {
         console.log(`Calling Gemini API (Attempt ${attempts}, model: ${currentModel})...`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s max per attempt
+        const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s max per attempt
 
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`,
@@ -289,6 +288,7 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
           return NextResponse.json(
             {
               success: false,
+              errorCode: "API_BUSY",
               error: isRateLimit
                 ? "Our AI is momentarily busy. Please try again in a few seconds."
                 : isOverloaded || isTimeout

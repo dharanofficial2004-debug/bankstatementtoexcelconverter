@@ -6,12 +6,12 @@ import { Check, X, AlertCircle } from "lucide-react";
 
 interface Toast {
   id: string;
-  message: string;
+  message: React.ReactNode;
   type: "success" | "error" | "info";
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: "success" | "error" | "info") => void;
+  showToast: (message: React.ReactNode, type?: "success" | "error" | "info") => void;
 }
 
 const ToastContext = createContext<ToastContextType>({
@@ -24,7 +24,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback(
-    (message: string, type: "success" | "error" | "info" = "success") => {
+    (message: React.ReactNode, type: "success" | "error" | "info" = "success") => {
       const id = crypto.randomUUID();
       setToasts((prev) => [...prev, { id, message, type }]);
     },
