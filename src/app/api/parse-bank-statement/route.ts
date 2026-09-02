@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 40;
+export const maxDuration = 60;
 
 // Service-role client for writing token_usage (bypasses RLS)
 const supabaseAdmin =
@@ -55,7 +55,8 @@ You are a passive text parser. Take the provided raw statement text and organize
 EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
 - If a Cheque Number is present in the description, extract it into the 'cheque_number' field. If not, leave it as an empty string.
 - If a UPI Reference Number is present in the description, extract it into the 'upi_reference' field. If not, leave it as an empty string.
-- Do not hallucinate. If you are unsure of the category or reference, leave the fields empty.`;
+- Do not hallucinate. If you are unsure of the category or reference, leave the fields empty.
+- OUTPUT STRICTLY VALID JSON ONLY. Do not include any conversational text, greetings, or explanations. Do not wrap the output in markdown blocks (e.g., no \`\`\`json). The very first character of your response must be { and the last character must be }.`;
 
     const userPrompt = `Extract transactions from this bank statement:\n\n${text}`;
 
@@ -83,7 +84,7 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
       try {
         console.log(`Calling Gemini API (Attempt ${attempts}, model: ${currentModel})...`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s max per attempt
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s max per attempt
 
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`,
@@ -196,12 +197,17 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
         }
 
         // Clean any markdown wrapper if present
-        let cleanedContent = content;
-        if (cleanedContent.startsWith("```")) {
-          cleanedContent = cleanedContent
-            .replace(/^```(?:json)?\n?/, "")
-            .replace(/\n?```$/, "")
-            .trim();
+        let cleanedContent = content.trim();
+        const jsonMatch = cleanedContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+          cleanedContent = jsonMatch[1].trim();
+        } else {
+          // If no markdown block, try to find the first '{' and last '}'
+          const firstBrace = cleanedContent.indexOf('{');
+          const lastBrace = cleanedContent.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            cleanedContent = cleanedContent.slice(firstBrace, lastBrace + 1);
+          }
         }
 
         parsedResponse = JSON.parse(cleanedContent);

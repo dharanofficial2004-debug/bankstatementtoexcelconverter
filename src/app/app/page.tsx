@@ -153,7 +153,10 @@ export default function AppPage() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
       setUserEmail(session?.user.email || null);
-      if (session) fetchUserUsage(session.access_token);
+      if (session) {
+        setShowLoginModal(false);
+        fetchUserUsage(session.access_token);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -335,7 +338,16 @@ export default function AppPage() {
       clearInterval(progressId);
       setOcrPageProgress({ current: pages, total: pages });
 
-      const data = await res.json();
+      const contentType = res.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const textRes = await res.text();
+        console.error("Non-JSON OCR API response:", textRes);
+        throw new Error("The OCR server took too long to process this image. Please try a clearer or smaller scan.");
+      }
+
       if (!data.success || !data.text) {
         throw new Error(data.error || "OCR failed — please try a clearer scan.");
       }
@@ -563,7 +575,27 @@ export default function AppPage() {
         body: JSON.stringify({ text }),
       });
 
-      const data: ConvertResponse = await response.json();
+      // Prevent "Unexpected token A" crash by safely checking if the response is JSON
+      const contentType = response.headers.get("content-type");
+      let data: ConvertResponse;
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // Vercel returned an HTML/text error page (like 504 Timeout or 500 Application Error)
+        const textResponse = await response.text();
+        console.error("Non-JSON API response:", textResponse);
+        data = {
+          success: false,
+          errorCode: "API_BUSY",
+          bank_detected: "",
+          currency_symbol: "₹",
+          transactions: [],
+          total: 0,
+          pages: 0,
+          error: "Our servers took too long to process this file. Please try a smaller file or try again later.",
+        };
+      }
 
       if (data.success && data.transactions.length > 0) {
         // Final step: Preparing spreadsheet
@@ -789,47 +821,46 @@ export default function AppPage() {
   const handleLoginSuccess = useCallback(() => {
     setShowLoginModal(false);
     setIsAuthenticated(true);
-    supabase?.auth.getSession().then(({ data: { session } }) => {
+    if (!supabase) return;
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUserEmail(session.user.email || null);
         fetchUserUsage(session.access_token).then(() => {
-          // Re-trigger the pending export after login
+          // Re-trigger the pending export directly after login (bypassing stale auth checks)
           if (pendingExportFormat) {
             const fmt = pendingExportFormat;
             setPendingExportFormat(null);
-            setTimeout(() => handleExport(fmt), 100);
+            performExport(fmt);
           }
           // Re-trigger the pending upload after login
           if (pendingFile) {
             const fileToProcess = pendingFile;
             setPendingFile(null);
-            setTimeout(() => processPendingUpload(fileToProcess), 100);
+            processPendingUpload(fileToProcess);
           }
           // Re-trigger the file picker after login
           if (pendingPickerIntent) {
             setPendingPickerIntent(false);
-            setTimeout(() => attemptOpenPicker(), 100);
+            attemptOpenPicker();
           }
         });
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchUserUsage, pendingExportFormat, pendingFile]);
+  }, [fetchUserUsage, pendingExportFormat, pendingFile, pendingPickerIntent]);
 
   const handleExport = useCallback(
     async (format: "csv" | "xlsx" | "json" | "iif") => {
       // Track button click immediately (before auth check)
       trackDownloadButtonClicked({ format });
 
-      if (!isAuthenticated || !isSupabaseConfigured()) {
-        showToast("Sign in to download your converted file.", "info");
-        setPendingExportFormat(format);
-        trackSignupStarted({ trigger: "download_gate" });
-        setShowLoginModal(true);
+      if (!isSupabaseConfigured() || !supabase) {
+        await performExport(format);
         return;
       }
 
-      const { data: { session } } = await supabase!.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         showToast("Sign in to download your converted file.", "info");
         setPendingExportFormat(format);
@@ -838,10 +869,11 @@ export default function AppPage() {
         return;
       }
 
+      setIsAuthenticated(true);
       await performExport(format);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, transactions, sheets]
+    [transactions, sheets, headers, bankDetected]
   );
 
   const performExport = async (format: "csv" | "xlsx" | "json" | "iif") => {
