@@ -22,9 +22,6 @@ async function getVertexAccessToken(): Promise<string> {
     .replace(/\\r/g, "")     // strip any \r
     .trim();
 
-  console.log("[Vertex Auth] key starts with:", privateKey.substring(0, 40));
-  console.log("[Vertex Auth] key includes newlines:", privateKey.includes("\n"));
-  console.log("[Vertex Auth] key length:", privateKey.length);
   const now = Math.floor(Date.now() / 1000);
   const key = await importPKCS8(privateKey, "RS256");
   const jwt = await new SignJWT({
