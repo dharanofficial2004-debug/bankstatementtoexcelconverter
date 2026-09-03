@@ -5,11 +5,11 @@ export function exportToCsv(transactions: Transaction[]): string {
   const BOM = "\uFEFF";
   
   const hasCheque = transactions.some(t => t.cheque_number && t.cheque_number.trim() !== "");
-  const hasUpi = transactions.some(t => t.upi_reference && t.upi_reference.trim() !== "");
+  const hasCategory = transactions.some(t => t.category && t.category.trim() !== "");
 
   const csvHeaders = ["#", "Date", "Description", "Debit", "Credit", "Balance"];
   if (hasCheque) csvHeaders.push("Cheque Number");
-  if (hasUpi) csvHeaders.push("UPI Reference");
+  if (hasCategory) csvHeaders.push("Category");
   
   const escapeField = (field: string | number | null | undefined): string => {
     if (field === undefined || field === null) return "";
@@ -30,7 +30,7 @@ export function exportToCsv(transactions: Transaction[]): string {
       escapeField(t.balance)
     ];
     if (hasCheque) row.push(escapeField(t.cheque_number));
-    if (hasUpi) row.push(escapeField(t.upi_reference));
+    if (hasCategory) row.push(escapeField(t.category));
     return row;
   });
   

@@ -1,11 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createCanvas } from "canvas";
+import { SignJWT, importPKCS8 } from "jose";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 pdfjs.GlobalWorkerOptions.workerSrc = "";
+
+const VERTEX_PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || "";
+const VERTEX_MODEL = "gemini-2.5-flash-lite";
+const VERTEX_LOCATION = "global";
+
+async function getVertexAccessToken(): Promise<string> {
+  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+  if (!serviceAccountEmail || !privateKeyRaw) {
+    throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY in environment.");
+  }
+  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+  const now = Math.floor(Date.now() / 1000);
+  const key = await importPKCS8(privateKey, "RS256");
+  const jwt = await new SignJWT({
+    scope: "https://www.googleapis.com/auth/cloud-platform",
+  })
+    .setProtectedHeader({ alg: "RS256" })
+    .setIssuer(serviceAccountEmail)
+    .setAudience("https://oauth2.googleapis.com/token")
+    .setIssuedAt(now)
+    .setExpirationTime(now + 3600)
+    .sign(key);
+
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Failed to get Vertex access token: ${err}`);
+  }
+  const { access_token } = await tokenRes.json();
+  return access_token as string;
+}
 
 async function pdfToImageBuffers(
   arrayBuffer: ArrayBuffer,
@@ -63,31 +103,24 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Gemini Vision OCR] Processing ${pageCount} page(s) with Gemini Vision…`);
 
-    const geminiApiKey = process.env.GEMINI_API_KEY;
-    if (!geminiApiKey) {
+    if (!VERTEX_PROJECT_ID) {
       return NextResponse.json(
-        { success: false, error: "Gemini API key is not configured on the server." },
+        { success: false, error: "GOOGLE_CLOUD_PROJECT_ID is not configured on the server." },
         { status: 500 }
       );
     }
 
-    const primaryModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-    const fallbackModel = process.env.GEMINI_MODEL_FALLBACK || "gemini-3.1-flash-lite";
+    let accessToken: string;
+    try {
+      accessToken = await getVertexAccessToken();
+    } catch (e) {
+      return NextResponse.json(
+        { success: false, error: `Failed to authenticate with Vertex AI: ${e instanceof Error ? e.message : e}` },
+        { status: 500 }
+      );
+    }
 
-    const masterModelChain = Array.from(
-      new Set([
-        primaryModel,
-        fallbackModel,
-        "gemini-3.5-flash-lite",
-        "gemini-3.1-flash-lite",
-        "gemini-3.7-flash",
-        "gemini-3.6-flash",
-        "gemini-3.5-flash",
-        "gemini-3-flash",
-        "gemini-2.5-flash-lite",
-        "gemini-2.5-flash",
-      ].filter(Boolean))
-    );
+    const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${VERTEX_MODEL}:generateContent`;
 
     const imageParts = imageBuffers.map((buf) => ({
       inlineData: {
@@ -104,62 +137,44 @@ CRITICAL RULES:
 3. Transcribe all text completely without skipping any rows or columns.`;
 
     let extractedText = "";
-    let attempts = 0;
 
-    while (attempts < masterModelChain.length) {
-      const currentModel = masterModelChain[attempts];
-      attempts++;
+    console.log(`[Gemini Vision OCR] Calling Vertex AI model ${VERTEX_MODEL}...`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
-      try {
-        console.log(`[Gemini Vision OCR] Calling model ${currentModel} (Attempt ${attempts})...`);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-goog-api-key": geminiApiKey,
+    const response = await fetch(vertexUrl,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: promptText }, ...imageParts],
             },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [{ text: promptText }, ...imageParts],
-                },
-              ],
-              generationConfig: {
-                temperature: 0.1,
-              },
-            }),
-          }
-        );
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Gemini Vision API returned status ${response.status}: ${errText}`);
-        }
-
-        const resData = await response.json();
-        const candidates = resData.candidates || [];
-        if (candidates.length > 0 && candidates[0].content?.parts?.length > 0) {
-          extractedText = candidates[0].content.parts.map((p: { text?: string }) => p.text || "").join("\n");
-        }
-
-        if (extractedText.trim()) {
-          break; // Success!
-        }
-      } catch (err) {
-        console.warn(`[Gemini Vision OCR] Model ${currentModel} failed:`, err);
-        if (attempts >= masterModelChain.length) {
-          throw err;
-        }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+          },
+        }),
       }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Vertex AI returned status ${response.status}: ${errText}`);
+    }
+
+    const resData = await response.json();
+    const candidates = resData.candidates || [];
+    if (candidates.length > 0 && candidates[0].content?.parts?.length > 0) {
+      extractedText = candidates[0].content.parts.map((p: { text?: string }) => p.text || "").join("\n");
     }
 
     const trimmed = extractedText.trim();

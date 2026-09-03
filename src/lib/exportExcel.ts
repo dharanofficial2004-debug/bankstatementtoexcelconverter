@@ -19,9 +19,9 @@ export function exportToExcel(transactionsOrSheets: Transaction[] | ExcelSheetIn
     : [{ name: "Bank Statement", transactions: transactionsOrSheets as Transaction[] }];
 
   sheetsData.forEach((s) => {
-    // Check if any transaction has cheque_number or upi_reference to make headers dynamic
+    // Check if any transaction has cheque_number or category to make headers dynamic
     const hasCheque = s.transactions.some(t => t.cheque_number && t.cheque_number.trim() !== "");
-    const hasUpi = s.transactions.some(t => t.upi_reference && t.upi_reference.trim() !== "");
+    const hasCategory = s.transactions.some(t => t.category && t.category.trim() !== "");
 
     const data = s.transactions.map((t, i) => {
       const row: Record<string, string | number> = {
@@ -33,7 +33,7 @@ export function exportToExcel(transactionsOrSheets: Transaction[] | ExcelSheetIn
         "Balance": t.balance ? parseFloat(String(t.balance).replace(/,/g, "")) || t.balance : "",
       };
       if (hasCheque) row["Cheque Number"] = t.cheque_number || "";
-      if (hasUpi) row["UPI Reference"] = t.upi_reference || "";
+      if (hasCategory) row["Category"] = t.category || "";
       return row;
     });
 
@@ -46,7 +46,7 @@ export function exportToExcel(transactionsOrSheets: Transaction[] | ExcelSheetIn
       { wch: 15 },  // Balance
     ];
     if (hasCheque) colWidths.push({ wch: 15 }); // Cheque
-    if (hasUpi) colWidths.push({ wch: 20 });    // UPI
+    if (hasCategory) colWidths.push({ wch: 20 }); // Category
     
     const worksheet = XLSX.utils.json_to_sheet(data);
     worksheet["!cols"] = colWidths;

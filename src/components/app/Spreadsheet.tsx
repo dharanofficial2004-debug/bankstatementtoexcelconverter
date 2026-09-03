@@ -41,7 +41,7 @@ export default function Spreadsheet({
 }: SpreadsheetProps) {
   const data = isGhostMode ? (transactions.length > 0 ? transactions : GHOST_DATA) : transactions;
 
-  const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance", "cheque_number", "upi_reference"]);
+  const [colOrder, setColOrder] = useState<string[]>(["date", "description", "debit", "credit", "balance", "cheque_number", "category"]);
 
   const columns = useMemo(() => {
     return colOrder.map(key => COLUMNS.find(c => c.key === key)!).filter(Boolean);

@@ -449,12 +449,32 @@ export default function AppPage() {
     pickerBusyRef.current = true;
     try {
       if (!isSupabaseConfigured() || !supabase) {
+        // No auth configured — gate anonymous users by localStorage
+        if (appState === "spreadsheet") {
+          const used = typeof window !== "undefined" && localStorage.getItem("free_conversion_used") === "1";
+          if (used) {
+            setPendingPickerIntent(true);
+            setShowPlanModal(true);
+            fetchOfferStatus();
+            return;
+          }
+        }
         uploadZoneRef.current?.openPicker();
         return;
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        // Logged-out user — gate by localStorage once they've used their free conversion
+        if (appState === "spreadsheet") {
+          const used = typeof window !== "undefined" && localStorage.getItem("free_conversion_used") === "1";
+          if (used) {
+            setPendingPickerIntent(true);
+            setShowPlanModal(true);
+            fetchOfferStatus();
+            return;
+          }
+        }
         uploadZoneRef.current?.openPicker();
         return;
       }
@@ -646,6 +666,16 @@ export default function AppPage() {
                 const errBody = await incRes.json().catch(() => ({}));
                 console.error("[usage] increment failed:", incRes.status, errBody);
               }
+            } else {
+              // Anonymous user — mark free conversion used in localStorage
+              if (typeof window !== "undefined") {
+                localStorage.setItem("free_conversion_used", "1");
+              }
+            }
+          } else {
+            // No supabase configured — mark free conversion used in localStorage
+            if (typeof window !== "undefined") {
+              localStorage.setItem("free_conversion_used", "1");
             }
           }
         } catch (e) {
