@@ -22,7 +22,8 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
         entry.name === "fonts" ||
         entry.name === "auth" ||
         (currentDir === "" && entry.name === "fr") ||
-        (currentDir === "" && entry.name === "banks")
+        (currentDir === "" && entry.name === "banks") ||
+        (currentDir === "" && entry.name === "blog")
       ) {
         continue;
       }

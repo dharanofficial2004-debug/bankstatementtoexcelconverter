@@ -54,6 +54,12 @@ export default function Footer() {
                 Try free
               </Link>
               <Link
+                href="/blog"
+                className="block hover:text-primary-600 transition-colors"
+              >
+                Blog
+              </Link>
+              <Link
                 href="https://www.youtube.com/@smartpost_sheduler"
                 className="inline-flex items-center gap-2 hover:text-primary-600 transition-colors"
                 target="_blank"

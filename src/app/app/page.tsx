@@ -399,8 +399,23 @@ export default function AppPage() {
         setIsOcrMode(true);
         setProcessingStep(2); // OCR step
         const ocrText = await runOcr(file, pages);
+
+        // Guard: if OCR also returned no usable text, it's unreadable
+        if (!ocrText || ocrText.replace(/\s/g, "").length < 30) {
+          throw new Error(
+            "We could not extract any text from this file. If you're on a work or school network, try opening the site in an incognito window. If the problem continues, try a different PDF."
+          );
+        }
+
         await startAIConversion(ocrText);
       } else {
+        // Guard: PDF.js loaded but returned near-empty text — blocked CDN or unsupported encoding
+        if (extractedText.replace(/\s/g, "").length < 30) {
+          throw new Error(
+            "We could not read the text in this PDF. This can happen when a browser extension or network blocks our PDF reader. Try opening this page in an incognito window and uploading again."
+          );
+        }
+
         // ── Normal text-based PDF path ────────────────────────────────
         await startAIConversion(extractedText);
       }
@@ -701,12 +716,12 @@ export default function AppPage() {
             "error"
           );
         } else {
-          showToast(data.error || "We could not fully parse this statement. Please upload another file.", "error");
+          showToast(data.error || "We could not fully parse this statement. Try opening the site in an incognito window and uploading again, or try a different PDF.", "error");
         }
         setAppState("upload");
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "We could not fully parse this statement. Please try again.";
+      const errorMsg = err instanceof Error ? err.message : "Something went wrong. Try opening this page in an incognito window and uploading again.";
       showToast(errorMsg, "error");
       setAppState("upload");
     } finally {
