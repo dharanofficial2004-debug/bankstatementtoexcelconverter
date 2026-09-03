@@ -18,7 +18,11 @@ async function getVertexAccessToken(): Promise<string> {
   if (!serviceAccountEmail || !privateKeyRaw) {
     throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY in environment.");
   }
-  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+  // Normalize the private key — handle both literal \n and already-newlined strings
+  const privateKey = privateKeyRaw
+    .replace(/\\n/g, "\n")   // literal \n → real newline
+    .replace(/\\r/g, "")     // strip any \r
+    .trim();
   const now = Math.floor(Date.now() / 1000);
   const key = await importPKCS8(privateKey, "RS256");
   const jwt = await new SignJWT({
