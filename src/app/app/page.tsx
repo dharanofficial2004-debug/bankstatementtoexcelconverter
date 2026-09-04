@@ -54,6 +54,23 @@ declare global {
   }
 }
 
+// Loads the Razorpay checkout script on demand — only when the user
+// opens the payment modal. Resolves immediately if already loaded.
+function loadRazorpayScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window.Razorpay !== "undefined") {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load Razorpay checkout script"));
+    document.body.appendChild(script);
+  });
+}
+
 type AppState = "upload" | "processing" | "spreadsheet";
 
 
@@ -839,8 +856,11 @@ export default function AppPage() {
         }
       };
 
-      const rzp = new window.Razorpay(options);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // Load Razorpay script on demand — only now when the user is
+      // actually about to pay, not on every page load.
+      await loadRazorpayScript();
+
+      const rzp = new window.Razorpay(options);      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rzp.on("payment.failed", function (response: any) {
         trackPaymentFailed({ plan, reason: response.error?.description });
         showToast(response.error.description || "Payment failed", "error");

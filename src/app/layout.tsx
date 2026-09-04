@@ -211,10 +211,6 @@ export default function RootLayout({
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
         <SpeedInsights />
-        <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-        />
       </body>
     </html>
   );
