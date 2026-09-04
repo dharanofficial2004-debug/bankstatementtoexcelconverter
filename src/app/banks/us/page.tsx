@@ -6,53 +6,53 @@ import Footer from "@/components/landing/Footer";
 import { ArrowRight, Building2, DollarSign, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Convert US Bank Statements to Excel | All Major American Banks",
+  title: "US Bank Statement to Excel — Convert Chase, Wells Fargo, BofA (2026)",
   description:
-    "Convert Chase, Bank of America, Wells Fargo, Citibank, and 16 more US bank statement PDFs to Excel or CSV instantly. Free preview. Starts at $1.",
+    "Convert US bank statements to Excel free. Works with Chase, Wells Fargo, Bank of America, Citi, US Bank. 99%+ accuracy, no signup. Perfect for mortgage & tax prep. Download now →",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/banks/us",
   },
-};
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  name: "US Bank Statement to Excel Converters",
-  description: "Convert any US bank statement PDF to Excel or CSV",
-  url: "https://bankstatementtoexcelconverter.com/banks/us",
-  numberOfItems: 20,
+  openGraph: {
+    title: "US Bank Statement to Excel — Convert Chase, Wells Fargo, BofA (2026)",
+    description:
+      "Convert US bank statements to Excel free. Works with Chase, Wells Fargo, Bank of America, Citi, US Bank. 99%+ accuracy, no signup.",
+    url: "https://bankstatementtoexcelconverter.com/banks/us",
+    siteName: "StatementToExcel",
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 const useCases = [
   {
     icon: "📊",
     title: "QuickBooks Import",
-    desc: "Export clean CSV files and import them directly into QuickBooks Online or Desktop",
+    desc: "Export clean CSV files and import them directly into QuickBooks Online or Desktop.",
   },
   {
     icon: "🧾",
     title: "Tax Preparation",
-    desc: "Organize transactions for Schedule C, CPA review, and TurboTax-ready summaries",
+    desc: "Organize transactions for Schedule C, CPA review, and TurboTax-ready summaries.",
   },
   {
     icon: "📋",
     title: "Expense Reporting",
-    desc: "Build monthly expense reports from checking or business account activity",
+    desc: "Build monthly expense reports from checking or business account activity.",
   },
   {
     icon: "🏦",
     title: "Loan Applications",
-    desc: "Submit structured Excel statements for mortgage, SBA, or personal loan review",
+    desc: "Submit structured Excel statements for mortgage, SBA, or personal loan review.",
   },
   {
     icon: "📈",
     title: "Financial Analysis",
-    desc: "Analyze spending patterns, cash flow, and category breakdowns in Excel",
+    desc: "Analyze spending patterns, cash flow, and category breakdowns in Excel.",
   },
   {
     icon: "🤝",
     title: "Bookkeeping",
-    desc: "Hand structured spreadsheets to your accountant instead of raw PDFs",
+    desc: "Hand structured spreadsheets to your accountant instead of raw PDFs.",
   },
 ];
 
@@ -72,16 +72,73 @@ const usFaqs = [
     answer:
       "Yes. You can preview the extracted spreadsheet before exporting, so you can confirm the output without paying upfront.",
   },
+  {
+    question: "How do I convert a Chase bank statement to Excel?",
+    answer:
+      "Download your Chase statement as a PDF from chase.com or the Chase Mobile app, then upload it here. Review the extracted transactions in the preview table and export to Excel or CSV. The same workflow applies to Wells Fargo, Bank of America, and most other major US banks.",
+  },
+  {
+    question: "Can I use this for mortgage or loan applications?",
+    answer:
+      "Yes. Many users export 2–6 months of statements to Excel or CSV for mortgage, SBA, or personal loan review. Lenders may still require the original PDF statements, so keep those as your official records.",
+  },
+  {
+    question: "Is my data stored after conversion?",
+    answer:
+      "The service is designed to avoid retaining your PDFs after processing. Check the Privacy Policy for current data-retention details.",
+  },
 ];
 
 export default function USBanksIndexPage() {
   const bankSlugs = Object.keys(usBanks);
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: usFaqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://bankstatementtoexcelconverter.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "United States",
+        item: "https://bankstatementtoexcelconverter.com/banks/us",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "US Banks",
+        item: "https://bankstatementtoexcelconverter.com/banks/us",
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Navbar />
 
@@ -96,16 +153,25 @@ export default function USBanksIndexPage() {
               <Building2 size={15} />
               All major US banks supported
             </div>
-            <h1 className="mb-5 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
+
+            {/* Single H1 — short, query-focused */}
+            <h1 className="mb-3 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
+              US Bank Statement to Excel
+            </h1>
+
+            {/* Supporting headline */}
+            <p className="mb-3 text-2xl font-semibold text-slate-700 leading-snug">
               Convert US bank statements to{" "}
               <span className="text-primary-600">Excel or CSV</span> without
               manual retyping
-            </h1>
+            </p>
+
             <p className="mb-8 max-w-2xl text-lg leading-8 text-slate-600">
               Upload Chase, Bank of America, Wells Fargo, Citibank, and other US
               bank PDFs. Review a structured spreadsheet preview and export a
               clean workbook in seconds.
             </p>
+
             <div className="mb-8 flex flex-wrap gap-3">
               {[
                 "Free preview",
@@ -122,6 +188,7 @@ export default function USBanksIndexPage() {
                 </div>
               ))}
             </div>
+
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/app"
@@ -138,6 +205,7 @@ export default function USBanksIndexPage() {
             </div>
           </div>
 
+          {/* Preview card */}
           <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_25px_80px_-25px_rgba(15,23,42,0.3)]">
             <div className="rounded-[22px] border border-slate-200 bg-slate-950 p-4 text-white">
               <div className="mb-4 flex items-center justify-between text-sm">
@@ -261,6 +329,7 @@ export default function USBanksIndexPage() {
         </div>
       </section>
 
+      {/* FAQ */}
       <section
         id="faq"
         className="py-20 px-4 bg-white border-t border-slate-100"
@@ -289,7 +358,7 @@ export default function USBanksIndexPage() {
         </div>
       </section>
 
-      {/* General pages internal links */}
+      {/* More US Resources */}
       <section className="py-16 px-4 bg-white border-t border-slate-100">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
@@ -346,6 +415,23 @@ export default function USBanksIndexPage() {
                 {l.label}
               </Link>
             ))}
+          </div>
+
+          {/* Body text internal links */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-slate-600">
+            <Link
+              href="/blog/convert-bank-statement-pdf-to-excel"
+              className="hover:text-primary-600 transition-colors"
+            >
+              Read our guide on converting bank statements
+            </Link>
+            <span className="hidden sm:inline text-slate-300">·</span>
+            <Link
+              href="/"
+              className="hover:text-primary-600 transition-colors"
+            >
+              Bank Statement to Excel Converter
+            </Link>
           </div>
         </div>
       </section>
