@@ -1,28 +1,20 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  // For now, just pass through all requests.
-  // When Supabase is configured, this would refresh the session.
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", request.nextUrl.pathname);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+// Middleware is intentionally minimal — no x-pathname header injection.
+// The root layout is statically generated (lang="en"), so we must NOT
+// call headers() there. Locale sub-layouts handle their own lang attributes.
+//
+// This middleware only runs on API routes (to allow future session refresh
+// logic) and does NOT touch marketing/landing pages, keeping them fully
+// static and served from Vercel's CDN edge in every region.
+export function middleware() {
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Only intercept API routes — not marketing pages.
+    // This keeps all landing pages statically cached at the CDN edge.
+    "/api/:path*",
   ],
 };

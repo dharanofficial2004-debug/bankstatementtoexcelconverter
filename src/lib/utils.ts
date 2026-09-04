@@ -1,7 +1,7 @@
-import { clsx, type ClassValue } from "clsx";
-
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+// cn — merges class names without needing clsx or tailwind-merge.
+// Filters out falsy values and joins the rest with a space.
+export function cn(...inputs: (string | undefined | null | false | 0)[]): string {
+  return inputs.filter(Boolean).join(" ");
 }
 
 export function formatCurrency(value: string | number): string {

@@ -3,7 +3,6 @@ import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
-import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -79,11 +78,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = headers();
-  const pathname = headersList.get("x-pathname") || "";
-  const isPtBr = pathname.startsWith("/pt-br");
-  const isEs = pathname.startsWith("/es");
-  const lang = isPtBr ? "pt-BR" : isEs ? "es" : "en";
+  // lang is hardcoded to "en" so the root layout stays statically generated
+  // and served from Vercel's CDN edge — no serverless cold start for any region.
+  // Locale-specific pages (/pt-br, /es, /ar-*) override lang via their own
+  // sub-layouts wrapping content in <div lang="..."> or a nested <html> override.
+  const lang = "en";
   const dir = "ltr";
 
   const jsonLd = {
@@ -130,6 +129,11 @@ export default function RootLayout({
   return (
     <html lang={lang} dir={dir}>
       <head>
+        {/* Preconnect to external origins used above-the-fold — saves 200–400ms
+            on first load by establishing TCP/TLS before the browser needs them. */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <Script
           strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-D1BQKKX3CJ"

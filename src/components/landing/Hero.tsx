@@ -99,7 +99,6 @@ export default function Hero({
               width={250}
               height={54}
               src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-              priority
               unoptimized
             />
           </a>
@@ -218,7 +217,6 @@ export default function Hero({
             width={250}
             height={54}
             src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-            priority
             unoptimized
           />
         </a>

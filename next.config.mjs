@@ -5,11 +5,8 @@ const nextConfig = {
       "pdf-parse",
       "pdfjs-dist",
       "pdfexcavator",
-      "tesseract.js",
       "canvas",
       "sharp",
-      "@huggingface/transformers",
-      "onnxruntime-node",
     ],
     // Limit parallel build workers so static generation fits in memory on
     // small machines (prevents "Fatal process out of memory" during build).

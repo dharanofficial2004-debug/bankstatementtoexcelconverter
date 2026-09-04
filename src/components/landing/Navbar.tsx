@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { FileSpreadsheet, Menu, X } from "lucide-react";
-import LoginModal from "@/components/app/LoginModal";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+// Dynamically import LoginModal — not needed until user clicks "Login".
+// Keeps the modal bundle out of the initial page load entirely.
+const LoginModal = dynamic(() => import("@/components/app/LoginModal"), {
+  ssr: false,
+});
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,21 +18,28 @@ export default function Navbar() {
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured() || !supabase) return;
+    // Lazily import Supabase inside useEffect so the SDK is never included
+    // in the initial JS bundle for marketing pages. Auth check still runs
+    // after the page is interactive — session, avatar, and auth state all
+    // work exactly as before.
+    import("@/lib/supabase").then(({ supabase, isSupabaseConfigured }) => {
+      if (!isSupabaseConfigured() || !supabase) return;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setUserEmail(session?.user.email ?? null);
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setIsAuthenticated(!!session);
+        setUserEmail(session?.user.email ?? null);
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthenticated(!!session);
+        setUserEmail(session?.user.email ?? null);
+      });
+
+      // Cleanup listener on unmount
+      return () => subscription.unsubscribe();
     });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      setUserEmail(session?.user.email ?? null);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -139,12 +151,14 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Manual email/password login modal (no magic link) */}
-      <LoginModal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        onLoginSuccess={() => setShowLogin(false)}
-      />
+      {/* Login modal — only rendered when showLogin is true, bundle loaded on demand */}
+      {showLogin && (
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onLoginSuccess={() => setShowLogin(false)}
+        />
+      )}
     </>
   );
 }
