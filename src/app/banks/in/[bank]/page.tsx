@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import { indianBanks } from "@/lib/indianBanks";
 import Navbar from "@/components/landing/Navbar";
-import Hero from "@/components/landing/Hero";
-import VideoDemo from "@/components/landing/VideoDemo";
 import Footer from "@/components/landing/Footer";
 
 interface BankPageProps {
@@ -13,14 +12,14 @@ interface BankPageProps {
   };
 }
 
-// Generate static routes for all 27 banks
+// Generate static routes for all banks
 export async function generateStaticParams() {
   return Object.keys(indianBanks).map((bank) => ({
     bank: bank,
   }));
 }
 
-// Dynamic SEO metadata for each bank
+// Dynamic SEO metadata — updated pattern for all banks
 export async function generateMetadata({
   params,
 }: BankPageProps): Promise<Metadata> {
@@ -30,19 +29,22 @@ export async function generateMetadata({
     return {};
   }
 
-  const isCanaraBank = params.bank === "canara-bank";
-  const title = isCanaraBank
-    ? "How to Download Canara Bank Statement in Excel Format (Step-by-Step Guide)"
-    : `${bank.name} Statement to Excel Converter — Free Online Tool`;
-  const description = isCanaraBank
-    ? "Canara Bank does not provide a direct Excel download. Learn how to download your Canara Bank statement as a PDF and convert it to Excel free, in seconds, with our online tool."
-    : `Convert ${bank.name} statement PDF to Excel instantly. Supports NetBanking, Mobile App and Email statements. Live editable preview. Free — no signup needed.`;
+  const title = `${bank.name} Bank Statement to Excel — Convert PDF to Excel Free (2026)`;
+  const description = `Convert ${bank.name} bank statement PDF to Excel or CSV free. 99%+ accuracy, no signup required. Works with iBanking/net banking statements. Download instantly →`;
 
   return {
     title,
     description,
     alternates: {
-      canonical: `https://bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
+      canonical: `https://www.bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://www.bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
+      siteName: "StatementToExcel",
+      locale: "en_IN",
+      type: "website",
     },
   };
 }
@@ -50,184 +52,157 @@ export async function generateMetadata({
 export default function BankPage({ params }: BankPageProps) {
   const bankSlug = params.bank;
   const bank = indianBanks[bankSlug];
-  const isCanaraBank = bankSlug === "canara-bank";
 
   if (!bank) {
     notFound();
   }
 
-  // Schema markup
-  const jsonLd = {
+  // Select related banks (exclude current, pick up to 6)
+  const allBankSlugs = Object.keys(indianBanks);
+  const relatedSlugs = allBankSlugs.filter((slug) => slug !== bankSlug).slice(0, 6);
+
+  // Blog post slug for this bank (if it exists)
+  const blogPostSlugs: Record<string, string> = {
+    "icici-bank": "/blog/how-to-download-icici-bank-statement-in-excel",
+    "canara-bank": "/blog/how-to-download-canara-bank-statement-in-excel",
+    "union-bank": "/blog/how-to-download-union-bank-statement-in-excel",
+    "kotak-mahindra-bank": "/blog/how-to-download-kotak-bank-statement-in-excel",
+    "hdfc-bank": "/blog/how-to-download-hdfc-bank-statement-in-excel",
+  };
+  const blogPostSlug = blogPostSlugs[bankSlug];
+
+  const faqs = [
+    {
+      q: `How do I convert my ${bank.name} statement to Excel?`,
+      a: `Download your ${bank.name} statement as a PDF from NetBanking or the mobile app, then upload it to our converter. Review the extracted transactions and export to Excel or CSV.`,
+    },
+    {
+      q: `Does ${bank.name} offer a direct Excel download?`,
+      a: `Most Indian banks, including ${bank.name}, provide statements only as PDF. Use our converter to turn the PDF into an editable Excel or CSV file.`,
+    },
+    {
+      q: `Is it safe to upload my ${bank.name} PDF to an online converter?`,
+      a: `All uploads are encrypted with SSL. Files are deleted after processing and are never stored permanently or shared with third parties.`,
+    },
+    {
+      q: `Does it work with password-protected ${bank.name} PDFs?`,
+      a: `Yes. Our converter will prompt you for the password if the PDF is protected — typically your date of birth or account number.`,
+    },
+    {
+      q: `Can I use the converted Excel file for a loan or visa application?`,
+      a: `For official purposes, always submit the original ${bank.name} PDF. The Excel export is for your analysis and preparation.`,
+    },
+    {
+      q: `What columns does the Excel output include?`,
+      a: `The converted file includes Date, Description, Debit, Credit, and Balance columns — clean, no merged cells, ready for accounting or import.`,
+    },
+    {
+      q: `Is Excel or CSV better for ${bank.name} statements?`,
+      a: `Excel is better for analysis and reports. CSV is better for importing into accounting tools like Tally, Zoho Books, or QuickBooks.`,
+    },
+  ];
+
+  const jsonLdApp = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: `${bank.name} Statement to Excel Converter`,
+    name: `${bank.name} Bank Statement to Excel Converter`,
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "INR",
-    },
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
     description: `Convert ${bank.name} bank statement PDF to Excel or CSV instantly`,
-    url: `https://bankstatementtoexcelconverter.com/banks/in/${bankSlug}`,
+    url: `https://www.bankstatementtoexcelconverter.com/banks/in/${bankSlug}`,
   };
 
-  // Select 6 related banks
-  const allBankSlugs = Object.keys(indianBanks);
-  const relatedSlugs = allBankSlugs
-    .filter((slug) => slug !== bankSlug)
-    .slice(0, 6);
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: faq.a },
+    })),
+  };
 
-  // CTA copy — keyword-rich for Canara Bank, generic for all other banks
-  const primaryCtaLabel = isCanaraBank
-    ? "Convert Canara Bank Statement to Excel Free"
-    : "Try free";
-  const secondaryCtaLabel = isCanaraBank
-    ? "Upload PDF & Get Excel Instantly"
-    : "Try free";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.bankstatementtoexcelconverter.com" },
+      { "@type": "ListItem", position: 2, name: "India", item: "https://www.bankstatementtoexcelconverter.com/banks/in" },
+      { "@type": "ListItem", position: 3, name: `${bank.name} Banks`, item: `https://www.bankstatementtoexcelconverter.com/banks/in/${bankSlug}` },
+    ],
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* JSON-LD Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <div className="min-h-screen flex flex-col bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdApp) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <Navbar />
 
       <main className="flex-grow">
-        {/* Section 1 - Hero */}
-        <Hero
-          headline={
-            <>
-              How to Download{" "}
-              <span className="text-primary-600">{bank.name}</span> Statement in
-              Excel Format (Step-by-Step Guide)
-            </>
-          }
-          subheadline={
-            isCanaraBank
-              ? "Canara Bank does not provide a direct Excel download — statements are only available as PDF from the app or net banking portal. To get an Excel file, download the PDF first, then convert your Canara Bank statement to Excel using our free online tool in seconds."
-              : `Download your ${bank.name} statement PDF and convert it into a clean Excel spreadsheet in minutes.`
-          }
-        />
+        {/* Hero */}
+        <header className="pt-32 pb-16 px-4 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+          <div className="max-w-4xl mx-auto">
+            {/* Breadcrumb */}
+            <nav aria-label="Breadcrumb" className="mb-6">
+              <ol className="flex items-center gap-2 text-sm text-slate-500 flex-wrap">
+                <li><Link href="/" className="hover:text-primary-600 transition-colors">Home</Link></li>
+                <li aria-hidden="true" className="text-slate-300">/</li>
+                <li><Link href="/banks/in" className="hover:text-primary-600 transition-colors">India</Link></li>
+                <li aria-hidden="true" className="text-slate-300">/</li>
+                <li className="text-slate-700 font-medium">{bank.name}</li>
+              </ol>
+            </nav>
 
-        {/* Section 2 - Direct answer + guide */}
-        <section className="py-20 px-4 bg-slate-50">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-5 leading-tight">
+              {bank.name} Bank Statement to Excel
+            </h1>
+            <p className="text-lg text-slate-600 leading-relaxed mb-6 max-w-2xl">
+              Convert your {bank.name} statement PDF to Excel or CSV. Upload the file, review transactions in an editable table, and export a clean spreadsheet.
+            </p>
+
+            {/* Hero benefits */}
+            <div className="flex flex-wrap gap-3 mb-8">
+              {[
+                "Preview and edit before export",
+                "Excel and CSV downloads",
+                "Works with PDF bank statements",
+                "Keep your original PDF for verification",
+              ].map((benefit) => (
+                <div key={benefit} className="flex items-center gap-2 text-sm text-slate-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 shadow-sm">
+                  <CheckCircle2 size={14} className="text-success-600 flex-shrink-0" />
+                  {benefit}
+                </div>
+              ))}
+            </div>
+
+            {/* Primary CTA */}
+            <Link
+              href="/app"
+              className="inline-flex items-center gap-2 bg-primary-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/25 text-base"
+            >
+              Upload {bank.name} Statement PDF <ArrowRight size={18} />
+            </Link>
+          </div>
+        </header>
+
+        {/* How to download */}
+        <section className="py-16 px-4 bg-slate-50">
           <div className="max-w-5xl mx-auto">
-            <div className="mb-10 max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600 mb-3">
-                Quick answer
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                {isCanaraBank
-                  ? "Can I download Canara Bank statement in Excel format?"
-                  : `Can I download ${bank.name} statement in Excel format?`}
-              </h2>
-              <p className="text-lg text-slate-600 leading-8">
-                {isCanaraBank
-                  ? "No — Canara Bank does not offer a direct Excel download option for account statements. The bank only lets you download statements as PDF from NetBanking or the mobile app. That's exactly why users search for how to download Canara Bank statement in Excel format: the real answer is to download the PDF and then use a converter. Once you have the PDF, you can convert Canara Bank statement to Excel in a few clicks with our free tool below."
-                  : `You can usually download your ${bank.name} statement as a PDF from the app or net banking portal. If you need an editable spreadsheet, convert the PDF into Excel with our tool.`}
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-8 mb-10">
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <h3 className="text-2xl font-semibold text-slate-900 mb-5">
-                  How to Download Canara Bank Statement in Excel Format from App
-                </h3>
-                <ol className="space-y-4 text-slate-600">
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-semibold text-sm">
-                      1
-                    </span>
-                    <span>
-                      Open the official {bank.name} mobile app or net banking
-                      portal and sign in securely.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-semibold text-sm">
-                      2
-                    </span>
-                    <span>
-                      Go to Accounts, Statements, or Account Statement and
-                      choose the date range you need.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-semibold text-sm">
-                      3
-                    </span>
-                    <span>
-                      Download the statement as PDF and save it on your phone or
-                      computer.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-semibold text-sm">
-                      4
-                    </span>
-                    <span>
-                      Upload the file to our converter to get an editable Excel
-                      sheet for your records or tax work.
-                    </span>
-                  </li>
-                </ol>
-              </div>
-
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <h3 className="text-2xl font-semibold text-slate-900 mb-5">
-                  Canara Bank Statement Excel Download (Easy Step-by-Step
-                  Method)
-                </h3>
-                <p className="text-slate-600 leading-7 mb-4">
-                  {isCanaraBank
-                    ? "Canara Bank statement excel download is not available directly from the bank. It's done in two steps: first download the PDF from the app or net banking portal, then convert Canara Bank statement to Excel using an online converter. This gives you an editable spreadsheet you can sort, filter, and use for reporting or tax work."
-                    : `Many banks offer statements in PDF by default because it is easier to preserve formatting, security, and legal record standards.`}
-                </p>
-                <ul className="space-y-3 text-slate-600">
-                  <li className="flex gap-3">
-                    <span className="text-primary-600 mt-1">•</span>
-                    <span>
-                      PDF files are easier to share and preserve for banking
-                      records.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-primary-600 mt-1">•</span>
-                    <span>
-                      Excel files need structured table extraction, which is why
-                      conversion tools are helpful.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-primary-600 mt-1">•</span>
-                    <span>
-                      Our converter helps you turn a downloaded statement into
-                      an editable spreadsheet without manual entry.
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10">
+              How to download your {bank.name} statement
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bank.downloadInstructions?.map((method, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"
-                >
-                  <h3 className="text-xl font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">
+                <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">
                     {method.title}
                   </h3>
                   <ul className="space-y-3">
                     {method.steps.map((step, stepIdx) => (
-                      <li
-                        key={stepIdx}
-                        className="flex items-start gap-3 text-slate-600 text-sm"
-                      >
+                      <li key={stepIdx} className="flex items-start gap-3 text-slate-600 text-sm">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-medium text-xs">
                           {stepIdx + 1}
                         </span>
@@ -241,170 +216,63 @@ export default function BankPage({ params }: BankPageProps) {
           </div>
         </section>
 
-        {/* Section 2b - NEW: Full process section (Canara Bank only) */}
-        {isCanaraBank && (
-          <section className="py-20 px-4 border-t border-slate-100">
-            <div className="max-w-4xl mx-auto">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600 mb-3">
-                Complete guide
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">
-                Download Canara Bank Statement Online (Full Process)
-              </h2>
-              <p className="text-lg text-slate-600 leading-8 mb-8">
-                Here is the complete process to download Canara Bank statement
-                online and turn it into a spreadsheet — from logging into your
-                account to getting a ready-to-use Excel file.
-              </p>
-
-              <div className="space-y-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Step 1: Log in to Canara Bank NetBanking or the Canara ai1
-                    app
-                  </h3>
-                  <p className="text-slate-600 leading-7">
-                    Use your NetBanking credentials or the Canara ai1 mobile app
-                    to sign in securely to your account.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Step 2: Open the Account Statement section
-                  </h3>
-                  <p className="text-slate-600 leading-7">
-                    Select the account you want a statement for, then choose a
-                    date range — for example, last month, last 3 months, or a
-                    custom period.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Step 3: Download the statement as PDF
-                  </h3>
-                  <p className="text-slate-600 leading-7">
-                    Canara Bank generates the statement as a PDF file. Save it
-                    to your device — this is the file you'll use for conversion.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Step 4: Convert Canara Bank statement to Excel
-                  </h3>
-                  <p className="text-slate-600 leading-7">
-                    Upload the PDF to our free converter. It automatically
-                    detects the Canara Bank format and extracts every
-                    transaction into a clean, editable spreadsheet — no manual
-                    typing required.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Step 5: Review and download your Excel file
-                  </h3>
-                  <p className="text-slate-600 leading-7">
-                    Check the live preview to confirm dates, amounts, and
-                    balances are correct, then download the finished Excel file
-                    for bookkeeping, budgeting, or tax filing.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-10 text-center">
-                <Link
-                  href="/app"
-                  className="inline-flex items-center justify-center rounded-full bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
-                >
-                  Upload PDF & Get Excel Instantly
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Section 3 - Working Tool */}
-        <section className="py-20 px-4 border-t border-slate-100">
+        {/* How to convert */}
+        <section className="py-16 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10">
-              <div className="max-w-2xl">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600 mb-3">
-                  Try free
-                </p>
-                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                  Canara Bank Statement Convert to Excel Online
-                </h2>
-                <p className="text-lg text-slate-600 leading-8">
-                  Upload your downloaded Canara Bank PDF and convert Canara Bank
-                  statement to Excel free in seconds. The tool is fast,
-                  accurate, secure, and beginner-friendly.
-                </p>
-              </div>
-              <Link
-                href="/app"
-                className="inline-flex items-center justify-center rounded-full bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
-              >
-                {primaryCtaLabel}
-              </Link>
-            </div>
-            <div className="grid md:grid-cols-3 gap-4 mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 text-center">
+              How to convert your {bank.name} statement to Excel
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                "Fast conversion",
-                "Accurate transaction extraction",
-                "Secure and private",
-              ].map((benefit) => (
-                <div
-                  key={benefit}
-                  className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm"
-                >
-                  {benefit}
+                {
+                  step: 1,
+                  title: "Download statement as PDF",
+                  desc: `Log into ${bank.name} NetBanking or mobile app and download your account statement as a PDF.`,
+                },
+                {
+                  step: 2,
+                  title: "Upload the PDF",
+                  desc: "Click the upload button, select your bank statement PDF, and wait a few seconds for processing.",
+                },
+                {
+                  step: 3,
+                  title: "Review and edit transactions",
+                  desc: "Check the editable preview table. Correct any values if needed before downloading.",
+                },
+                {
+                  step: 4,
+                  title: "Export to Excel or CSV",
+                  desc: "Download a clean .xlsx or .csv file ready for accounting, tax, or loan applications.",
+                },
+              ].map((item) => (
+                <div key={item.step} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <div className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm mb-4">
+                    {item.step}
+                  </div>
+                  <h3 className="font-semibold text-slate-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
-            <div className="-mt-6 relative z-10 px-4">
-              <VideoDemo />
-            </div>
-            <p className="mt-8 text-center text-sm text-slate-600">
-              Convert Canara Bank Statement to Excel Free and use the same
-              method for SBI, HDFC, ICICI, Axis, and other banks.
-            </p>
-            <div className="mt-6 flex justify-center">
-              <Link
-                href="/app"
-                className="inline-flex items-center justify-center rounded-full border border-primary-600 px-6 py-3 text-sm font-semibold text-primary-600 hover:bg-primary-50 transition-colors"
-              >
-                {secondaryCtaLabel}
+            <div className="mt-10 text-center">
+              <Link href="/app" className="inline-flex items-center gap-2 bg-primary-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/25">
+                Upload {bank.name} Statement PDF <ArrowRight size={18} />
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Section 4 - Supported Statement Formats */}
-        <section className="py-20 px-4 border-t border-slate-100">
+        {/* Supported formats */}
+        <section className="py-16 px-4 bg-slate-50">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">
-              We support all {bank.name} statement formats
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">
+              Supported {bank.name} statement formats
             </h2>
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
               <ul className="grid sm:grid-cols-2 gap-4 text-left">
                 {bank.statementFormats.map((format, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center gap-3 text-slate-700 font-medium"
-                  >
-                    <svg
-                      className="w-5 h-5 text-success-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                  <li key={idx} className="flex items-center gap-3 text-slate-700 font-medium">
+                    <CheckCircle2 size={18} className="text-success-500 flex-shrink-0" />
                     {bank.name} {format}
                   </li>
                 ))}
@@ -413,64 +281,91 @@ export default function BankPage({ params }: BankPageProps) {
           </div>
         </section>
 
-        {/* Section 5 - FAQ */}
-        <section className="py-20 px-4 bg-slate-50">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-slate-900 mb-10 text-center">
-              Frequently Asked Questions
+        {/* Use cases */}
+        <section className="py-16 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 text-center">
+              Why people convert {bank.name} statements to Excel
             </h2>
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h4 className="font-semibold text-slate-900 mb-2">
-                  {isCanaraBank
-                    ? "Does Canara Bank provide statements in Excel format directly?"
-                    : `How do I convert my ${bank.name} statement to Excel?`}
-                </h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  {isCanaraBank
-                    ? "No. Canara Bank only provides statements as PDF from NetBanking or the mobile app. To get an Excel file, download the PDF and convert Canara Bank statement to Excel using our free online tool — it takes seconds and needs no signup."
-                    : `Upload your ${bank.name} PDF above. Our tool detects the ${bank.name} format automatically and extracts all transactions into a clean editable spreadsheet.`}
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h4 className="font-semibold text-slate-900 mb-2">
-                  Does it work with password protected {bank.name} PDFs?
-                </h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Most {bank.name} statements are password protected with your
-                  date of birth or account number. Our tool will securely prompt
-                  you for the password if it detects one, allowing seamless
-                  extraction.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h4 className="font-semibold text-slate-900 mb-2">
-                  How accurate is {bank.name} statement conversion?
-                </h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Our tool accurately extracts dates, descriptions, debit,
-                  credit and balance columns from {bank.name} statements. The
-                  live preview lets you verify before downloading.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h4 className="font-semibold text-slate-900 mb-2">
-                  Can I convert multiple {bank.name} statements at once?
-                </h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Currently one statement at a time on the free tier. The Pro
-                  plan supports bulk conversion of multiple statements
-                  simultaneously.
-                </p>
-              </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { title: "Home loans and personal loans", desc: "Banks and NBFCs ask for structured statement data. Export a clean spreadsheet from your PDF in seconds." },
+                { title: "Income tax returns (ITR)", desc: "Organize income and expenses for ITR filing or CA review. Export to Excel and categorize by month." },
+                { title: "Visa applications", desc: "Many visa categories require recent bank statements. An organized spreadsheet helps present the data clearly." },
+                { title: "Bookkeeping and reconciliation", desc: "Match transactions against your accounts without manual entry. Import CSV into Tally, Zoho, or QuickBooks." },
+                { title: "Cash flow analysis", desc: "Analyze monthly spending and income in an editable spreadsheet. Filter by date or transaction type." },
+                { title: "Personal budgeting", desc: "Understand where your money goes each month with an editable Excel breakdown." },
+              ].map((uc) => (
+                <div key={uc.title} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="font-semibold text-slate-900 mb-2">{uc.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">{uc.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Section 6 - Related Banks */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">
+        {/* Common issues */}
+        <section className="py-16 px-4 bg-slate-50">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 text-center">
+              Common issues and solutions
+            </h2>
+            <div className="space-y-4">
+              {[
+                { title: "Password-protected PDF", fix: `${bank.name} PDFs are often protected with your date of birth (DDMMYYYY) or account number. Our converter will prompt you if it detects a password.` },
+                { title: "Missing pages or transactions", fix: "If the PDF appears incomplete, download a fresh copy from the bank's official app or portal. Try a shorter date range if the statement is very long." },
+                { title: "Scanned or image-based PDF", fix: `Most ${bank.name} statements are text-based PDFs. If yours looks like an image, download a fresh copy from the official channel. Our converter uses OCR for scanned files, but accuracy is best on text PDFs.` },
+                { title: "Large file taking long to process", fix: "For statements over 50 pages, try splitting the PDF into 3-month chunks. Each segment will process faster and can be combined later." },
+              ].map((item) => (
+                <div key={item.title} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                  <h3 className="font-semibold text-slate-900 mb-2 text-base">{item.title}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">{item.fix}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 px-4">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 text-center">
+              Frequently asked questions
+            </h2>
+            <div className="space-y-4">
+              {faqs.map((faq) => (
+                <div key={faq.q} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                  <h3 className="font-semibold text-slate-900 mb-2 text-base">{faq.q}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">{faq.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-12 px-4 bg-primary-600">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Convert your {bank.name} statement now
+            </h2>
+            <p className="text-primary-100 mb-6">
+              Upload your PDF, review transactions in a live editable table, and export to Excel or CSV.
+            </p>
+            <Link
+              href="/app"
+              className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-50 transition-colors"
+            >
+              Upload {bank.name} Statement PDF <ArrowRight size={18} />
+            </Link>
+          </div>
+        </section>
+
+        {/* Related banks */}
+        <section className="py-16 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-slate-900 mb-8 text-center">
               Also works with:
             </h2>
             <div className="flex flex-wrap justify-center gap-4">
@@ -480,25 +375,29 @@ export default function BankPage({ params }: BankPageProps) {
                   <Link
                     key={slug}
                     href={`/banks/in/${slug}`}
-                    className="px-6 py-3 bg-white border border-slate-200 rounded-full text-slate-700 font-medium hover:bg-slate-50 transition-colors shadow-sm"
+                    className="px-6 py-3 bg-white border border-slate-200 rounded-full text-slate-700 font-medium hover:bg-slate-50 transition-colors shadow-sm hover:border-primary-300"
                   >
                     {b.name}
                   </Link>
                 );
               })}
             </div>
-            <div className="mt-12 flex justify-center gap-6">
-              <Link
-                href="/"
-                className="text-primary-600 hover:underline font-medium"
-              >
-                Back to Homepage
+
+            {/* Internal links */}
+            <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm">
+              <Link href="/banks/in" className="text-primary-600 hover:underline font-medium">
+                All India Banks
               </Link>
-              <Link
-                href="/fr"
-                className="text-primary-600 hover:underline font-medium"
-              >
-                Convertisseur de Relevé Bancaire (Français)
+              <Link href="/blog/convert-bank-statement-pdf-to-excel" className="text-primary-600 hover:underline font-medium">
+                Guide: Convert Bank Statement PDF to Excel
+              </Link>
+              {blogPostSlug && (
+                <Link href={blogPostSlug} className="text-primary-600 hover:underline font-medium">
+                  How to download {bank.name} statement in Excel
+                </Link>
+              )}
+              <Link href="/" className="text-primary-600 hover:underline font-medium">
+                Bank Statement to Excel Converter
               </Link>
             </div>
           </div>

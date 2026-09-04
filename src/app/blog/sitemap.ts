@@ -17,5 +17,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.75,
     },
+    {
+      url: `${baseUrl}/blog/how-to-download-icici-bank-statement-in-excel`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/how-to-download-canara-bank-statement-in-excel`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/how-to-download-hdfc-bank-statement-in-excel`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/how-to-download-union-bank-statement-in-excel`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/how-to-download-kotak-bank-statement-in-excel`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
   ];
 }

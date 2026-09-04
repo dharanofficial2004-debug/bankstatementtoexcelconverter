@@ -29,6 +29,36 @@ const posts = [
     description:
       "Compare copy‑paste, Excel Power Query, and dedicated converters. Learn when to use each method, how to handle scanned statements, and how to validate the result before using it for accounting.",
   },
+  {
+    slug: "/blog/how-to-download-icici-bank-statement-in-excel",
+    title: "How to Download ICICI Bank Statement in Excel Format (Step-by-Step)",
+    description:
+      "Learn how to download your ICICI bank statement in Excel format from net banking and the mobile app, and how to convert the PDF to Excel for loans, accounting, and reconciliation.",
+  },
+  {
+    slug: "/blog/how-to-download-canara-bank-statement-in-excel",
+    title: "How to Download Canara Bank Statement in Excel Format (Step-by-Step)",
+    description:
+      "Step-by-step guide to download Canara Bank statements in Excel format, plus tips to convert the PDF to a clean spreadsheet for analysis and accounting.",
+  },
+  {
+    slug: "/blog/how-to-download-hdfc-bank-statement-in-excel",
+    title: "How to Download HDFC Bank Statement in Excel Format (Step-by-Step)",
+    description:
+      "Download your HDFC Bank statement from NetBanking or the HDFC Mobile app and convert the PDF to Excel for home loan applications, ITR filing, and bookkeeping.",
+  },
+  {
+    slug: "/blog/how-to-download-union-bank-statement-in-excel",
+    title: "How to Download Union Bank Statement in Excel Format (Step-by-Step)",
+    description:
+      "Step-by-step guide to download Union Bank of India statements using the Vyom app or NetBanking, plus how to convert the PDF to Excel.",
+  },
+  {
+    slug: "/blog/how-to-download-kotak-bank-statement-in-excel",
+    title: "How to Download Kotak Mahindra Bank Statement in Excel Format (Step-by-Step)",
+    description:
+      "Download your Kotak Mahindra Bank statement from the Kotak mobile app or NetBanking and convert it to Excel for tax filing, analysis, or accounting.",
+  },
 ];
 
 export default function BlogIndexPage() {
