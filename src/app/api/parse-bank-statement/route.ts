@@ -114,8 +114,15 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
 
     let parsedResponse = null;
 
+    // Try up to 2 times — retry once on any failure before giving up
+    for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      console.log(`Calling Vertex AI (model: ${VERTEX_MODEL})...`);
+      if (attempt > 1) {
+        console.log(`Retrying Vertex AI call (attempt ${attempt})...`);
+        await new Promise((r) => setTimeout(r, 2000)); // wait 2s before retry
+      } else {
+        console.log(`Calling Vertex AI (model: ${VERTEX_MODEL})...`);
+      }
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 55000);
 
@@ -308,7 +315,8 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
         });
 
     } catch (err) {
-      console.error(`Vertex AI call failed (model: ${VERTEX_MODEL}):`, err);
+      console.error(`Vertex AI call failed on attempt ${attempt} (model: ${VERTEX_MODEL}):`, err);
+      if (attempt < 2) continue; // retry
       const isRateLimit = err instanceof Error && err.message.includes("429");
       const isOverloaded = err instanceof Error && (err.message.includes("503") || err.message.includes("overloaded"));
       const isTimeout = err instanceof Error && err.name === "AbortError";
@@ -325,6 +333,8 @@ EXTREMELY IMPORTANT RULES FOR MULTI-COLUMN DATA:
         { status: 422 }
       );
     }
+    break; // success — exit retry loop
+    } // end retry loop
 
     return NextResponse.json({
       success: true,
