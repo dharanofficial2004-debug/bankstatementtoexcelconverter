@@ -197,16 +197,6 @@ export default function AppPage() {
   }, []);
 
   const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
-    // Dynamically import PDF.js as an ES module natively in the browser, bypassing Webpack parsing.
-    const PDFJS_URLS = [
-      "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs",
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs",
-    ];
-    const PDFJS_WORKER_URLS = [
-      "https://unpkg.com/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs",
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs",
-    ];
-
     interface PdfJsModule {
       GlobalWorkerOptions: { workerSrc: string };
       getDocument: (args: {
@@ -224,22 +214,18 @@ export default function AppPage() {
       };
     }
 
+    // Load pdfjs from jsDelivr (faster/more reliable than unpkg).
+    // Worker is served from /public on our own server — no external dependency.
+    const PDFJS_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/legacy/build/pdf.min.mjs";
+
     let pdfjs: PdfJsModule | null = null;
-
-    for (let i = 0; i < PDFJS_URLS.length; i++) {
-      try {
-        const mod = (await import(/* webpackIgnore: true */ PDFJS_URLS[i])) as PdfJsModule;
-        pdfjs = mod;
-        pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URLS[i];
-        break;
-      } catch {
-        // Try the next CDN if this one is blocked or unreachable.
-      }
-    }
-
-    if (!pdfjs) {
+    try {
+      pdfjs = (await import(/* webpackIgnore: true */ PDFJS_URL)) as PdfJsModule;
+    } catch {
       throw new Error("Could not load the PDF reader. Please check your internet connection and try again.");
     }
+    // Worker served from our own /public folder — no CDN for the worker.
+    pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
     const arrayBuffer = await file.arrayBuffer();
 
