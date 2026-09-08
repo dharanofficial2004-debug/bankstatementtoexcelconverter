@@ -7,8 +7,9 @@ export type BankInfo = {
   customers: string;
   color: string;
   statementFormats: string[];
+  statementFormatsNote?: string;
   popularFor: string[];
-  downloadInstructions?: { title: string; steps: string[] }[];
+  downloadInstructions?: { title: string; steps: string[]; note?: string }[];
 };
 
 export const indianBanks: Record<string, BankInfo> = {
@@ -20,20 +21,39 @@ export const indianBanks: Record<string, BankInfo> = {
     founded: "1994",
     customers: "77 million+",
     color: "#004C8F",
-    statementFormats: ["PDF Statement", "Mini Statement", "Account Statement", "Passbook Statement"],
+    statementFormats: ["HDFC Bank PDF Statement", "HDFC Bank Mini Statement", "HDFC Bank Account Statement", "HDFC Bank Passbook Statement"],
+    statementFormatsNote: "You can try the converter with any of these PDF formats. Text-based PDFs usually give the best results.",
     popularFor: ["NetBanking statements", "Mobile banking PDF", "Credit card statements"],
     downloadInstructions: [
       {
-        title: "Method 1 — HDFC NetBanking",
-        steps: ["Login to netbanking.hdfcbank.com", "Go to Accounts → Account Statement", "Select date range", "Click Download PDF"]
+        title: "Download from HDFC NetBanking",
+        steps: [
+          "Login to netbanking.hdfcbank.com",
+          "Go to Accounts → Account Statement",
+          "Select date range and account",
+          "Click Download PDF"
+        ],
+        note: "Use this method when you need a full-month or multi-month statement with all transactions."
       },
       {
-        title: "Method 2 — HDFC Mobile App",
-        steps: ["Open HDFC Bank Mobile App", "Go to Accounts", "Tap Statement", "Select PDF format", "Download"]
+        title: "Download from the HDFC Bank Mobile App",
+        steps: [
+          "Open HDFC Bank Mobile App",
+          "Go to Accounts",
+          "Tap Statement",
+          "Select PDF format and date range",
+          "Download"
+        ],
+        note: "The mobile app is convenient for quick, recent statements directly on your phone."
       },
       {
-        title: "Method 3 — HDFC Email Statement",
-        steps: ["Register for email statement", "Statement arrives monthly", "Download PDF from email"]
+        title: "Download from HDFC Email Statements",
+        steps: [
+          "Register for email statements in NetBanking or the app",
+          "Statements arrive monthly to your registered email",
+          "Download the PDF attachment"
+        ],
+        note: "Email statements are useful for archiving and long-term record keeping."
       }
     ]
   },

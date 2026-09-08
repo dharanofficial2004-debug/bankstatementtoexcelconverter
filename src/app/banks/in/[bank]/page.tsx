@@ -19,7 +19,7 @@ export async function generateStaticParams() {
   }));
 }
 
-// Dynamic SEO metadata — updated pattern for all banks
+// Dynamic SEO metadata
 export async function generateMetadata({
   params,
 }: BankPageProps): Promise<Metadata> {
@@ -29,8 +29,16 @@ export async function generateMetadata({
     return {};
   }
 
-  const title = `${bank.name} Bank Statement to Excel — Convert PDF to Excel Free (2026)`;
-  const description = `Convert ${bank.name} bank statement PDF to Excel or CSV free. 99%+ accuracy, no signup required. Works with iBanking/net banking statements. Download instantly →`;
+  // HDFC Bank gets a hand-crafted, query-focused title and description
+  const isHdfc = params.bank === "hdfc-bank";
+
+  const title = isHdfc
+    ? "HDFC Bank Statement to Excel — Convert PDF to Excel Free (2026)"
+    : `${bank.name} Bank Statement to Excel — Convert PDF to Excel Free (2026)`;
+
+  const description = isHdfc
+    ? "Convert HDFC Bank statement PDF to Excel or CSV free. Upload your statement, review transactions in an editable table, and export a clean spreadsheet for loans, ITR, and accounting."
+    : `Convert ${bank.name} bank statement PDF to Excel or CSV free. 99%+ accuracy, no signup required. Works with iBanking/net banking statements. Download instantly →`;
 
   return {
     title,
@@ -57,9 +65,21 @@ export default function BankPage({ params }: BankPageProps) {
     notFound();
   }
 
-  // Select related banks (exclude current, pick up to 6)
+  const isHdfc = bankSlug === "hdfc-bank";
+
+  // For HDFC, pin specific related banks; otherwise pick first 6 excluding current
   const allBankSlugs = Object.keys(indianBanks);
-  const relatedSlugs = allBankSlugs.filter((slug) => slug !== bankSlug).slice(0, 6);
+  const hdfcRelatedSlugs = [
+    "sbi-bank",
+    "icici-bank",
+    "axis-bank",
+    "kotak-mahindra-bank",
+    "yes-bank",
+    "punjab-national-bank",
+  ];
+  const relatedSlugs = isHdfc
+    ? hdfcRelatedSlugs
+    : allBankSlugs.filter((slug) => slug !== bankSlug).slice(0, 6);
 
   // Blog post slug for this bank (if it exists)
   const blogPostSlugs: Record<string, string> = {
@@ -71,7 +91,8 @@ export default function BankPage({ params }: BankPageProps) {
   };
   const blogPostSlug = blogPostSlugs[bankSlug];
 
-  const faqs = [
+  // Base FAQs — used by all banks
+  const baseFaqs = [
     {
       q: `How do I convert my ${bank.name} statement to Excel?`,
       a: `Download your ${bank.name} statement as a PDF from NetBanking or the mobile app, then upload it to our converter. Review the extracted transactions and export to Excel or CSV.`,
@@ -102,6 +123,69 @@ export default function BankPage({ params }: BankPageProps) {
     },
   ];
 
+  // HDFC gets two extra FAQs targeting high-intent queries
+  const hdfcExtraFaqs = [
+    {
+      q: "Can I convert my HDFC Bank salary account statement to Excel?",
+      a: "Yes. The workflow is the same for salary, savings, and current account statements. Upload the PDF, review the preview, and export.",
+    },
+    {
+      q: "How many months of HDFC Bank statements can I convert at once?",
+      a: "You can convert statement PDFs covering multiple months. For very large files, split them into 3-month chunks for faster processing.",
+    },
+  ];
+
+  const faqs = isHdfc ? [...baseFaqs, ...hdfcExtraFaqs] : baseFaqs;
+
+  // HDFC-specific conversion step descriptions (richer copy)
+  const hdfcConversionSteps = [
+    {
+      step: 1,
+      title: "Download statement as PDF",
+      desc: "Log into HDFC Bank NetBanking or the mobile app and download your account statement as a PDF. Choose a clear date range (for example, last 3 or 6 months).",
+    },
+    {
+      step: 2,
+      title: "Upload the PDF",
+      desc: "Click the upload button, select your HDFC Bank statement PDF, and wait a few seconds for processing.",
+    },
+    {
+      step: 3,
+      title: "Review and edit transactions",
+      desc: "Check the editable preview table. Correct any values, descriptions, or dates if needed before downloading.",
+    },
+    {
+      step: 4,
+      title: "Export to Excel or CSV",
+      desc: "Download a clean .xlsx or .csv file ready for accounting, tax, loan applications, or personal budgeting.",
+    },
+  ];
+
+  const genericConversionSteps = [
+    {
+      step: 1,
+      title: "Download statement as PDF",
+      desc: `Log into ${bank.name} NetBanking or mobile app and download your account statement as a PDF.`,
+    },
+    {
+      step: 2,
+      title: "Upload the PDF",
+      desc: "Click the upload button, select your bank statement PDF, and wait a few seconds for processing.",
+    },
+    {
+      step: 3,
+      title: "Review and edit transactions",
+      desc: "Check the editable preview table. Correct any values if needed before downloading.",
+    },
+    {
+      step: 4,
+      title: "Export to Excel or CSV",
+      desc: "Download a clean .xlsx or .csv file ready for accounting, tax, or loan applications.",
+    },
+  ];
+
+  const conversionSteps = isHdfc ? hdfcConversionSteps : genericConversionSteps;
+
   const jsonLdApp = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -129,7 +213,7 @@ export default function BankPage({ params }: BankPageProps) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://bankstatementtoexcelconverter.com" },
       { "@type": "ListItem", position: 2, name: "India", item: "https://bankstatementtoexcelconverter.com/banks/in" },
-      { "@type": "ListItem", position: 3, name: `${bank.name} Banks`, item: `https://bankstatementtoexcelconverter.com/banks/in/${bankSlug}` },
+      { "@type": "ListItem", position: 3, name: `${bank.name}`, item: `https://bankstatementtoexcelconverter.com/banks/in/${bankSlug}` },
     ],
   };
 
@@ -156,11 +240,21 @@ export default function BankPage({ params }: BankPageProps) {
               </ol>
             </nav>
 
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-5 leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-3 leading-tight">
               {bank.name} Bank Statement to Excel
             </h1>
+
+            {/* HDFC gets a more targeted supporting headline */}
+            {isHdfc ? (
+              <p className="text-xl font-semibold text-slate-700 mb-4">
+                Convert your HDFC Bank statement PDF to Excel or CSV
+              </p>
+            ) : null}
+
             <p className="text-lg text-slate-600 leading-relaxed mb-6 max-w-2xl">
-              Convert your {bank.name} statement PDF to Excel or CSV. Upload the file, review transactions in an editable table, and export a clean spreadsheet.
+              {isHdfc
+                ? "Upload the file, review transactions in an editable table, and export a clean spreadsheet for loans, ITR, and accounting."
+                : `Convert your ${bank.name} statement PDF to Excel or CSV. Upload the file, review transactions in an editable table, and export a clean spreadsheet.`}
             </p>
 
             {/* Hero benefits */}
@@ -200,7 +294,7 @@ export default function BankPage({ params }: BankPageProps) {
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">
                     {method.title}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 mb-4">
                     {method.steps.map((step, stepIdx) => (
                       <li key={stepIdx} className="flex items-start gap-3 text-slate-600 text-sm">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-medium text-xs">
@@ -210,6 +304,11 @@ export default function BankPage({ params }: BankPageProps) {
                       </li>
                     ))}
                   </ul>
+                  {method.note && (
+                    <p className="text-xs text-slate-500 italic border-t border-slate-100 pt-3">
+                      {method.note}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -223,37 +322,24 @@ export default function BankPage({ params }: BankPageProps) {
               How to convert your {bank.name} statement to Excel
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  step: 1,
-                  title: "Download statement as PDF",
-                  desc: `Log into ${bank.name} NetBanking or mobile app and download your account statement as a PDF.`,
-                },
-                {
-                  step: 2,
-                  title: "Upload the PDF",
-                  desc: "Click the upload button, select your bank statement PDF, and wait a few seconds for processing.",
-                },
-                {
-                  step: 3,
-                  title: "Review and edit transactions",
-                  desc: "Check the editable preview table. Correct any values if needed before downloading.",
-                },
-                {
-                  step: 4,
-                  title: "Export to Excel or CSV",
-                  desc: "Download a clean .xlsx or .csv file ready for accounting, tax, or loan applications.",
-                },
-              ].map((item) => (
+              {conversionSteps.map((item) => (
                 <div key={item.step} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
                   <div className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm mb-4">
                     {item.step}
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">{item.title}</h3>
+                  <h3 className="font-semibold text-slate-900 mb-2">{item.step}. {item.title}</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
+
+            {/* HDFC-specific post-steps note */}
+            {isHdfc && (
+              <p className="mt-8 max-w-2xl mx-auto text-center text-sm text-slate-600 leading-relaxed">
+                This workflow works for most HDFC Bank savings, current, and salary account statements. Always compare the opening and closing balances with your original PDF.
+              </p>
+            )}
+
             <div className="mt-10 text-center">
               <Link href="/app" className="inline-flex items-center gap-2 bg-primary-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/25">
                 Upload {bank.name} Statement PDF <ArrowRight size={18} />
@@ -273,10 +359,13 @@ export default function BankPage({ params }: BankPageProps) {
                 {bank.statementFormats.map((format, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-slate-700 font-medium">
                     <CheckCircle2 size={18} className="text-success-500 flex-shrink-0" />
-                    {bank.name} {format}
+                    {format}
                   </li>
                 ))}
               </ul>
+              {bank.statementFormatsNote && (
+                <p className="mt-6 text-sm text-slate-500 text-left">{bank.statementFormatsNote}</p>
+              )}
             </div>
           </div>
         </section>
@@ -289,10 +378,10 @@ export default function BankPage({ params }: BankPageProps) {
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { title: "Home loans and personal loans", desc: "Banks and NBFCs ask for structured statement data. Export a clean spreadsheet from your PDF in seconds." },
+                { title: "Home loans and personal loans", desc: "Banks and NBFCs often ask for structured statement data. Export a clean spreadsheet from your PDF in seconds." },
                 { title: "Income tax returns (ITR)", desc: "Organize income and expenses for ITR filing or CA review. Export to Excel and categorize by month." },
                 { title: "Visa applications", desc: "Many visa categories require recent bank statements. An organized spreadsheet helps present the data clearly." },
-                { title: "Bookkeeping and reconciliation", desc: "Match transactions against your accounts without manual entry. Import CSV into Tally, Zoho, or QuickBooks." },
+                { title: "Bookkeeping and reconciliation", desc: "Match transactions against your accounts without manual entry. Import CSV into Tally, Zoho Books, or QuickBooks." },
                 { title: "Cash flow analysis", desc: "Analyze monthly spending and income in an editable spreadsheet. Filter by date or transaction type." },
                 { title: "Personal budgeting", desc: "Understand where your money goes each month with an editable Excel breakdown." },
               ].map((uc) => (
@@ -365,10 +454,10 @@ export default function BankPage({ params }: BankPageProps) {
         {/* Related banks */}
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8 text-center">
-              Also works with:
+            <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">
+              Also works with other major Indian banks:
             </h2>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
               {relatedSlugs.map((slug) => {
                 const b = indianBanks[slug];
                 return (
@@ -384,7 +473,7 @@ export default function BankPage({ params }: BankPageProps) {
             </div>
 
             {/* Internal links */}
-            <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm">
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
               <Link href="/banks/in" className="text-primary-600 hover:underline font-medium">
                 All India Banks
               </Link>
@@ -399,6 +488,11 @@ export default function BankPage({ params }: BankPageProps) {
               <Link href="/" className="text-primary-600 hover:underline font-medium">
                 Bank Statement to Excel Converter
               </Link>
+              {isHdfc && (
+                <Link href="/banks/in" className="text-primary-600 hover:underline font-medium">
+                  More Indian bank guides
+                </Link>
+              )}
             </div>
           </div>
         </section>
