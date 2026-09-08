@@ -12,17 +12,17 @@ export const metadata: Metadata = {
   description:
     "Converta extratos bancários em PDF para Excel ou CSV. Revise e edite transações antes de exportar uma planilha organizada.",
   alternates: {
-    canonical: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
+    canonical: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
     languages: {
-      "pt-BR": "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
-      "x-default": "https://www.bankstatementtoexcelconverter.com/",
+      "pt-BR": "https://bankstatementtoexcelconverter.com/pt-br/bancos",
+      "x-default": "https://bankstatementtoexcelconverter.com/",
     },
   },
   openGraph: {
     title: "Conversor de Extrato Bancário para Excel",
     description:
       "Extraia transações de extratos PDF para Excel ou CSV e revise os dados antes de baixar.",
-    url: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
+    url: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
     siteName: "StatementToExcel",
     locale: "pt_BR",
     type: "website",
@@ -180,13 +180,13 @@ export default function PtBrBanksPage() {
                 "@type": "ListItem",
                 position: 1,
                 name: "Home",
-                item: "https://www.bankstatementtoexcelconverter.com/",
+                item: "https://bankstatementtoexcelconverter.com/",
               },
               {
                 "@type": "ListItem",
                 position: 2,
                 name: "Brasil",
-                item: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
+                item: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
               },
               {
                 "@type": "ListItem",

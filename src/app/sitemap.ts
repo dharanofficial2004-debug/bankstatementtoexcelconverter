@@ -71,7 +71,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         normalizedRoute === "es/bancos" ||
         normalizedRoute === "/es/bancos"
       ) {
-        url = `https://www.bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
+        url = `https://bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
       }
 
       // Assign priorities based on route importance

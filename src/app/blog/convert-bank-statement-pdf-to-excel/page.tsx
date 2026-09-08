@@ -11,13 +11,13 @@ export const metadata: Metadata = {
     "Learn how to convert a bank statement PDF to Excel accurately. Compare copy‑paste, Excel Power Query, and dedicated converters, and validate your file before using it for accounting.",
   alternates: {
     canonical:
-      "https://www.bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
+      "https://bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
   },
   openGraph: {
     title: "How to Convert a Bank Statement PDF to Excel (Step-by-Step)",
     description:
       "Compare copy‑paste, Excel Power Query, and dedicated converters. Learn when to use each method and how to validate your output.",
-    url: "https://www.bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
+    url: "https://bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "article",
@@ -59,7 +59,7 @@ export default function BlogPostPage() {
     headline: "How to Convert a Bank Statement PDF to Excel (Step-by-Step)",
     description:
       "Learn how to convert a bank statement PDF to Excel accurately. Compare copy‑paste, Excel Power Query, and dedicated converters.",
-    url: "https://www.bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
+    url: "https://bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
     publisher: {
       "@type": "Organization",
       name: "StatementToExcel",
@@ -68,7 +68,7 @@ export default function BlogPostPage() {
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id":
-        "https://www.bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
+        "https://bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
     },
   };
 
@@ -93,19 +93,19 @@ export default function BlogPostPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://www.bankstatementtoexcelconverter.com",
+        item: "https://bankstatementtoexcelconverter.com",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Blog",
-        item: "https://www.bankstatementtoexcelconverter.com/blog",
+        item: "https://bankstatementtoexcelconverter.com/blog",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: "How to Convert a Bank Statement PDF to Excel (Step-by-Step)",
-        item: "https://www.bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
+        item: "https://bankstatementtoexcelconverter.com/blog/convert-bank-statement-pdf-to-excel",
       },
     ],
   };

@@ -3,8 +3,8 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   alternates: {
     languages: {
-      es: "https://www.bankstatementtoexcelconverter.com/es/bancos",
-      "x-default": "https://www.bankstatementtoexcelconverter.com/",
+      es: "https://bankstatementtoexcelconverter.com/es/bancos",
+      "x-default": "https://bankstatementtoexcelconverter.com/",
     },
   },
 };

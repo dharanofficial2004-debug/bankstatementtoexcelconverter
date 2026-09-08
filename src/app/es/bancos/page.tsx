@@ -5,7 +5,7 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import FaqSection from "@/components/landing/FaqSection";
 
-const siteUrl = "https://www.bankstatementtoexcelconverter.com";
+const siteUrl = "https://bankstatementtoexcelconverter.com";
 
 export const metadata: Metadata = {
   title: "Conversor de Extractos Bancarios a Excel y CSV | PDF Gratis",

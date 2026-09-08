@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   description:
     "Convert UK bank statements to Excel free. Works with Barclays, HSBC, Lloyds, NatWest, Santander. 99%+ accuracy, no signup. Perfect for mortgage & visa applications. Download now →",
   alternates: {
-    canonical: "https://www.bankstatementtoexcelconverter.com/uk/banks",
+    canonical: "https://bankstatementtoexcelconverter.com/uk/banks",
   },
   openGraph: {
     title: "UK Bank Statement to Excel — Convert Barclays, HSBC, Lloyds (2026)",
     description:
       "Convert UK bank statements to Excel free. Works with Barclays, HSBC, Lloyds, NatWest, Santander. 99%+ accuracy, no signup.",
-    url: "https://www.bankstatementtoexcelconverter.com/uk/banks",
+    url: "https://bankstatementtoexcelconverter.com/uk/banks",
     siteName: "StatementToExcel",
     locale: "en_GB",
     type: "website",
@@ -121,19 +121,19 @@ export default function UKBanksHubPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://www.bankstatementtoexcelconverter.com",
+        item: "https://bankstatementtoexcelconverter.com",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "United Kingdom",
-        item: "https://www.bankstatementtoexcelconverter.com/uk/banks",
+        item: "https://bankstatementtoexcelconverter.com/uk/banks",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: "UK Banks",
-        item: "https://www.bankstatementtoexcelconverter.com/uk/banks",
+        item: "https://bankstatementtoexcelconverter.com/uk/banks",
       },
     ],
   };

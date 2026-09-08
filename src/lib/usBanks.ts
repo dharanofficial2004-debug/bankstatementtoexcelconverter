@@ -1,4 +1,4 @@
-﻿export type USBankInfo = {
+export type USBankInfo = {
   name: string;
   fullName: string;
   type: string;
@@ -23,7 +23,7 @@ export const usBanks: Record<string, USBankInfo> = {
     statementFormats: ["Chase Online PDF", "Chase Mobile App PDF", "Paper Statement PDF", "Business Account Statement"],
     popularFor: ["Chase Total Checking statements", "Chase Sapphire credit card PDF", "Business banking exports for QuickBooks"],
     downloadInstructions: [
-      { title: "Chase Online Banking", steps: ["Log in at chase.com", "Go to Accounts → select account", "Click Statements & Documents", "Choose date range and Download PDF"] },
+      { title: "Chase Online Banking", steps: ["Log in at chase.com", "Go to Accounts ? select account", "Click Statements & Documents", "Choose date range and Download PDF"] },
       { title: "Chase Mobile App", steps: ["Open Chase Mobile app", "Tap the account", "Select Statements", "Tap the statement to download PDF"] },
     ],
   },

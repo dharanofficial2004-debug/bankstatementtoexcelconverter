@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   description:
     "Convert US bank statements to Excel free. Works with Chase, Wells Fargo, Bank of America, Citi, US Bank. 99%+ accuracy, no signup. Perfect for mortgage & tax prep. Download now →",
   alternates: {
-    canonical: "https://www.bankstatementtoexcelconverter.com/us/banks",
+    canonical: "https://bankstatementtoexcelconverter.com/us/banks",
   },
   openGraph: {
     title: "US Bank Statement to Excel — Convert Chase, Wells Fargo, BofA (2026)",
     description:
       "Convert US bank statements to Excel free. Works with Chase, Wells Fargo, Bank of America, Citi, US Bank. 99%+ accuracy, no signup.",
-    url: "https://www.bankstatementtoexcelconverter.com/us/banks",
+    url: "https://bankstatementtoexcelconverter.com/us/banks",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "website",
@@ -127,19 +127,19 @@ export default function USBanksHubPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://www.bankstatementtoexcelconverter.com",
+        item: "https://bankstatementtoexcelconverter.com",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "United States",
-        item: "https://www.bankstatementtoexcelconverter.com/us/banks",
+        item: "https://bankstatementtoexcelconverter.com/us/banks",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: "US Banks",
-        item: "https://www.bankstatementtoexcelconverter.com/us/banks",
+        item: "https://bankstatementtoexcelconverter.com/us/banks",
       },
     ],
   };
