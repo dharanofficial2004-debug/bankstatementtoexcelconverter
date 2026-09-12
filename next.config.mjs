@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/app/:path*",
+        destination: "https://app.bankstatementtoexcelconverter.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   experimental: {
     serverComponentsExternalPackages: [
       "pdf-parse",
