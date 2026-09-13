@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import catalog from "@/content/seo-guides/catalog.json";
 
 export const metadata: Metadata = {
   title: "Blog — Bank Statement to Excel & CSV Guides",
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
 };
 
 const posts = [
+  ...catalog.filter((guide) => guide.route.startsWith("/blog/") && guide.id !== "pdf-excel").map((guide) => ({
+    slug: guide.route, title: guide.title, description: guide.description,
+  })),
   {
     slug: "/blog/convert-bank-statement-pdf-to-excel",
     title: "How to Convert a Bank Statement PDF to Excel (Step-by-Step)",

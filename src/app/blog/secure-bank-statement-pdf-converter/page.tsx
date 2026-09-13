@@ -1,8 +1,8 @@
 import SeoGuide from "@/components/landing/SeoGuide";
 import { getGuide, guideMetadata } from "@/lib/seoGuides";
 
-export const metadata = guideMetadata("pdf-excel");
+export const metadata = guideMetadata("privacy");
 
 export default function Page() {
-  return <SeoGuide guide={getGuide("pdf-excel")} />;
+  return <SeoGuide guide={getGuide("privacy")} />;
 }

@@ -6,6 +6,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     {
+      url: "https://www.bankstatementtoexcelconverter.com/us/bank-statement-to-excel",
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/us/banks`,
       lastModified,
       changeFrequency: "monthly",

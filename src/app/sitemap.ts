@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import fs from "fs";
 import path from "path";
 import { usBanks } from "@/lib/usBanks";
+import guideCatalog from "@/content/seo-guides/catalog.json";
 
 function getRoutes(baseDir: string, currentDir: string = ""): string[] {
   const routes: string[] = [];
@@ -72,6 +73,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
         normalizedRoute === "/es/bancos"
       ) {
         url = `https://bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
+      }
+
+      // Assign priorities based on route importance
+      if (guideCatalog.some((guide) => guide.route === `/${normalizedRoute.replace(/^\//, "")}`)) {
+        url = `https://www.bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
       }
 
       // Assign priorities based on route importance
