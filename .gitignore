@@ -47,3 +47,4 @@ uploaded_sample.pdf
 !tsconfig.json
 !postcss.config.json
 !.eslintrc.json
+!src/content/seo-guides/catalog.json

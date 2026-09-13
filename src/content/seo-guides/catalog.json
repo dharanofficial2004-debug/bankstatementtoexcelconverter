@@ -1,0 +1,152 @@
+[
+  {
+    "id": "pdf-excel",
+    "route": "/blog/convert-bank-statement-pdf-to-excel",
+    "keyword": "how to convert bank statement PDF to Excel",
+    "title": "How to Convert a Bank Statement PDF to Excel (Step-by-Step)",
+    "description": "Learn how to convert a bank statement PDF to Excel or CSV, compare manual and automated methods, and validate transactions before using the file.",
+    "h1": "How to Convert a Bank Statement PDF to Excel",
+    "hero": "Compare extraction methods, review transaction rows, and build a spreadsheet you can check against the original PDF.",
+    "cta": "Convert your statement",
+    "secondary": {
+      "href": "/bank-statement-to-csv",
+      "label": "Explore the existing CSV converter guide"
+    },
+    "final": "Turn a readable statement into a reviewable worksheet, then check it before using the numbers."
+  },
+  {
+    "id": "pdf-csv",
+    "route": "/blog/convert-bank-statement-pdf-to-csv",
+    "keyword": "convert bank statement PDF to CSV",
+    "title": "How to Convert a Bank Statement PDF to CSV",
+    "description": "Learn how to convert bank statement PDFs to CSV, clean transaction columns, handle dates and amounts, and prepare the file for a supported import workflow.",
+    "h1": "How to Convert a Bank Statement PDF to CSV",
+    "hero": "Build a consistent transaction file with deliberate choices about columns, separators, dates, and amount signs.",
+    "cta": "Convert PDF to CSV",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Compare the spreadsheet conversion methods"
+    },
+    "final": "Prepare your transaction rows, inspect the exported CSV, and map a separate copy to your destination."
+  },
+  {
+    "id": "scanned-ocr",
+    "route": "/blog/scanned-bank-statement-to-excel",
+    "keyword": "scanned bank statement to Excel",
+    "title": "Scanned Bank Statement to Excel: OCR Guide",
+    "description": "Learn how to convert scanned bank statements to Excel with OCR, improve scan quality, spot OCR errors, and verify transactions before export.",
+    "h1": "How to Convert a Scanned Bank Statement to Excel",
+    "hero": "Prepare readable page images, use OCR to extract transactions, and check the characters that can change your totals.",
+    "cta": "Try statement OCR",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Choose a method for text-based PDFs"
+    },
+    "final": "Start with your clearest scan and reserve time to review the extracted amounts against every page."
+  },
+  {
+    "id": "reconciliation",
+    "route": "/blog/bank-statement-reconciliation-in-excel",
+    "keyword": "bank statement reconciliation in Excel",
+    "title": "Bank Statement Reconciliation in Excel: Complete Guide",
+    "description": "Learn how to reconcile bank statement transactions in Excel, match your ledger, find missing entries, and investigate balance differences.",
+    "h1": "How to Reconcile a Bank Statement in Excel",
+    "hero": "Compare bank activity with your ledger and explain the differences using a repeatable monthly worksheet.",
+    "cta": "Prepare your statement in Excel",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Extract the statement before reconciling"
+    },
+    "final": "Prepare the bank-side worksheet, keep the ledger separate, and investigate each unexplained difference."
+  },
+  {
+    "id": "quickbooks",
+    "route": "/blog/bank-statement-to-quickbooks-csv",
+    "keyword": "bank statement to QuickBooks CSV",
+    "title": "How to Convert a Bank Statement to QuickBooks CSV",
+    "description": "Learn how to prepare bank statement transactions for QuickBooks CSV import, map columns, avoid duplicates, and reconcile after upload.",
+    "h1": "How to Convert a Bank Statement to QuickBooks CSV",
+    "hero": "Prepare and review a CSV for a supported QuickBooks import, with deliberate account selection and duplicate checks.",
+    "cta": "Prepare your statement CSV",
+    "secondary": {
+      "href": "/bank-statement-to-csv",
+      "label": "Understand the converter’s CSV output"
+    },
+    "final": "Create a reviewed CSV, adapt a copy to QuickBooks, and verify the upload before adding transactions."
+  },
+  {
+    "id": "credit-card",
+    "route": "/credit-card-statement-to-excel",
+    "keyword": "credit card statement to Excel",
+    "title": "Credit Card Statement to Excel Converter",
+    "description": "Convert a credit card statement PDF to Excel or CSV, organize purchases and payments, and review transactions before exporting.",
+    "h1": "Credit Card Statement to Excel",
+    "hero": "Organize posted card activity into a worksheet while keeping purchases, refunds, payments, fees, and statement summaries distinct.",
+    "cta": "Convert credit card statement",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Read the PDF extraction walkthrough"
+    },
+    "final": "Review your card’s posted transaction rows and keep the original statement with the finished export."
+  },
+  {
+    "id": "multiple",
+    "route": "/blog/convert-multiple-bank-statements-to-excel",
+    "keyword": "convert multiple bank statements to Excel",
+    "title": "How to Combine Multiple Bank Statements into Excel",
+    "description": "Learn how to convert multiple monthly bank statement PDFs into Excel, preserve statement periods, avoid duplicates, and validate a consolidated workbook.",
+    "h1": "How to Combine Multiple Bank Statements into Excel",
+    "hero": "Build a traceable multi-month workbook without losing account identity, statement periods, or duplicate-review evidence.",
+    "cta": "Convert your statements",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Review the single-statement workflow first"
+    },
+    "final": "Convert and verify each source statement before adding its rows to your consolidated workbook."
+  },
+  {
+    "id": "privacy",
+    "route": "/blog/secure-bank-statement-pdf-converter",
+    "keyword": "secure bank statement PDF converter",
+    "title": "How to Choose a Secure Bank Statement PDF Converter",
+    "description": "Learn what to check before uploading a bank statement PDF online, including privacy, retention, processing, access controls, and verification.",
+    "h1": "How to Choose a Secure Bank Statement PDF Converter",
+    "hero": "Evaluate how a converter handles financial documents and choose a workflow that fits your data-sharing requirements.",
+    "cta": "Review the converter workflow",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "Compare conversion methods and review steps"
+    },
+    "final": "Review the processing workflow and resolve any data-handling questions before submitting a sensitive statement."
+  },
+  {
+    "id": "power-query",
+    "route": "/blog/bank-statement-pdf-to-excel-power-query",
+    "keyword": "bank statement PDF to Excel Power Query",
+    "title": "Bank Statement PDF to Excel: Power Query vs Converter",
+    "description": "Compare Excel Power Query with dedicated bank statement converters. Learn what works for text PDFs, where scans fail, and how to validate extracted transactions.",
+    "h1": "Bank Statement PDF to Excel: Power Query vs Converter",
+    "hero": "Compare repeatable Excel transformations with a dedicated extraction workflow using the same statement and validation checks.",
+    "cta": "Try the dedicated conversion workflow",
+    "secondary": {
+      "href": "/blog/convert-bank-statement-pdf-to-excel",
+      "label": "See all three PDF conversion methods"
+    },
+    "final": "Try a representative statement and compare the time needed to reach a verified, usable worksheet."
+  },
+  {
+    "id": "us",
+    "route": "/us/bank-statement-to-excel",
+    "keyword": "US bank statement to Excel",
+    "title": "US Bank Statement to Excel — PDF to Excel or CSV",
+    "description": "Convert US bank statement PDFs to Excel or CSV. Review transactions before export for bookkeeping, taxes, mortgage applications, and financial analysis.",
+    "h1": "US Bank Statement to Excel",
+    "hero": "Prepare US transaction data for review while preserving dates, payment descriptions, account context, and original records.",
+    "cta": "Convert your US bank statement",
+    "secondary": {
+      "href": "/banks/us",
+      "label": "Browse existing US bank statement guides"
+    },
+    "final": "Prepare a worksheet for your US account and verify it alongside the original bank-issued PDF."
+  }
+]
