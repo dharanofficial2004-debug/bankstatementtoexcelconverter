@@ -29,7 +29,7 @@ interface SpreadsheetProps {
   onActiveSheetIdChange?: (id: string) => void;
 }
 
-export default function Spreadsheet({
+function Spreadsheet({
   transactions,
   bankDetected,
   isGhostMode,
@@ -69,6 +69,9 @@ export default function Spreadsheet({
   const [isEdited, setIsEdited] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLTableSectionElement>(null);
+  const measureRowRef = useRef<HTMLTableRowElement>(null);
+  const [viewport, setViewport] = useState({ top: 0, height: 600, rowHeight: 37, headerHeight: 74 });
 
   // Sorted and searched data
   const filteredData = useMemo(() => {
@@ -113,6 +116,55 @@ export default function Spreadsheet({
 
     return result;
   }, [data, sortConfig, searchQuery, columns]);
+
+  // Measure the existing table rather than changing its row height or styling.
+  const virtualized = filteredData.length > 200;
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const measure = () => {
+      setViewport(previous => {
+        const next = {
+          top: container.scrollTop,
+          height: container.clientHeight,
+          rowHeight: measureRowRef.current?.getBoundingClientRect().height || previous.rowHeight,
+          headerHeight: headerRef.current?.getBoundingClientRect().height || previous.headerHeight,
+        };
+        return Object.keys(next).every(key => next[key as keyof typeof next] === previous[key as keyof typeof next]) ? previous : next;
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    if (measureRowRef.current) observer.observe(measureRowRef.current);
+    if (headerRef.current) observer.observe(headerRef.current);
+    return () => observer.disconnect();
+  }, [virtualized, filteredData.length]);
+
+  const visibleRows = useMemo(() => {
+    if (!virtualized) return filteredData.map((_, index) => index);
+    const count = Math.ceil(viewport.height / viewport.rowHeight) + 20;
+    const start = Math.min(Math.max(0, filteredData.length - count), Math.max(0, Math.floor((viewport.top - viewport.headerHeight) / viewport.rowHeight) - 10));
+    const indices = new Set(Array.from({ length: Math.min(count, filteredData.length - start) }, (_, index) => start + index));
+    // Preserve focus and uncommitted input when the user scrolls away.
+    for (const cell of [selectedCell, editingCell]) {
+      if (cell && cell.row < filteredData.length) indices.add(cell.row);
+    }
+    return Array.from(indices).sort((a, b) => a - b);
+  }, [virtualized, filteredData, viewport, selectedCell, editingCell]);
+
+  useEffect(() => {
+    if (!virtualized || !selectedCell || isDragging) return;
+    if (rangeEnd && rangeEnd.row !== selectedCell.row) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const top = viewport.headerHeight + selectedCell.row * viewport.rowHeight;
+    if (top < container.scrollTop + viewport.rowHeight) container.scrollTop = top - viewport.rowHeight;
+    else if (top + viewport.rowHeight > container.scrollTop + container.clientHeight) container.scrollTop = top + viewport.rowHeight - container.clientHeight;
+    if (!editingCell && container.contains(document.activeElement)) {
+      container.querySelector<HTMLElement>(`[data-row="${selectedCell.row}"] [tabindex="0"]`)?.focus({ preventScroll: true });
+    }
+  }, [selectedCell, editingCell, virtualized, isDragging, rangeEnd, viewport.rowHeight, viewport.headerHeight]);
 
   // Get cell value by position
   const getCellValue = useCallback(
@@ -764,6 +816,11 @@ export default function Spreadsheet({
         ref={containerRef}
         className="spreadsheet-container flex-1 select-none"
         role="grid"
+        aria-rowcount={filteredData.length + 2}
+        onScroll={virtualized ? (event) => {
+          const top = event.currentTarget.scrollTop;
+          setViewport(previous => previous.top === top ? previous : { ...previous, top });
+        } : undefined}
       >
         <table
           className="border-collapse w-full"
@@ -777,7 +834,7 @@ export default function Spreadsheet({
           </colgroup>
 
           {/* Column Headers */}
-          <thead>
+          <thead ref={headerRef}>
             <tr>
               {/* Corner cell */}
               <th className="sheet-cell sheet-cell--corner w-[42px]">
@@ -843,8 +900,15 @@ export default function Spreadsheet({
 
           {/* Data Rows */}
           <tbody>
-            {filteredData.map((row, rowIndex) => (
+            {visibleRows.map((rowIndex, visibleIndex) => {
+              const row = filteredData[rowIndex];
+              const gap = rowIndex - (visibleIndex === 0 ? 0 : visibleRows[visibleIndex - 1] + 1);
+              return <React.Fragment key={row.id}>
+              {gap > 0 && <tr aria-hidden="true"><td colSpan={columns.length + 1} style={{ height: gap * viewport.rowHeight, padding: 0, border: 0 }} /></tr>}
               <tr
+                ref={visibleIndex === 0 ? measureRowRef : undefined}
+                data-row={rowIndex}
+                aria-rowindex={rowIndex + 3}
                 key={row.id}
                 className={cn(
                   "group",
@@ -900,7 +964,11 @@ export default function Spreadsheet({
                   );
                 })}
               </tr>
-            ))}
+              </React.Fragment>;
+            })}
+            {virtualized && visibleRows.length > 0 && visibleRows[visibleRows.length - 1] < filteredData.length - 1 && (
+              <tr aria-hidden="true"><td colSpan={columns.length + 1} style={{ height: (filteredData.length - 1 - visibleRows[visibleRows.length - 1]) * viewport.rowHeight, padding: 0, border: 0 }} /></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -953,3 +1021,5 @@ export default function Spreadsheet({
     </div>
   );
 }
+
+export default React.memo(Spreadsheet);

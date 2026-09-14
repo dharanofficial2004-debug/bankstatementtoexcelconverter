@@ -11,7 +11,9 @@ const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: f
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, Sheet, ConvertResponse } from "@/lib/types";
 
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+// Every auth-dependent action awaits the same module before checking the session.
+// An SDK that is still loading must never be treated as anonymous/unconfigured.
+const loadSupabase = () => import("@/lib/supabase");
 
 import {
   trackUploadPdf,
@@ -155,32 +157,42 @@ export default function AppPage() {
     // Capture traffic source on first render
     detectTrafficSource();
 
-    if (!isSupabaseConfigured() || !supabase) return;
+    let disposed = false;
+    let unsubscribe: (() => void) | undefined;
+    void loadSupabase().then(({ supabase, isSupabaseConfigured }) => {
+      if (disposed || !isSupabaseConfigured() || !supabase) return;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsAuthenticated(true);
-        setUserEmail(session.user.email || null);
-        fetchUserUsage(session.access_token);
-      }
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (disposed) return;
+        if (session) {
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || null);
+          fetchUserUsage(session.access_token);
+        }
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthenticated(!!session);
+        setUserEmail(session?.user.email || null);
+        if (session) {
+          setShowLoginModal(false);
+          fetchUserUsage(session.access_token);
+        }
+      });
+
+      unsubscribe = () => subscription.unsubscribe();
     });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      setUserEmail(session?.user.email || null);
-      if (session) {
-        setShowLoginModal(false);
-        fetchUserUsage(session.access_token);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      disposed = true;
+      unsubscribe?.();
+    };
   }, [fetchUserUsage]);
 
   // Daily countdown for the lifetime offer ("Offer ends soon")
   React.useEffect(() => {
+    if (!showPlanModal) return;
     const update = () => {
       const now = new Date();
       const midnight = new Date(now);
@@ -194,7 +206,7 @@ export default function AppPage() {
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [showPlanModal]);
 
   const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
     interface PdfJsModule {
@@ -466,6 +478,7 @@ export default function AppPage() {
     if (pickerBusyRef.current) return;
     pickerBusyRef.current = true;
     try {
+      const { supabase, isSupabaseConfigured } = await loadSupabase();
       if (!isSupabaseConfigured() || !supabase) {
         // No auth configured — gate anonymous users by localStorage
         if (appState === "spreadsheet") {
@@ -527,6 +540,7 @@ export default function AppPage() {
   };
 
   const processPendingUpload = async (file: File) => {
+    const { supabase, isSupabaseConfigured } = await loadSupabase();
     setPendingFile(null);
 
     if (!isSupabaseConfigured() || !supabase) {
@@ -576,6 +590,7 @@ export default function AppPage() {
   };
 
   const handleFileSelect = async (file: File) => {
+    const { supabase, isSupabaseConfigured } = await loadSupabase();
     if (!isSupabaseConfigured() || !supabase) {
       await startUpload(file);
       return;
@@ -599,6 +614,7 @@ export default function AppPage() {
     trackConversionStarted();
 
     try {
+      const { supabase } = await loadSupabase();
       const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
       if (supabase) {
         const { data: { session } } = await supabase.auth.getSession();
@@ -733,6 +749,7 @@ export default function AppPage() {
   };
 
   const initPlanPayment = async (plan: "lifetime" | "per_conversion") => {
+    const { supabase, isSupabaseConfigured } = await loadSupabase();
     if (!isSupabaseConfigured() || !supabase) return;
     setIsProcessingPayment(true);
 
@@ -869,9 +886,10 @@ export default function AppPage() {
     }
   };
 
-  const handleLoginSuccess = useCallback(() => {
+  const handleLoginSuccess = useCallback(async () => {
     setShowLoginModal(false);
     setIsAuthenticated(true);
+    const { supabase } = await loadSupabase();
     if (!supabase) return;
     
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -905,6 +923,7 @@ export default function AppPage() {
     async (format: "csv" | "xlsx" | "json" | "iif") => {
       // Track button click immediately (before auth check)
       trackDownloadButtonClicked({ format });
+      const { supabase, isSupabaseConfigured } = await loadSupabase();
 
       if (!isSupabaseConfigured() || !supabase) {
         await performExport(format);
@@ -1193,11 +1212,11 @@ export default function AppPage() {
       </main>
 
       {/* Auth Modal */}
-      <LoginModal
+      {showLoginModal && <LoginModal
         isOpen={showLoginModal}
         onClose={() => { setShowLoginModal(false); setPendingExportFormat(null); }}
         onLoginSuccess={handleLoginSuccess}
-      />
+      />}
 
       {/* Plan Modal — shown before upload when the free conversion is used */}
       {showPlanModal && (

@@ -355,11 +355,10 @@ export default function HomePage() {
                 key={card.title}
                 className="rounded-2xl border border-slate-100 bg-slate-50 p-6 hover:shadow-md transition-shadow duration-200"
               >
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${card.color}`}
-                >
-                  <card.icon size={22} />
-                </div>
+                <card.icon
+                  size={44}
+                  className={`rounded-xl mb-4 p-[11px] ${card.color}`}
+                />
                 <h3 className="text-lg font-bold text-slate-900 mb-2">
                   {card.title}
                 </h3>
@@ -600,11 +599,10 @@ export default function HomePage() {
                 key={card.title}
                 className="rounded-2xl border border-slate-100 bg-slate-50 p-6"
               >
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${card.color}`}
-                >
-                  <card.icon size={20} />
-                </div>
+                <card.icon
+                  size={44}
+                  className={`rounded-xl mb-4 p-3 ${card.color}`}
+                />
                 <h3 className="text-base font-bold text-slate-900 mb-2">
                   {card.title}
                 </h3>

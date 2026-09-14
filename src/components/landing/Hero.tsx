@@ -37,12 +37,6 @@ export default function Hero({
   if (!showPreviewCard) {
     return (
       <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.15),_transparent_42%),linear-gradient(135deg,_#f8fbff_0%,_#f5f7ff_45%,_#eef6ff_100%)] px-4 pb-24 pt-28 sm:pt-32 lg:pt-36">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-0 h-[640px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary-100/85 via-primary-50/30 to-transparent blur-3xl" />
-          <div className="absolute right-8 top-20 h-60 w-60 rounded-full bg-primary-100/40 blur-3xl" />
-          <div className="absolute left-4 top-56 h-64 w-64 rounded-full bg-blue-100/45 blur-3xl" />
-        </div>
-
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/90 px-4 py-2 text-sm font-medium text-primary-700 shadow-sm">
             <Sparkles size={15} className="text-primary-600" />
