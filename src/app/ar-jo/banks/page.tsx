@@ -251,7 +251,7 @@ export default function JordanBanksPage() {
           </div>
 
           <div
-            className="mx-auto mt-10 flex max-w-5xl justify-center animate-fade-in-up"
+            className="mx-auto mt-10 flex max-w-5xl items-center justify-center gap-3 animate-fade-in-up"
             style={{ animationDelay: "0.4s" }}
           >
             <a
@@ -264,6 +264,19 @@ export default function JordanBanksPage() {
                 width={250}
                 height={54}
                 src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
+                unoptimized
+              />
+            </a>
+            <a
+              href="https://nicklaunches.com/products/bank-statement-to-excel-converter/?utm_source=bankstatementtoexcelconverter.com&utm_medium=badge&utm_campaign=featured"
+              target="_blank"
+              rel="noopener"
+            >
+              <Image
+                src="https://nicklaunches.com/badges/featured.png"
+                alt="Bank Statement to Excel Converter on Nick Launches"
+                width={244}
+                height={56}
                 unoptimized
               />
             </a>
