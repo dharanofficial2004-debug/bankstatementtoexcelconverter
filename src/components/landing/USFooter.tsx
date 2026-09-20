@@ -33,7 +33,7 @@ export default function USFooter() {
             <div>
               <h4 className="text-sm font-semibold text-white mb-3">Product</h4>
               <div className="flex flex-col gap-2">
-                <Link href="/app" className="text-sm text-slate-400 hover:text-white transition-colors">Try Free</Link>
+                <Link href="/app" prefetch={false} className="text-sm text-slate-400 hover:text-white transition-colors">Try Free</Link>
                 <Link href="/pricing" className="text-sm text-slate-400 hover:text-white transition-colors">Pricing</Link>
                 <Link href="/banks/us" className="text-sm text-slate-400 hover:text-white transition-colors">US Banks</Link>
                 <Link href="/banks/in" className="text-sm text-slate-400 hover:text-white transition-colors">Indian Banks</Link>

@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import UploadZone, { UploadZoneHandle } from "@/components/app/UploadZone";
 import ProcessingSteps from "@/components/app/ProcessingSteps";
@@ -10,6 +11,7 @@ const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr:
 const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 import { useToast } from "@/components/ui/Toast";
 import { Transaction, Sheet, ConvertResponse } from "@/lib/types";
+import { calculateConversionSummary, createConversionId, saveConversionSnapshot, saveLatestConversion } from "@/lib/conversionSession";
 
 // Every auth-dependent action awaits the same module before checking the session.
 // An SDK that is still loading must never be treated as anonymous/unconfigured.
@@ -77,6 +79,7 @@ type AppState = "upload" | "processing" | "spreadsheet";
 
 
 export default function AppPage() {
+  const router = useRouter();
   const [appState, setAppState] = useState<AppState>("upload");
   const [sheets, setSheets] = useState<Sheet[]>([]);
   const [activeSheetId, setActiveSheetId] = useState<string>("");
@@ -657,6 +660,7 @@ export default function AppPage() {
         await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
         
         const cleanName = fileName.replace(/\.pdf$/i, "");
+        const conversionId = createConversionId();
         
         if (sheets.length > 0) {
           setPendingUploadData({
@@ -679,6 +683,25 @@ export default function AppPage() {
           setSheets([newSheet]);
           setActiveSheetId(newSheet.id);
           setAppState("spreadsheet");
+        }
+
+        // Persist the completed conversion before leaving the upload route.
+        // The preview can be restored after a reload from this durable browser snapshot.
+        const previewSheets = sheets.length > 0
+          ? [...sheets, {
+              id: crypto.randomUUID(), name: cleanName, transactions: data.transactions,
+              bankDetected: data.bank_detected, currencySymbol: data.currency_symbol || "₹",
+              headers: data.headers || [],
+            }]
+          : [{
+              id: crypto.randomUUID(), name: cleanName, transactions: data.transactions,
+              bankDetected: data.bank_detected, currencySymbol: data.currency_symbol || "₹",
+              headers: data.headers || [],
+            }];
+        const previewActiveId = previewSheets[previewSheets.length - 1].id;
+        if (sheets.length === 0 && saveConversionSnapshot(conversionId, { sheets: previewSheets, activeSheetId: previewActiveId, fileName: cleanName, createdAt: Date.now(), summary: calculateConversionSummary(data.transactions, data.bank_detected, data.currency_symbol || "₹") })) {
+          saveLatestConversion(conversionId);
+          router.push(`/preview/${conversionId}`);
         }
 
         // Track preview displayed

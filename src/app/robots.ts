@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/app", "/auth/", "/api/"],
+      disallow: ["/app", "/preview/", "/auth/", "/api/"],
     },
     sitemap: [
       "https://bankstatementtoexcelconverter.com/sitemap.xml",

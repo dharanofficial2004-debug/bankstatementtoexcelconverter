@@ -49,6 +49,7 @@ export default function Footer() {
               </Link>
               <Link
                 href="/app"
+                prefetch={false}
                 className="block hover:text-primary-600 transition-colors"
               >
                 Try free

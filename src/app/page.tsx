@@ -775,6 +775,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/app"
+            prefetch={false}
             className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base"
           >
             Upload Bank Statement PDF

@@ -86,7 +86,7 @@ export default function Navbar() {
                 </button>
               )}
 
-              <Link href="/app" className="btn-primary text-sm py-2 px-5">
+              <Link href="/app" prefetch={false} className="btn-primary text-sm py-2 px-5">
                 Try Free
               </Link>
             </div>
@@ -140,6 +140,7 @@ export default function Navbar() {
 
                 <Link
                   href="/app"
+                  prefetch={false}
                   className="btn-primary text-sm py-2"
                   onClick={() => setIsOpen(false)}
                 >
