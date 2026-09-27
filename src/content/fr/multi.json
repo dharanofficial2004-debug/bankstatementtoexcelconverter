@@ -1,0 +1,111 @@
+{
+  "id": "multi",
+  "slug": "pdf-releve-bancaire-vers-excel",
+  "title": "Relevé bancaire multipage : convertir sans perdre le fil",
+  "description": "Préparez un relevé bancaire de plusieurs pages pour Excel. Contrôlez la pagination, les reports, les lignes de transition et les doublons après extraction.",
+  "h1": "Convertir un relevé bancaire de plusieurs pages",
+  "intro": "Un relevé long se vérifie page par page. Organisez le document, repérez les reports de solde et contrôlez la continuité des opérations dans le tableau obtenu.",
+  "eyebrow": "Garder toutes les opérations utiles",
+  "variant": "guide",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Vérifier que le document forme un ensemble cohérent",
+      "paragraphs": [
+        "Un relevé de plusieurs pages ne représente pas nécessairement plusieurs comptes. Il peut simplement continuer le même tableau d’opérations sur une longue période. Avant la conversion, relevez le compte, les dates de début et de fin et le nombre de pages annoncé. Parcourez le document pour confirmer qu’il contient un ensemble cohérent. Une archive assemblée manuellement peut mélanger un relevé, une notice tarifaire et des duplicatas qui ne doivent pas tous être traités comme des mouvements.",
+        "Lorsque la banque indique une pagination, vérifiez sa continuité. La présence des pages 1, 2 et 4 signale un problème même si le PDF s’ouvre normalement. Comparez aussi les en-têtes : un changement de titulaire, de compte ou de période peut marquer un nouveau document. Conservez ces limites dans votre organisation de travail. Il est plus simple de contrôler des lots clairement identifiés que de chercher après l’export où commencent et finissent plusieurs relevés réunis."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Préparer les pages avant l’extraction",
+      "paragraphs": [
+        "Privilégiez le PDF d’origine lorsque vous pouvez le récupérer dans votre espace bancaire. Si vous utilisez un scan, examinez chaque page pour repérer une orientation incorrecte, une marge coupée ou une résolution insuffisante. Une première page nette ne permet pas de juger la qualité de toutes les suivantes. Les dernières lignes sont parfois moins lisibles, notamment près d’un pli ou d’une zone sombre de la numérisation.",
+        "Le parcours de lecture actuel prévoit une limite de 100 pages pour un PDF. La taille et les ressources nécessaires au traitement peuvent aussi limiter un document. Suivez les messages de l’application plutôt que de considérer ce plafond comme une garantie de réussite pour tout fichier. Si vous devez préparer des lots, faites-le dans un outil PDF adapté et conservez un ordre explicite. Le convertisseur présenté ici n’ajoute pas de fonction de découpage ou d’assemblage du document."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Contrôler les transitions entre les pages",
+      "paragraphs": [
+        "Les changements de page constituent des zones prioritaires de contrôle. Comparez les dernières opérations de la page précédente et les premières de la suivante à leur succession dans l’aperçu. Une description peut commencer en bas d’une page et se poursuivre ailleurs ; elle ne doit pas devenir deux transactions. Un titre de colonne répété peut aussi être récupéré comme une ligne. Identifiez sa fonction avant de supprimer ou de corriger quoi que ce soit.",
+        "Pour chaque transition, repérez un mouvement identifiable par sa date, son montant et une partie distinctive du libellé. Notez ensuite sa présence dans le tableau. Cette méthode est plus fiable qu’une simple comparaison du nombre de lignes, car un relevé peut consacrer plusieurs lignes de texte à une seule opération. Sur les documents très denses, un contrôle par transition aide à localiser précisément une lacune sans relire immédiatement tout le fichier depuis le début."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Distinguer les reports et les véritables mouvements",
+      "paragraphs": [
+        "Un solde reporté en tête de page rappelle la position acquise. Il ne constitue ni un encaissement ni une dépense de la nouvelle page. Si l’extraction le fait apparaître dans le tableau, vérifiez qu’il ne s’ajoute pas aux totaux de débit ou de crédit. La même vigilance s’applique aux sous-totaux et au récapitulatif final. Leur présence dans le document est utile pour le contrôle, mais leur traitement comme opération compterait les montants une seconde fois.",
+        "Travaillez à partir des intitulés du relevé, pas uniquement de la position visuelle d’un nombre. Un montant situé à droite peut être un solde ou un total de colonne. Comparez les lignes voisines et l’en-tête correspondant. Dans votre copie de travail, distinguez les opérations des repères de contrôle. Si vous retirez une ligne technique du calcul, gardez une trace de son origine pour expliquer pourquoi le nombre de lignes du tableau diffère de celui du texte extrait."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Détecter les doublons sans supprimer de vrais paiements",
+      "paragraphs": [
+        "Une page répétée peut produire des opérations en double. Deux documents dont les périodes se chevauchent peuvent également reprendre les mêmes mouvements. Commencez par comparer date, montant, sens du mouvement et libellé. Ajoutez une référence bancaire lorsqu’elle est disponible. Deux lignes identiques en apparence ne sont cependant pas une preuve suffisante : des prélèvements ou des paiements distincts peuvent avoir le même montant le même jour.",
+        "Vérifiez la présence de chaque mouvement dans le PDF avant de supprimer une ligne. Si la source elle-même comporte une page dupliquée, corrigez d’abord votre ensemble documentaire ou signalez la duplication dans le dossier de contrôle. Conservez l’export initial et effectuez les suppressions dans une copie. Pour un travail partagé, notez les références des lignes retirées. La détection de doublons décrite ici est une méthode de vérification, pas une promesse d’élimination automatique par le convertisseur."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Regrouper plusieurs mois avec méthode",
+      "paragraphs": [
+        "Lorsque plusieurs relevés mensuels doivent alimenter un même suivi, vérifiez chacun séparément avant de les réunir. Confirmez la période, le solde d’ouverture et le solde de clôture. Deux mois consécutifs doivent être rapprochés selon les dates réellement couvertes, qui ne coïncident pas toujours avec le premier et le dernier jour du mois civil. Un intervalle ou un chevauchement doit être compris avant de calculer des totaux trimestriels ou annuels.",
+        "Ajoutez dans votre tableur une colonne de provenance si vous assemblez plusieurs exports. Elle peut indiquer le nom du fichier source ou la période du relevé. Cette opération se réalise dans votre outil de travail après conversion. Ne présumez pas que le convertisseur fusionnera automatiquement tous les comptes et tous les mois de façon adaptée à votre analyse. Garder la provenance permet de revenir rapidement au bon PDF lorsqu’un montant ou une description nécessite une vérification."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Exporter en gardant le contexte des feuilles",
+      "paragraphs": [
+        "L’export XLSX du parcours actuel transmet les feuilles présentes dans l’aperçu, tandis que CSV reprend la feuille active. Avant de télécharger, vérifiez donc où se trouvent les opérations que vous souhaitez conserver. Un fichier long ne signifie pas nécessairement une feuille par page : l’organisation du résultat doit être examinée. Ouvrez ensuite le téléchargement et comparez les premières et les dernières opérations de chaque ensemble au document source.",
+        "Nommez les fichiers et les feuilles de manière compréhensible, en évitant d’exposer inutilement des numéros de compte complets dans des noms partagés. Pour une analyse dans Excel, gardez des colonnes homogènes entre les mois. Si des formats bancaires changent en cours d’année, vérifiez à nouveau le sens des dates et des montants. Les relevés de Crédit Agricole, Banque Populaire ou Caisse d’Épargne peuvent varier selon le compte et la période ; aucune uniformité de présentation n’est garantie."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Valider le document long avant transmission",
+      "paragraphs": [
+        "Un contrôle final doit confirmer que toutes les pages utiles sont représentées et que les opérations appartiennent au bon compte. Comparez les soldes et les totaux sur chaque période identifiable. Si une différence apparaît, revenez aux transitions de pages et aux éventuels reports avant de modifier une valeur. Une correction fondée sur le PDF reste nécessaire même lorsque l’écart correspond exactement à une seule opération manquante ou répétée.",
+        "Conservez le document complet, les éventuels lots et les exports qui leur correspondent. Le stockage de l’aperçu dans le navigateur facilite la reprise locale mais ne remplace pas cet archivage de travail. Le traitement emploie des services distants ; vérifiez que vous êtes autorisé à transmettre les relevés concernés. Les conditions d’accès et la connexion éventuellement requise pour exporter sont affichées dans l’application. Pour un scan long, complétez cette méthode par les contrôles spécifiques de reconnaissance des caractères."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Puis-je convertir un relevé PDF de plusieurs pages ?",
+      "answer": "Le parcours lit des PDF multipages, avec un plafond de 100 pages dans le lecteur actuel. La taille et la complexité peuvent aussi limiter le traitement. Vérifiez les messages affichés et contrôlez la présence des opérations de chaque page."
+    },
+    {
+      "question": "Comment repérer une page manquante avant conversion ?",
+      "answer": "Comparez la pagination imprimée, les en-têtes et la continuité des périodes. Un PDF qui s’ouvre normalement peut rester incomplet. Récupérez la page absente avant de considérer l’export comme représentatif du relevé entier."
+    },
+    {
+      "question": "Les reports de solde doivent-ils compter comme opérations ?",
+      "answer": "Non, un report rappelle une position déjà acquise. Vérifiez qu’il n’est pas ajouté aux débits ou aux crédits. Conservez-le comme repère de contrôle si cela aide à comprendre la continuité du document."
+    },
+    {
+      "question": "Comment vérifier une opération coupée entre deux pages ?",
+      "answer": "Comparez les fragments du libellé et leur association au montant. Recherchez le même mouvement dans l’aperçu et vérifiez qu’il n’a pas été scindé ou dupliqué. Corrigez uniquement à partir de la source."
+    },
+    {
+      "question": "Deux lignes de même montant sont-elles forcément des doublons ?",
+      "answer": "Non. Comparez aussi la date, le libellé et les références, puis vérifiez leur présence dans le PDF. Des paiements distincts peuvent avoir le même montant et être enregistrés le même jour."
+    },
+    {
+      "question": "Puis-je réunir plusieurs mois après conversion ?",
+      "answer": "Oui, dans votre tableur, après avoir contrôlé chaque relevé. Gardez une colonne de provenance et vérifiez les chevauchements de périodes. Le regroupement doit préserver le compte et la devise de chaque ensemble."
+    },
+    {
+      "question": "Le CSV contient-il toutes les pages dans plusieurs onglets ?",
+      "answer": "Un CSV ne contient pas d’onglets. L’export actuel reprend les transactions de la feuille active. Examinez l’organisation de l’aperçu ; choisissez XLSX si vous voulez conserver plusieurs feuilles dans un fichier."
+    },
+    {
+      "question": "Que faire avec un document dépassant la limite de pages ?",
+      "answer": "Préparez des lots cohérents dans un outil PDF adapté, en gardant l’ordre et la provenance des pages. Vérifiez chaque lot puis leur continuité. Le découpage du PDF n’est pas une fonction ajoutée au convertisseur par ce guide."
+    }
+  ],
+  "faqTitle": "Questions sur les relevés multipages"
+}

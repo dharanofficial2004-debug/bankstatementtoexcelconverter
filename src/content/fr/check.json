@@ -1,0 +1,111 @@
+{
+  "id": "check",
+  "slug": "releve-bancaire-pdf-excel",
+  "title": "Relevé bancaire converti : vérifiez votre fichier Excel",
+  "description": "Vérifiez votre relevé bancaire converti en Excel : soldes, totaux, signes et doublons. Suivez une méthode de contrôle avant de transmettre vos opérations.",
+  "h1": "Vérifier un relevé bancaire converti en Excel",
+  "intro": "Un tableau lisible doit aussi correspondre au relevé source. Contrôlez la période, les mouvements et les soldes avant d’utiliser les données pour votre comptabilité.",
+  "eyebrow": "Contrôler avant de transmettre",
+  "variant": "reference",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Commencer par le périmètre du contrôle",
+      "paragraphs": [
+        "Avant de comparer des chiffres, vérifiez que le tableau concerne le bon compte et la bonne période. Ouvrez le PDF source à côté de l’export ou de l’aperçu. Relevez les dates annoncées, le titulaire et les pages disponibles. Un écart de solde peut simplement venir d’une comparaison entre deux périodes différentes. Un fichier bien présenté peut aussi reprendre un autre relevé que celui que vous pensiez avoir déposé.",
+        "Conservez l’export initial avant toute correction. Préparez une copie de travail pour les vérifications et notez la source utilisée. Si plusieurs personnes interviennent, définissez une version commune à contrôler afin d’éviter des modifications concurrentes. Le contrôle décrit ici porte sur la concordance des données avec le relevé ; il ne constitue pas une validation de la nature comptable des opérations ni de leurs justificatifs. Ces étapes demandent une analyse complémentaire adaptée à votre dossier."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Vérifier la couverture des opérations",
+      "paragraphs": [
+        "Comparez les premières et les dernières opérations de la période. Examinez ensuite les transitions entre les pages. Cette lecture permet de repérer une fin de document manquante ou un passage omis au milieu du relevé. Ne vous fiez pas uniquement au nombre de lignes : un libellé peut occuper plusieurs lignes dans le PDF alors qu’une seule transaction lui correspond dans le tableau. Les titres et les reports de solde peuvent également augmenter le nombre de lignes extraites.",
+        "Repérez plusieurs mouvements caractéristiques répartis sur toute la période. Un prélèvement mensuel, une remise ou un virement avec une référence précise constitue un bon point de comparaison. Si une opération manque, cherchez d’abord si elle a été fusionnée avec un libellé voisin ou placée dans une autre section. Notez la page source et la position dans l’export pour corriger avec méthode. La simple présence d’un total final plausible ne prouve pas que toutes les opérations ont été récupérées."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Contrôler le sens des débits et des crédits",
+      "paragraphs": [
+        "Sur le relevé bancaire, un débit représente une sortie du compte et un crédit une entrée. Confirmez cette convention avec quelques mouvements connus. Un remboursement, une annulation ou un virement entre comptes peut être moins intuitif qu’un paiement habituel. Comparez le montant et sa colonne, pas seulement le texte du libellé. Une opération correctement lue mais placée du mauvais côté modifie le calcul du solde dans les deux sens.",
+        "Lorsque le document utilise des montants signés, vérifiez comment ils ont été répartis dans les colonnes exportées. Ne transformez pas un signe uniquement parce que la description ressemble à une dépense. La source doit justifier la correction. Pour un import ultérieur, conservez les colonnes débit et crédit d’origine avant de construire éventuellement une colonne de montant signé. Cette séparation aide à expliquer la transformation et à revenir aux mouvements bancaires si le destinataire détecte une différence."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Recalculer un solde sur la même période",
+      "paragraphs": [
+        "La relation de base est simple : solde d’ouverture plus crédits moins débits égale solde de clôture, à condition de travailler sur le même compte et la même période avec une convention cohérente. Utilisez le solde d’ouverture réellement indiqué sur le PDF. Ne prenez pas par erreur le solde après la première opération comme point de départ. Vérifiez également que les reports et les totaux imprimés ne sont pas comptés comme des mouvements supplémentaires.",
+        "Dans l’exemple fictif de cette page, 2 499,50 € moins 84,20 € donne 2 415,30 €, puis l’entrée de 1 250,00 € porte le solde à 3 665,30 €. Si votre fichier ne respecte pas la relation attendue, recherchez une omission, une duplication, un signe inversé ou une mauvaise lecture des décimales. N’ajoutez pas une ligne d’ajustement simplement pour faire disparaître l’écart : elle ne correspondrait pas nécessairement à une opération du relevé."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Relire dates, décimales et références",
+      "paragraphs": [
+        "Les dates ambiguës demandent une attention particulière lorsque le tableur utilise un ordre mois/jour. Comparez des valeurs dont le jour dépasse douze et vérifiez les changements de mois ou d’année. Un mouvement déplacé dans une mauvaise période peut fausser une synthèse mensuelle sans affecter le total général. Gardez la distinction entre la date de l’opération et toute autre date imprimée sur la source lorsque les deux sont présentes.",
+        "Pour les montants, contrôlez les espaces, la virgule décimale et les signes peu visibles. Les relevés scannés peuvent introduire des confusions de caractères ; les fichiers texte peuvent poser des difficultés de structure. Préservez les références longues sous une forme lisible, sans les transformer involontairement en nombres arrondis. Un identifiant bancaire sert souvent à distinguer deux lignes de même date et de même montant. Il mérite donc un contrôle même s’il n’intervient pas dans les totaux."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Examiner les doublons et les mouvements atypiques",
+      "paragraphs": [
+        "Deux lignes proches ne doivent pas être supprimées automatiquement. Comparez leur présence dans le PDF, leur libellé complet et leurs références. Un abonnement et un achat ponctuel peuvent avoir le même montant ; deux paiements distincts peuvent être passés le même jour. À l’inverse, une page répétée ou deux relevés aux périodes chevauchantes peuvent produire un véritable doublon. Le contexte du document permet de décider, pas la seule égalité de deux nombres.",
+        "Les opérations inhabituelles méritent aussi d’être isolées : montant très élevé, description incomplète, date hors période ou débit et crédit renseignés de façon inattendue. Créez une liste de points à examiner plutôt que de modifier immédiatement toutes les anomalies apparentes. Certaines correspondent à la source et doivent être conservées. Documenter les exceptions évite qu’un collègue les corrige une seconde fois ou interprète votre absence de modification comme un oubli de contrôle."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Préparer le rapprochement avec les pièces",
+      "paragraphs": [
+        "Une fois la concordance avec le relevé établie, le tableau peut servir à rechercher des correspondances avec les factures, les reçus ou les données de votre outil de gestion. Gardez le libellé complet et les références utiles. Une même facture peut être réglée en plusieurs mouvements ; une entrée peut couvrir plusieurs éléments. La conversion ne résout pas automatiquement ces liens. Le travail de rapprochement doit conserver les justifications nécessaires à la compréhension des associations.",
+        "Séparez les corrections d’extraction des annotations d’analyse. Corriger une date mal lue modifie la transcription de la source ; ajouter une catégorie décrit votre interprétation de l’opération. Des colonnes distinctes rendent cette différence visible. Pour la transmission à un expert-comptable, indiquez les lignes contrôlées, celles qui restent à justifier et les documents associés. Le destinataire peut ainsi reprendre le dossier sans confondre une valeur bancaire confirmée et une affectation encore provisoire."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Clore le contrôle et conserver les versions",
+      "paragraphs": [
+        "Avant de valider votre copie de travail, examinez les filtres actifs, les lignes masquées et les feuilles non visibles au premier coup d’œil. Un total calculé sur une sélection ne doit pas être présenté comme celui du relevé entier. Ouvrez aussi le fichier effectivement téléchargé : une vérification faite dans l’aperçu ne suffit pas à confirmer les paramètres appliqués ensuite par Excel ou par un import CSV.",
+        "Conservez le PDF, l’export initial et la version corrigée avec une date ou un numéro de version. L’aperçu utilise le stockage du navigateur et ne remplace pas votre organisation documentaire. Le traitement initial fait appel à des services distants ; assurez-vous que cet usage convient aux documents confiés. Si un point reste non résolu, signalez-le clairement lors du partage. Un fichier accompagné de limites explicites est plus facile à reprendre qu’un tableau présenté comme définitif malgré des écarts inexpliqués."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Quel contrôle effectuer en premier sur un relevé converti ?",
+      "answer": "Vérifiez le compte, la période et les pages couvertes. Comparez ensuite les premières et dernières opérations. Ces vérifications évitent de rechercher une erreur de calcul dans deux documents qui ne couvrent pas le même périmètre."
+    },
+    {
+      "question": "Comment recalculer le solde final du relevé ?",
+      "answer": "Partez du solde d’ouverture confirmé, ajoutez les crédits et retranchez les débits de la même période. Excluez les reports et totaux qui ne sont pas des mouvements, puis comparez au solde de clôture imprimé."
+    },
+    {
+      "question": "Que signifie un écart égal au double d’un montant ?",
+      "answer": "Une inversion débit/crédit peut produire cet effet, mais ce n’est qu’une piste. Comparez l’opération au PDF et recherchez d’autres erreurs possibles avant de modifier son sens ou sa valeur."
+    },
+    {
+      "question": "Un solde final correct prouve-t-il que toutes les lignes sont exactes ?",
+      "answer": "Non. Des erreurs peuvent se compenser, et une date ou un libellé peut être faux sans changer le total. Contrôlez aussi la couverture des opérations, les références et les mouvements atypiques."
+    },
+    {
+      "question": "Puis-je supprimer toutes les lignes identiques ?",
+      "answer": "Vérifiez d’abord la source. Deux paiements distincts peuvent partager une date et un montant. Utilisez le libellé complet et les références, puis gardez une trace des suppressions réellement justifiées."
+    },
+    {
+      "question": "Comment documenter une correction de l’aperçu ?",
+      "answer": "Conservez l’export initial et notez la ligne, la valeur corrigée et la page source dans votre dossier de travail. Le but est de permettre à une autre personne de retrouver la justification sans refaire toute l’extraction."
+    },
+    {
+      "question": "Le contrôle du fichier vaut-il validation comptable ?",
+      "answer": "Il confirme la transcription du relevé dans le périmètre vérifié. La justification des mouvements et leur affectation comptable demandent un travail complémentaire avec les pièces et les règles du dossier."
+    },
+    {
+      "question": "Que transmettre si certaines lignes restent incertaines ?",
+      "answer": "Envoyez une version identifiée, les documents sources appropriés et une liste des points non résolus. Distinguez les données vérifiées des hypothèses pour que le destinataire sache où poursuivre le contrôle."
+    }
+  ],
+  "faqTitle": "Questions sur la vérification des données"
+}

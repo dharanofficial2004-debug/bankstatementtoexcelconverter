@@ -1,0 +1,111 @@
+{
+  "id": "cash",
+  "slug": "releve-bancaire-vers-excel",
+  "title": "Relevé bancaire Excel : organisez votre trésorerie",
+  "description": "Organisez les opérations d’un relevé bancaire Excel pour suivre votre trésorerie : catégories, virements internes et synthèse mensuelle à vérifier.",
+  "h1": "Suivre sa trésorerie avec un relevé bancaire Excel",
+  "intro": "Transformez un export vérifié en outil de suivi des encaissements et décaissements. Le classement et les synthèses décrits ici se réalisent ensuite dans votre tableur.",
+  "eyebrow": "Donner du sens aux mouvements",
+  "variant": "guide",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Définir la question avant de construire le tableau",
+      "paragraphs": [
+        "Un relevé bancaire permet d’observer les mouvements réalisés sur un compte. Pour en faire un suivi de trésorerie utile, commencez par une question concrète : quelles entrées et sorties ont eu lieu ce mois-ci, quels prélèvements reviennent régulièrement ou quels paiements restent à identifier ? Le choix de la question détermine les colonnes et les regroupements à préparer. Une accumulation de graphiques ne remplace pas des données cohérentes et un périmètre clairement défini.",
+        "Choisissez le compte et la période étudiés. Si votre activité utilise plusieurs comptes, gardez leurs données séparées tant que leur provenance n’est pas explicitement indiquée. Le travail décrit ici se réalise dans Excel après un export vérifié. Le convertisseur prépare les opérations ; il ne produit pas automatiquement les catégories, les prévisions ou les analyses présentées dans ce guide. Cette séparation permet de distinguer les faits extraits du relevé et les choix que vous faites ensuite dans le tableur."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Préparer une base d’opérations vérifiée",
+      "paragraphs": [
+        "Convertissez le relevé PDF, comparez l’aperçu au document puis exportez le fichier. Avant de classer les mouvements, contrôlez les dates, les débits, les crédits et les soldes disponibles. Une seule opération dupliquée peut gonfler une catégorie de dépenses ; une date mal interprétée peut déplacer une entrée dans le mauvais mois. Le guide de vérification détaille ces contrôles si vous devez consolider une base destinée à être partagée.",
+        "Conservez une feuille ou un fichier de référence avec les données initiales. Effectuez les classements dans une copie de travail où vous ajoutez vos propres colonnes. Le libellé bancaire complet doit rester accessible, même si vous créez un intitulé simplifié pour un fournisseur ou un client. Pour plusieurs mois, ajoutez la provenance du relevé et vérifiez les éventuels chevauchements. Une base stable facilite les comparaisons et permet de revenir à la source lorsqu’une variation paraît surprenante."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Choisir des catégories compréhensibles",
+      "paragraphs": [
+        "Définissez un nombre limité de catégories adaptées à votre usage : règlements clients, loyers, énergie, achats, frais bancaires ou mouvements à préciser, par exemple. Ces catégories servent à organiser une lecture de trésorerie ; elles ne sont pas automatiquement des comptes comptables. Écrivez une courte règle pour les cas fréquents afin d’appliquer le même classement d’un mois à l’autre. Une catégorie dont le sens change rend les comparaisons trompeuses.",
+        "Les libellés peuvent aider à repérer des opérations récurrentes, mais ils ne suffisent pas toujours. Un même bénéficiaire peut recevoir plusieurs types de paiements. Vérifiez les pièces lorsque la nature du mouvement est ambiguë et gardez une catégorie temporaire plutôt que de forcer une attribution. Les règles de classement et leurs corrections sont réalisées dans votre tableur. N’effacez pas les références d’origine pour faciliter une recherche : elles peuvent être utiles à la justification ultérieure du mouvement."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Traiter les virements entre vos comptes",
+      "paragraphs": [
+        "Un virement entre deux comptes que vous suivez apparaît comme une sortie sur l’un et une entrée sur l’autre. Si vous additionnez toutes les entrées comme des recettes d’activité, vous risquez de compter un transfert interne comme une nouvelle ressource. Identifiez ces mouvements dans une catégorie distincte et vérifiez la correspondance entre les deux comptes. Les dates peuvent différer ; le montant et la référence apportent un contexte supplémentaire.",
+        "Ne supprimez pas ces lignes de votre base d’origine. Elles restent nécessaires pour expliquer le solde de chaque compte. Vous pouvez les exclure de certaines synthèses consolidées tout en les gardant visibles dans le détail. Si vous n’avez le relevé que d’un seul compte, n’inventez pas la contrepartie manquante : signalez le mouvement à examiner. Une consolidation utile doit respecter les limites des documents dont vous disposez et ne pas transformer une supposition en opération confirmée."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Construire une synthèse mensuelle simple",
+      "paragraphs": [
+        "Une première synthèse peut présenter le solde de départ, les entrées, les sorties et le solde de fin pour la période choisie. Comparez ces valeurs aux relevés. Vous pouvez ensuite ventiler les mouvements par catégorie dans Excel avec les fonctions de votre version du tableur. Vérifiez que les dates sont reconnues correctement et que les montants sont numériques. Un total partiel créé par un filtre actif ne doit pas être confondu avec le total de la période entière.",
+        "Conservez un accès aux lignes qui composent chaque total. Une variation de dépenses devient plus facile à comprendre si vous pouvez retrouver les opérations concernées. Ajoutez un commentaire pour un événement exceptionnel, sans modifier la catégorie habituelle uniquement pour améliorer l’apparence de la synthèse. Lorsque vous comparez plusieurs périodes, vérifiez qu’elles ont une durée et une couverture comparables. Un relevé incomplet ou arrêté au milieu d’un mois ne se lit pas comme une période complète."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Distinguer mouvements réalisés et prévisions",
+      "paragraphs": [
+        "Le relevé décrit ce qui est passé sur le compte. Une facture émise mais non réglée ne figure pas encore comme encaissement bancaire. Un paiement prévu mais non exécuté n’apparaît pas non plus dans les opérations réalisées. Si vous préparez un suivi prévisionnel, utilisez une zone ou une feuille distincte et indiquez clairement les hypothèses. Mélanger prévisions et historique sans distinction empêche de comprendre la position réellement observée.",
+        "De même, les entrées du compte ne sont pas toutes du chiffre d’affaires et les sorties ne sont pas toutes des charges de la même nature. Ce guide propose une organisation des mouvements, pas une règle de calcul fiscal ou de résultat comptable. Pour interpréter ces notions dans votre situation, appuyez-vous sur les pièces et votre accompagnement comptable. Le tableau bancaire peut faciliter la discussion en regroupant les faits, mais il ne remplace pas les informations absentes du relevé."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Organiser le travail mensuel et les échanges",
+      "paragraphs": [
+        "Préparez une routine courte : récupérer le relevé, vérifier l’extraction, classer les nouvelles opérations puis examiner les différences avec le mois précédent. Gardez une liste des mouvements non identifiés et des justificatifs à demander. La régularité de la méthode est plus utile qu’un tableau très complexe rarement mis à jour. Notez la date de dernière vérification pour que chacun sache jusqu’où les données sont complètes.",
+        "Pour un échange avec un expert-comptable ou une personne chargée de la gestion, transmettez une version identifiée et précisez le périmètre. Séparez les opérations confirmées des classements provisoires. Un fichier avec des catégories compréhensibles, des sources accessibles et des questions explicites facilite la reprise du travail. La conversion de relevés peut aider une TPE, une association ou un indépendant à organiser ces informations, sans promettre un automatisme comptable ou une interprétation correcte de chaque libellé."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Éviter les erreurs de lecture de la trésorerie",
+      "paragraphs": [
+        "N’additionnez pas toute la colonne de solde : elle représente des positions successives, pas des mouvements à cumuler. Ne regroupez pas non plus des comptes dans des devises différentes sans méthode de conversion distincte. Si un remboursement intervient après une dépense, conservez les deux mouvements et leur contexte plutôt que d’effacer l’historique. Ces choix permettent d’expliquer ce qui s’est réellement passé sur le compte et de retrouver les valeurs du relevé.",
+        "Les fichiers utilisés contiennent des informations sensibles sur votre activité. Conservez-les dans un espace approprié et vérifiez les modalités de partage. L’aperçu du convertisseur reste enregistré dans le navigateur et le traitement passe par des services distants ; il ne remplace pas votre dossier de travail. L’accès aux conversions et à l’export suit les conditions affichées par l’application. Une fois votre base organisée, faites évoluer les catégories selon vos besoins en gardant une méthode comparable dans le temps."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Le convertisseur crée-t-il un tableau de trésorerie complet ?",
+      "answer": "Il prépare les transactions extraites du relevé. Les catégories, synthèses et prévisions décrites ici sont réalisées ensuite dans Excel. Elles doivent être définies et vérifiées selon le périmètre de votre activité."
+    },
+    {
+      "question": "Faut-il additionner la colonne de solde pour connaître les dépenses ?",
+      "answer": "Non. Le solde décrit une position à un moment donné. Pour analyser les sorties, utilisez les mouvements de débit de la période, après vérification de leur sens et de leur couverture."
+    },
+    {
+      "question": "Comment classer un virement entre deux comptes suivis ?",
+      "answer": "Identifiez-le comme transfert interne et rapprochez les deux mouvements lorsque vous disposez des deux relevés. Gardez-les dans les bases sources pour expliquer les soldes, même si vous les excluez d’une synthèse d’activité consolidée."
+    },
+    {
+      "question": "Puis-je considérer tous les crédits comme des règlements clients ?",
+      "answer": "Non. Un crédit peut correspondre à un transfert interne, un remboursement ou une autre entrée. Le libellé et les justificatifs aident à déterminer sa nature ; le sens bancaire seul ne suffit pas."
+    },
+    {
+      "question": "Comment gérer une opération dont je ne connais pas la nature ?",
+      "answer": "Placez-la dans une catégorie provisoire et conservez ses références. Ajoutez-la à la liste des points à clarifier au lieu de la classer arbitrairement. Vous pourrez corriger la catégorie une fois la pièce ou l’explication obtenue."
+    },
+    {
+      "question": "Puis-je comparer deux mois de relevés directement ?",
+      "answer": "Vérifiez d’abord les dates exactes et la couverture des documents. Contrôlez que les catégories et les comptes inclus sont comparables. Une période partielle ou un transfert interne peut expliquer une variation apparente."
+    },
+    {
+      "question": "Où inscrire les paiements prévus mais pas encore débités ?",
+      "answer": "Dans une zone ou une feuille distincte de l’historique bancaire, avec leur statut et leurs hypothèses. Le relevé montre les mouvements réalisés ; les prévisions doivent rester reconnaissables comme telles."
+    },
+    {
+      "question": "Que partager avec la personne chargée de ma comptabilité ?",
+      "answer": "Une version identifiée, la période couverte, les sources utiles et la liste des opérations ou catégories restant à vérifier. Le tableau doit distinguer les données bancaires confirmées des interprétations provisoires."
+    }
+  ],
+  "faqTitle": "Questions sur le suivi de trésorerie"
+}

@@ -1,0 +1,111 @@
+{
+  "id": "ocr",
+  "slug": "convertir-pdf-releve-bancaire-en-excel",
+  "title": "Relevé bancaire scanné en Excel : préparez votre PDF",
+  "description": "Convertissez un relevé bancaire scanné en Excel avec le parcours OCR. Préparez un PDF lisible et contrôlez les chiffres reconnus avant de télécharger.",
+  "h1": "Convertir un relevé bancaire scanné en Excel",
+  "intro": "Votre relevé est une image dans un PDF ? Le parcours OCR reconnaît le texte avant l’extraction des opérations. La netteté du document et la vérification des chiffres restent essentielles.",
+  "eyebrow": "Des archives papier aux données",
+  "variant": "guide",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Reconnaître un relevé qui nécessite l’OCR",
+      "paragraphs": [
+        "Ouvrez le PDF dans un lecteur et essayez de sélectionner une phrase du tableau. Si vous ne pouvez sélectionner que la page entière comme une image, le document est probablement un scan. L’OCR, ou reconnaissance optique de caractères, transforme cette image en texte avant que les opérations soient organisées en colonnes. Certains fichiers possèdent déjà une couche de texte issue d’un ancien OCR : leur apparence peut être nette alors que le texte reconnu contient des erreurs.",
+        "Cette distinction aide à préparer le traitement. Si vous disposez aussi du PDF d’origine téléchargé depuis la banque, privilégiez cette version pour éviter une reconnaissance d’image inutile. Si seule l’archive papier est disponible, travaillez à partir d’un scan lisible et complet. Le convertisseur prévoit un parcours pour les PDF scannés, mais aucun moteur ne peut reconstituer avec certitude un montant absent, masqué par un pli ou devenu illisible sur la source."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Préparer une image nette et complète",
+      "paragraphs": [
+        "Vérifiez les quatre bords de chaque page : les dates peuvent être coupées à gauche et les soldes à droite. Redressez les pages inclinées avec votre outil de numérisation et évitez les ombres produites par une photographie prise de biais. Un contraste suffisant facilite la lecture, sans pousser le réglage au point de faire disparaître une virgule ou un signe moins. Examinez particulièrement les lignes proches d’un pli, d’un tampon ou d’une agrafe.",
+        "Gardez une version de référence avant toute retouche. Si vous devez améliorer le scan, comparez le nouveau document à l’original pour vous assurer qu’aucune zone n’a disparu. N’effacez pas les en-têtes utiles, les numéros de page ni les soldes d’ouverture et de clôture. Ces éléments servent à vérifier la période et la continuité des mouvements. Une image plus légère n’est pas nécessairement une meilleure source si la compression rend les petits caractères indistincts."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Ce qui se passe après le dépôt",
+      "paragraphs": [
+        "L’application distingue les documents nécessitant une lecture d’image et les envoie dans le parcours OCR avant l’extraction structurée. Le texte reconnu sert ensuite à identifier les transactions. Deux difficultés peuvent donc se cumuler : un caractère mal lu sur l’image et une affectation incorrecte à une colonne. Pour comprendre une anomalie, comparez le tableau au scan, pas seulement à un texte copié depuis le PDF.",
+        "Le traitement des images fait appel à des services distants. Sa durée dépend notamment du document et de la disponibilité du service ; cette page ne promet pas un nombre de secondes par page. Attendez l’issue du traitement avant de relancer le même fichier. Si un message indique un échec, notez l’étape et suivez le diagnostic correspondant. Multiplier les envois d’une source illisible ne corrige pas les informations manquantes et peut compliquer le suivi de vos essais."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Relire les chiffres sensibles",
+      "paragraphs": [
+        "Commencez par les décimales et les caractères qui se ressemblent. Un zéro peut être confondu avec la lettre O ; un huit dégradé peut ressembler à un trois. Un point, une virgule ou un signe peu visible peut modifier fortement la valeur d’une opération. Dans un montant comme 1 250,00 €, l’espace de regroupement et la virgule ont aussi un rôle. Comparez l’ensemble du nombre, même lorsque son début semble correct.",
+        "Dans l’exemple pédagogique, le prélèvement de 84,20 € et le crédit de 1 250,00 € doivent être vérifiés séparément. Une reconnaissance de 842,00 € peut rester plausible dans un tableau mais créer un écart important. Contrôlez les montants inhabituels par rapport aux autres mouvements, puis revenez au scan pour confirmer. N’inférez jamais la valeur d’une ligne floue à partir de ce qui « paraît logique » pour le fournisseur ou le type de dépense."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Reconstituer les libellés sans inventer de données",
+      "paragraphs": [
+        "Un libellé bancaire peut occuper plusieurs lignes, avec une référence de mandat, un bénéficiaire et un identifiant de transaction. La reconnaissance peut traiter ces fragments comme plusieurs lignes indépendantes. Vérifiez que les éléments utiles restent associés au bon mouvement. Une description longue ne doit pas être raccourcie uniquement pour rendre la feuille plus élégante : une référence peut être nécessaire au rapprochement avec une facture ou un justificatif.",
+        "À l’inverse, un en-tête de page ou une mention d’agence ne doit pas devenir une opération. Repérez les lignes sans montant ou sans date et recherchez leur fonction dans le document. Certaines sont légitimes, d’autres correspondent à du contexte. Lorsque l’original reste ambigu, conservez une note de contrôle dans votre dossier de travail et cherchez une meilleure copie. L’édition de l’aperçu sert à corriger une donnée vérifiable, pas à compléter arbitrairement un document incomplet."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Scans multipages et documents mixtes",
+      "paragraphs": [
+        "Vérifiez l’ordre des pages avant le dépôt. Une archive numérisée peut comporter une page manquante, une page répétée ou une feuille retournée. Examinez la numérotation lorsqu’elle existe et comparez les périodes annoncées. Aux changements de page, un report de solde permet parfois de contrôler la continuité. Ne l’ajoutez pas au total des mouvements : il décrit une position déjà acquise, pas une nouvelle entrée ou sortie.",
+        "Un document peut mélanger des pages contenant du texte et des pages entièrement scannées. Ne supposez pas qu’une détection globale traitera parfaitement chaque partie : contrôlez une opération sur chaque type de page et la présence des mouvements attendus. En cas de résultat incomplet, préparez des documents séparés par type de source ou période dans un outil adapté, puis vérifiez les exports séparément. Le convertisseur n’est pas présenté ici comme un outil d’assemblage ou de réparation de PDF."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Protéger l’accès et conserver une preuve lisible",
+      "paragraphs": [
+        "Si le document est protégé, utilisez le mot de passe que vous êtes autorisé à employer. Le parcours de lecture peut demander ce mot de passe, mais la protection d’un scan peut aussi bloquer une étape ultérieure. Dans ce cas, obtenez une version lisible autorisée depuis la source ou votre outil PDF. Ne transmettez pas vos identifiants de banque pour résoudre le problème : le travail porte sur le fichier, pas sur une connexion au compte bancaire.",
+        "Conservez le scan original et une version identifiée du fichier corrigé. L’aperçu est sauvegardé dans le navigateur ; il ne remplace pas une organisation documentaire de votre côté. Pour des relevés professionnels, vérifiez les règles de votre organisation avant l’envoi à un service distant. Aucun délai de suppression ni lieu d’hébergement spécifique n’est garanti par cette page. L’accès à l’export peut nécessiter une connexion et reste soumis au parcours affiché dans l’application."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Décider si le résultat est utilisable",
+      "paragraphs": [
+        "Après l’OCR, vérifiez le nombre d’opérations, les dates extrêmes et les montants totaux. Comparez le solde initial, les crédits, les débits et le solde final sur une même période. Un écart inexpliqué impose de revenir au document. Le fait que le fichier Excel s’ouvre correctement ne permet pas de conclure que toutes les informations ont été reconnues. Les erreurs d’image peuvent produire des valeurs bien formées mais fausses.",
+        "Si les zones essentielles sont illisibles, cherchez une nouvelle copie auprès de la source plutôt que de corriger par supposition. Pour un relevé ancien de Crédit Mutuel, Caisse d’Épargne ou CCF, par exemple, le logo et l’ancienneté du document ne suffisent pas à prévoir le résultat. La mise en page et la qualité du scan sont déterminantes. Une fois la lecture validée, poursuivez dans Excel ou CSV selon l’usage prévu, avec les contrôles propres au format choisi."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Comment savoir si mon relevé PDF est un scan ?",
+      "answer": "Essayez de sélectionner du texte dans un lecteur PDF. Si seule l’image de la page est accessible, une lecture OCR sera probablement nécessaire. Une ancienne couche OCR peut toutefois exister et contenir ses propres erreurs."
+    },
+    {
+      "question": "Puis-je utiliser une photo de relevé papier ?",
+      "answer": "L’application accepte un parcours image, mais une photo inclinée, ombragée ou coupée peut être difficile à lire. Préférez un scan complet et net ou le PDF original de la banque lorsque vous pouvez l’obtenir."
+    },
+    {
+      "question": "L’OCR corrige-t-il automatiquement une page floue ?",
+      "answer": "Il cherche à reconnaître les caractères visibles ; il ne garantit pas la restitution de données illisibles. Si une somme ou une date ne peut être lue sur la source, procurez-vous une meilleure copie."
+    },
+    {
+      "question": "Quels montants faut-il contrôler en priorité après OCR ?",
+      "answer": "Relisez les décimales, les signes et les chiffres ambigus. Vérifiez aussi les valeurs inhabituellement élevées ou faibles et les colonnes débit/crédit. Les totaux et soldes permettent de détecter des écarts supplémentaires."
+    },
+    {
+      "question": "Pourquoi des morceaux de libellé apparaissent-ils séparément ?",
+      "answer": "La mise en page du scan peut faire lire plusieurs fragments comme des lignes indépendantes. Comparez la description complète au document et rattachez uniquement les informations dont l’association est clairement vérifiable."
+    },
+    {
+      "question": "Un PDF contenant du texte et des scans peut-il poser problème ?",
+      "answer": "Oui, la qualité de lecture peut varier d’une page à l’autre. Vérifiez chaque type de page. Si des opérations manquent, essayez des documents séparés par type de source ou demandez une version plus homogène."
+    },
+    {
+      "question": "Faut-il compresser un scan avant de le convertir ?",
+      "answer": "Respectez les limites affichées, mais évitez une compression qui dégrade les chiffres. Vérifiez la lisibilité après toute réduction de taille. Pour un fichier très long, des lots cohérents peuvent être plus faciles à contrôler."
+    },
+    {
+      "question": "Que faire si le résultat OCR reste incomplet ?",
+      "answer": "Identifiez les pages concernées et cherchez une meilleure source. Ne complétez pas les montants par estimation. Vous pouvez reprendre la conversion avec un document amélioré puis comparer les opérations au scan de référence."
+    }
+  ],
+  "faqTitle": "Questions sur les relevés scannés"
+}

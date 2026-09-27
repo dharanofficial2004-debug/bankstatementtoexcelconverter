@@ -1,0 +1,111 @@
+{
+  "id": "excel",
+  "slug": "convertir-releve-bancaire-en-excel",
+  "title": "Relevé bancaire PDF en Excel : vérifiez avant export",
+  "description": "Convertissez un relevé bancaire PDF en Excel, vérifiez dates, libellés et montants dans un aperçu modifiable, puis exportez les opérations pour votre suivi.",
+  "h1": "Convertir un relevé bancaire PDF en Excel",
+  "intro": "Transformez les opérations de votre relevé PDF en tableau Excel modifiable. Examinez les données dans l’aperçu, corrigez les écarts et exportez votre fichier XLSX.",
+  "eyebrow": "Du PDF au fichier Excel",
+  "variant": "product",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Préparer le relevé à convertir",
+      "paragraphs": [
+        "Récupérez de préférence le PDF proposé par votre espace bancaire. Ce document conserve généralement une meilleure qualité que des captures d’écran assemblées. Ouvrez-le avant de le déposer : vérifiez le compte concerné, la période et la présence de toutes les pages. Un relevé destiné à être analysé doit inclure les opérations de la période et les éléments nécessaires à leur contrôle, notamment les soldes lorsqu’ils figurent sur le document.",
+        "Évitez de mélanger plusieurs comptes dans un premier essai. Une conversion portant sur un document clairement identifié facilite la comparaison entre le PDF et le tableau. Si le texte peut être sélectionné, le fichier possède probablement une couche de texte exploitable. S’il s’agit d’une image, le parcours de reconnaissance optique de caractères, ou OCR, peut être utilisé. Un document flou ou tronqué doit être remplacé par une meilleure source lorsque cela est possible."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Passer du PDF à l’aperçu modifiable",
+      "paragraphs": [
+        "Ouvrez le convertisseur, sélectionnez votre document et suivez les indications affichées. Le traitement lit le contenu du relevé, puis cherche à organiser les opérations dans des colonnes. Vous obtenez un aperçu dans lequel vous pouvez examiner et modifier les cellules. Le bouton d’accès situé en haut de cette page mène à l’application existante ; le tableau présenté ici est uniquement un exemple pédagogique, avec des données fictives.",
+        "Commencez par quelques opérations faciles à reconnaître : un prélèvement récurrent, un virement reçu et un paiement par carte. Comparez leur date, leur libellé et leur montant avec le PDF. Passez ensuite aux lignes moins régulières, par exemple un remboursement ou une description répartie sur deux lignes. Cette lecture permet de repérer une colonne décalée avant de corriger de nombreuses cellules. L’aperçu est une étape de travail, pas une certification automatique du résultat."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Comprendre les colonnes du fichier Excel",
+      "paragraphs": [
+        "Le tableau de transactions contient notamment la date, la description de l’opération, le débit, le crédit et le solde disponible dans les données extraites. L’export actuel utilise des intitulés anglais pour certaines colonnes : Description correspond au libellé, Debit au débit, Credit au crédit et Balance au solde. Vous pouvez renommer ces en-têtes dans votre copie de travail Excel. Une numérotation des lignes accompagne également l’export.",
+        "Un débit représente une sortie sur le relevé bancaire et un crédit une entrée. Le solde est une position à une date donnée : il ne faut donc pas additionner toute la colonne pour calculer les dépenses. Un champ absent du PDF peut rester vide. Le numéro de chèque ou la catégorie peuvent apparaître si ces données sont présentes dans les transactions. Ne supposez pas qu’une colonne de devise détaillée ou une ventilation comptable sera systématiquement produite."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "PDF texte, scan et documents longs",
+      "paragraphs": [
+        "Un PDF texte évite l’étape de lecture d’une image, mais sa mise en page peut tout de même compliquer l’extraction. Des colonnes très rapprochées, des retours à la ligne ou des en-têtes répétés peuvent créer des ambiguïtés. Pour un scan, contrôlez en plus les caractères similaires, les virgules décimales et les signes. La qualité de la source influence directement ce qu’il est possible de récupérer et de vérifier.",
+        "Pour un relevé de plusieurs pages, comparez les dernières opérations d’une page et les premières de la suivante. Un report de solde n’est pas une transaction supplémentaire. Vérifiez aussi qu’un intitulé de colonne ou un pied de page n’a pas été interprété comme un mouvement. Si plusieurs périodes sont réunies dans un document, identifiez leurs limites avant de regrouper les données. Les guides consacrés aux scans et aux relevés multipages détaillent ces contrôles particuliers."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Un exemple simple de vérification",
+      "paragraphs": [
+        "Dans l’exemple de cette page, le prélèvement de 84,20 € fait passer le solde de 2 499,50 € à 2 415,30 €. Le virement reçu de 1 250,00 € porte ensuite le solde à 3 665,30 €. Ces valeurs illustrent la relation entre les mouvements et le solde. Elles ne décrivent aucun compte réel et ne constituent pas une promesse sur la présentation exacte de chaque fichier exporté.",
+        "Pour reproduire ce contrôle sur votre document, partez d’un solde explicitement indiqué dans le PDF. Ajoutez les crédits et retranchez les débits sur la même période. Comparez le résultat au solde de clôture. En cas d’écart, recherchez d’abord une ligne manquante, un mouvement compté deux fois ou une inversion débit/crédit. Ne modifiez jamais un montant uniquement pour faire coïncider deux totaux : la source doit justifier chaque correction."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Utiliser le résultat avec votre comptabilité",
+      "paragraphs": [
+        "Un fichier Excel permet de filtrer les opérations, de retrouver un fournisseur ou de préparer le travail avec un expert-comptable. Conservez une copie de l’export initial, puis effectuez vos classements et annotations dans une seconde version. Associez le tableau au relevé PDF d’origine afin que la personne qui le reçoit puisse retrouver les pièces et comprendre les corrections. Un nom de fichier associant compte, période et version limite les confusions.",
+        "Le convertisseur prépare des données bancaires ; l’affectation aux comptes comptables, la justification des dépenses et la validation des écritures demandent un travail distinct. Une opération bancaire ne suffit pas à expliquer sa nature. Par exemple, un virement reçu peut correspondre à un règlement client, à un transfert interne ou à une autre entrée. Gardez les libellés complets pour faciliter ces recherches et évitez de remplacer les données sources par des conclusions non vérifiées."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Choisir XLSX ou CSV au bon moment",
+      "paragraphs": [
+        "Choisissez XLSX lorsque vous souhaitez ouvrir un classeur et travailler sur les opérations dans Excel. L’export peut contenir les feuilles présentes dans l’espace de travail. Vérifiez les noms des feuilles et leur contenu avant de transmettre le fichier. Dans Excel, assurez-vous ensuite que les montants sont bien reconnus comme des nombres et que les dates se trient chronologiquement. Une présentation correcte à l’écran ne prouve pas toujours que les types de données sont adaptés.",
+        "Choisissez CSV si un outil de destination demande un fichier de texte structuré. L’export CSV porte sur les transactions de la feuille active dans l’aperçu actuel. Son séparateur est la virgule ; le guide CSV explique les réglages d’import, notamment pour les accents et les paramètres régionaux français. La compatibilité avec un logiciel comptable dépend de ses colonnes attendues. Vérifiez son modèle d’import avant de réorganiser votre fichier."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Banques françaises, accès et traitement des fichiers",
+      "paragraphs": [
+        "Les relevés de BNP Paribas, Crédit Agricole, Société Générale ou La Banque Postale peuvent présenter différemment les dates, les libellés et les montants. Les formats varient aussi entre comptes particuliers et professionnels, périodes et versions de documents. Ces noms servent de repères : le service ne revendique ici aucune connexion directe à ces banques ni la prise en charge garantie de tous leurs relevés. L’examen de votre propre PDF reste le meilleur point de départ.",
+        "L’application prévoit une première utilisation selon les conditions affichées et des usages soumis à l’offre disponible. Une connexion peut être demandée pour exporter. Le traitement utilise des services distants et l’aperçu est conservé dans le stockage du navigateur pour pouvoir être retrouvé. N’en déduisez pas une absence de stockage ou une suppression immédiate. Pour un document professionnel, vérifiez que son envoi est autorisé par votre organisation et utilisez un poste adapté aux informations traitées."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Comment convertir un relevé bancaire PDF en fichier XLSX ?",
+      "answer": "Ouvrez le convertisseur, déposez le PDF et examinez les opérations extraites. Corrigez les erreurs constatées dans l’aperçu, puis choisissez XLSX. Une connexion peut être demandée au moment de l’export."
+    },
+    {
+      "question": "Les colonnes débit et crédit sont-elles séparées ?",
+      "answer": "Le modèle de transactions et l’export prévoient deux colonnes distinctes. Vérifiez leur affectation sur votre relevé, en particulier pour les remboursements et les documents qui utilisent un seul montant signé."
+    },
+    {
+      "question": "Faut-il vérifier chaque opération avant utilisation ?",
+      "answer": "Adaptez le contrôle à votre besoin, mais ne vous contentez pas de l’apparence du tableau. Comparez les totaux, les soldes et les lignes présentant des anomalies. Un usage comptable nécessite une validation appropriée."
+    },
+    {
+      "question": "Puis-je convertir un relevé BNP Paribas en Excel ?",
+      "answer": "Vous pouvez essayer votre PDF dans le parcours existant et vérifier l’aperçu. Le nom de la banque ne garantit pas le résultat : le type de relevé, sa lisibilité et sa mise en page comptent également."
+    },
+    {
+      "question": "Un relevé Crédit Agricole produit-il les mêmes colonnes ?",
+      "answer": "Le fichier de sortie utilise le même modèle de données, mais les informations récupérées dépendent du document. Comparez notamment les dates affichées et les descriptions sur plusieurs lignes avec le PDF d’origine."
+    },
+    {
+      "question": "La conversion remplace-t-elle le relevé original ?",
+      "answer": "Conservez le PDF comme document source. Le tableau est une copie de travail destinée au tri, au contrôle et à l’analyse ; des corrections ou des transformations peuvent le faire différer de l’original."
+    },
+    {
+      "question": "Puis-je renommer les colonnes dans Excel ?",
+      "answer": "Oui, dans votre copie du classeur. Les en-têtes exportés comprennent actuellement des termes anglais. Gardez une correspondance claire avec le document source, surtout si vous préparez un import dans un autre outil."
+    },
+    {
+      "question": "L’export Excel conserve-t-il toutes les feuilles ?",
+      "answer": "Le parcours d’export XLSX de l’aperçu transmet les feuilles présentes dans l’espace de travail. Ouvrez le classeur téléchargé pour vérifier qu’elles correspondent aux comptes et aux périodes que vous souhaitez utiliser."
+    }
+  ],
+  "faqTitle": "Questions sur la conversion en Excel"
+}

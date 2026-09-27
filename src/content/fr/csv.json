@@ -1,0 +1,111 @@
+{
+  "id": "csv",
+  "slug": "releve-bancaire-csv",
+  "title": "Relevé bancaire PDF en CSV : préparez votre import",
+  "description": "Transformez un relevé bancaire PDF en CSV et préparez son import : séparateur, accents, dates et montants. Vérifiez les opérations avant le téléchargement.",
+  "h1": "Convertir un relevé bancaire PDF en CSV",
+  "intro": "Récupérez les opérations de votre PDF dans un fichier CSV. Vérifiez le tableau, puis adaptez l’import aux colonnes et aux paramètres attendus par votre logiciel.",
+  "eyebrow": "Un fichier pour vos imports",
+  "variant": "product",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Ce que contient un relevé bancaire au format CSV",
+      "paragraphs": [
+        "Un fichier CSV est un fichier texte qui représente un tableau : chaque ligne correspond à un enregistrement et les champs sont séparés par un caractère défini. Il convient pour transmettre des opérations à un autre outil, à condition que celui-ci sache interpréter sa structure. Le CSV ne conserve pas la présentation d’un relevé PDF, ses logos ou ses encadrés. Il sert à déplacer des données, pas à reproduire le document bancaire à l’identique.",
+        "L’export du convertisseur comprend la numérotation, la date, la description, le débit, le crédit et le solde. Des colonnes supplémentaires de numéro de chèque ou de catégorie peuvent être présentes lorsque ces informations existent dans les transactions. Les en-têtes sont actuellement en anglais. Pour les importer dans un outil français, préparez une correspondance entre chaque champ reçu et son équivalent attendu : libellé, débit, crédit, solde ou référence selon le modèle demandé."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Convertir le PDF puis choisir la bonne feuille",
+      "paragraphs": [
+        "Commencez par déposer votre relevé dans l’application. Examinez les données de l’aperçu avant de choisir CSV : une virgule incorrecte, une date mal interprétée ou une transaction répétée restera une erreur même dans un fichier parfaitement délimité. La conversion du document et la configuration de l’import sont deux étapes différentes. La première organise les opérations du PDF ; la seconde explique au logiciel de destination comment les lire.",
+        "Dans le parcours actuel, l’export CSV reprend les transactions de la feuille active. Si votre espace contient plusieurs feuilles, sélectionnez celle dont vous avez besoin et vérifiez son contenu avant le téléchargement. Préparez ensuite un fichier clairement nommé pour chaque compte ou période. Cette méthode évite de charger le mauvais ensemble d’opérations. Pour conserver plusieurs feuilles dans un seul classeur, l’export XLSX est généralement un point de départ plus pratique."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Séparateur virgule et paramètres français",
+      "paragraphs": [
+        "Le fichier généré utilise la virgule comme séparateur de colonnes. Il ne faut pas supposer qu’il sera automatiquement reconnu sur un ordinateur configuré en français, où certains logiciels attendent un point-virgule. Si toutes les données apparaissent dans une seule colonne, ouvrez l’assistant d’import du tableur et choisissez explicitement la virgule comme délimiteur. Vérifiez l’aperçu d’import avant de valider le chargement dans la feuille de destination.",
+        "Le séparateur de colonnes et le séparateur décimal remplissent des rôles différents. Le premier délimite les champs ; le second distingue les unités des décimales à l’intérieur d’un nombre. Les valeurs extraites doivent être contrôlées avant leur interprétation numérique. Remplacer toutes les virgules par des points-virgules avec une recherche globale peut abîmer un libellé ou un montant. Utilisez un import structuré, puis réexportez selon les exigences du logiciel cible si nécessaire."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Accents, guillemets et descriptions longues",
+      "paragraphs": [
+        "L’export utilise UTF-8 avec un marqueur initial destiné à faciliter son ouverture dans Excel. Si les caractères accentués semblent altérés, vérifiez le choix d’encodage dans l’assistant d’import. Un libellé tel que « PRÉLÈVEMENT ÉNERGIE » doit rester lisible. Comparez quelques mots accentués avant d’importer un mois entier. Réenregistrer un fichier mal interprété peut rendre la correction plus difficile ; gardez toujours une copie du téléchargement original.",
+        "Une description peut contenir une virgule, des guillemets ou un retour à la ligne. Ces caractères nécessitent une gestion adaptée des champs CSV, prévue par l’exporteur. Évitez donc de compter les colonnes en découpant naïvement chaque ligne à chaque virgule. Un outil d’import CSV tient compte des champs entre guillemets. Si une description semble déplacée dans la colonne suivante, examinez les options d’import avant de conclure que la conversion du PDF est incorrecte."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Préparer les dates et les montants",
+      "paragraphs": [
+        "Une date telle que 03/04/2026 peut être comprise comme le 3 avril ou le 4 mars selon les réglages régionaux. Comparez des opérations dont le jour dépasse douze : elles aident à repérer une interprétation inversée. Fixez le format de lecture des dates avant de calculer des périodes ou de rapprocher des mouvements. Le CSV transporte des valeurs textuelles et ne garantit pas, à lui seul, le type choisi par le logiciel qui les ouvre.",
+        "Les colonnes débit et crédit séparent les sorties et les entrées du compte. Certains logiciels demandent au contraire un montant signé dans une seule colonne. Cette transformation éventuelle se prépare dans une copie, selon les consignes du destinataire. Contrôlez les remboursements et les annulations avant d’appliquer une règle à toutes les lignes. Un champ vide ne signifie pas forcément zéro : il peut signaler une information non présente ou non récupérée dans le relevé."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Adapter le fichier à un logiciel comptable",
+      "paragraphs": [
+        "Demandez le modèle d’import exact du logiciel ou du cabinet destinataire. Les noms de colonnes, leur ordre, les formats de date et les règles de signe peuvent différer. La présence d’un bouton « importer un CSV » ne signifie pas que n’importe quel fichier sera accepté tel quel. Commencez sur une copie ou dans une zone de test, lorsque votre outil propose cette possibilité, puis examinez les premières lignes importées.",
+        "Cette page ne revendique pas d’intégration directe avec Sage, Cegid, Pennylane ou un autre logiciel comptable. Ces noms désignent des outils de destination possibles dont les exigences doivent être vérifiées séparément. L’export bancaire n’est pas automatiquement un journal comptable prêt à valider. Il faut notamment préserver les références utiles et distinguer les opérations déjà importées de celles qui ne le sont pas encore, afin d’éviter de créer des doublons dans le dossier."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Tester l’import sans perdre la traçabilité",
+      "paragraphs": [
+        "Avant un chargement complet, vérifiez un petit ensemble représentatif : un débit, un crédit, un libellé accentué, une référence longue et une opération située en fin de période. Comparez le résultat dans l’outil de destination au CSV et au PDF. Cette triple comparaison aide à déterminer si une anomalie vient de l’extraction, du fichier intermédiaire ou des paramètres d’import. Corrigez l’étape responsable plutôt que de multiplier des ajustements non documentés.",
+        "Conservez le CSV initial, la version adaptée et le relevé source dans un dossier clairement organisé. Notez la période, le compte et la date d’import. Si vous devez recommencer, vérifiez d’abord ce qui a réellement été enregistré dans le logiciel cible. Deux fichiers de noms différents peuvent contenir les mêmes mouvements. Le suivi des versions et des lots traités est donc aussi utile que le contrôle des montants pour garder un historique compréhensible."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Choisir un format et connaître les limites",
+      "paragraphs": [
+        "Le CSV est adapté à un échange de données simple et à un import réglable. XLSX est préférable lorsque vous voulez travailler directement dans un classeur avec plusieurs feuilles. Aucun de ces formats ne dispense de vérifier les opérations. Les relevés de banques françaises, notamment CIC, LCL ou Banque Populaire, peuvent répartir différemment les informations entre leurs colonnes. Le format de sortie reste structuré, mais la qualité de l’extraction dépend du document envoyé.",
+        "L’accès à la conversion dépend des conditions affichées dans l’application, et une connexion peut être requise pour exporter. L’aperçu est enregistré dans le navigateur et le traitement fait appel à des services distants. Le CSV téléchargé contient ensuite vos opérations en texte lisible : choisissez un emplacement de travail approprié et un moyen de transmission adapté. Aucune garantie de suppression immédiate ou de compatibilité universelle ne doit être déduite du simple choix du format CSV."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Quel séparateur utilise le CSV téléchargé ?",
+      "answer": "L’export actuel utilise une virgule entre les champs. Si votre logiciel attend un point-virgule, configurez d’abord un import correct puis créez une copie adaptée au modèle de destination."
+    },
+    {
+      "question": "Pourquoi mon CSV s’ouvre-t-il dans une seule colonne ?",
+      "answer": "Le logiciel n’a probablement pas reconnu le délimiteur. Utilisez son assistant d’import de texte ou de CSV et sélectionnez la virgule. Contrôlez le découpage dans l’aperçu avant de charger les données."
+    },
+    {
+      "question": "Les accents français sont-ils conservés dans le CSV ?",
+      "answer": "L’export est encodé en UTF-8 avec un marqueur initial. Un mauvais réglage d’ouverture peut toutefois afficher des caractères incorrects. Sélectionnez UTF-8 à l’import et vérifiez quelques descriptions accentuées."
+    },
+    {
+      "question": "Le CSV exporte-t-il toutes les feuilles ensemble ?",
+      "answer": "Dans l’aperçu actuel, il exporte la feuille active. Vérifiez la feuille sélectionnée avant chaque téléchargement. Utilisez XLSX lorsque vous avez besoin de conserver plusieurs feuilles dans un classeur."
+    },
+    {
+      "question": "Puis-je importer directement le CSV dans mon logiciel comptable ?",
+      "answer": "Cela dépend de son modèle d’import. Comparez les colonnes attendues, les dates et les signes aux données exportées. Une adaptation peut être nécessaire ; aucune intégration directe n’est garantie ici."
+    },
+    {
+      "question": "Comment convertir débit et crédit en un montant signé ?",
+      "answer": "Vérifiez d’abord la convention attendue par le destinataire. Pour une convention où les entrées sont positives, le calcul habituel est crédit moins débit. Faites cette transformation dans une copie et contrôlez les remboursements."
+    },
+    {
+      "question": "Pourquoi une description entre guillemets est-elle normale ?",
+      "answer": "Les guillemets protègent un champ contenant notamment une virgule ou un retour à la ligne. Un lecteur CSV adapté les interprète comme des limites de champ ; ils ne signalent pas une transaction erronée."
+    },
+    {
+      "question": "Dois-je garder le PDF après avoir obtenu le CSV ?",
+      "answer": "Oui, gardez le document source et l’export initial. Le fichier adapté pour un import peut avoir subi des changements de colonnes ou de formats. Le PDF permet de justifier les valeurs et de retrouver leur contexte."
+    }
+  ],
+  "faqTitle": "Questions sur les fichiers CSV"
+}

@@ -1,18 +1,7 @@
-import { Metadata } from "next";
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  alternates: {
-    languages: {
-      "fr": "https://bankstatementtoexcelconverter.com/fr",
-      "en": "https://bankstatementtoexcelconverter.com",
-    },
-  },
-};
-
-export default function FrenchLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <>{children}</>;
+// A server-rendered language boundary covers all French content without making
+// the shared root layout dynamic or changing the application routes.
+export default function FrenchLayout({ children }: { children: ReactNode }) {
+  return <div lang="fr">{children}</div>;
 }

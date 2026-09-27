@@ -1,0 +1,789 @@
+{
+  "checkedAt": "2026-09-27T15:41:41.186Z",
+  "base": "http://localhost:3000",
+  "records": [
+    {
+      "slug": "",
+      "url": "/fr",
+      "purpose": "Accueil et conversion générique",
+      "oldTitle": "Convertisseur Relevé Bancaire Excel Gratuit — Aperçu Éditable En Direct | StatementToExcel",
+      "oldDescription": "Convertissez votre relevé bancaire PDF en Excel instantanément. Aperçu en direct modifiable avant téléchargement. Fonctionne avec BNP Paribas, Crédit Agricole, Société Générale et 100+ banques. Gratuit — sans inscription.",
+      "oldH1": "Transformez votre relevé bancaire PDF en fichier Excel propre",
+      "primary": "StatementToExcel en français",
+      "secondary": "outil de relevés bancaires; guides de conversion",
+      "longtail": "comment utiliser StatementToExcel en français",
+      "intent": "Navigation de marque et orientation",
+      "user": "Tous utilisateurs",
+      "action": "REPOSITION",
+      "reason": "Marque et point d’entrée français",
+      "links": [
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv"
+      ],
+      "oldSource": "src/app/fr/page.tsx",
+      "newTitle": "StatementToExcel en français : vos relevés exploitables",
+      "titleCharacters": 55,
+      "newDescription": "Retrouvez les outils StatementToExcel pour préparer vos relevés PDF, vérifier les opérations et choisir un export Excel ou CSV adapté à votre travail.",
+      "descriptionCharacters": 150,
+      "h1": "Vos relevés bancaires, prêts à être exploités",
+      "wordCount": 2077,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/releve-bancaire-vers-excel",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "convertir-releve-bancaire-en-excel",
+      "url": "/fr/convertir-releve-bancaire-en-excel",
+      "purpose": "Conversion générale Excel",
+      "oldTitle": "Convertir Relevé Bancaire en Excel — Outil Gratuit En Ligne | StatementToExcel",
+      "oldDescription": "Comment convertir votre relevé bancaire en Excel gratuitement. Outil en ligne avec aperçu éditable avant export.",
+      "oldH1": "Convertir Relevé Bancaire en Excel",
+      "primary": "convertir relevé bancaire PDF en Excel",
+      "secondary": "relevé bancaire PDF vers Excel; transformer relevé bancaire en Excel",
+      "longtail": "comment convertir un relevé bancaire PDF en fichier Excel",
+      "intent": "Transactionnelle : convertir un PDF en XLSX",
+      "user": "Indépendants, particuliers, comptables",
+      "action": "KEEP",
+      "reason": "Page principale du groupe Excel",
+      "links": [
+        "/fr/releve-bancaire-csv",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/extracteur-releve-bancaire"
+      ],
+      "oldSource": "src/app/fr/convertir-releve-bancaire-en-excel/page.tsx",
+      "newTitle": "Relevé bancaire PDF en Excel : vérifiez avant export",
+      "titleCharacters": 52,
+      "newDescription": "Convertissez un relevé bancaire PDF en Excel, vérifiez dates, libellés et montants dans un aperçu modifiable, puis exportez les opérations pour votre suivi.",
+      "descriptionCharacters": 156,
+      "h1": "Convertir un relevé bancaire PDF en Excel",
+      "wordCount": 1962,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/convertir-releve-bancaire-en-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "convertisseur-releve-bancaire",
+      "url": "/fr/convertisseur-releve-bancaire",
+      "purpose": "Outil générique",
+      "oldTitle": "Convertisseur Relevé Bancaire — PDF vers Excel et CSV Gratuit | StatementToExcel",
+      "oldDescription": "Le meilleur convertisseur de relevés bancaires gratuit. Convertissez en Excel ou CSV avec aperçu éditable. Sans inscription requise.",
+      "oldH1": "Convertisseur Relevé Bancaire",
+      "primary": "choisir un convertisseur de relevé bancaire",
+      "secondary": "convertisseur relevé bancaire; logiciel extraction bancaire",
+      "longtail": "comment choisir un outil pour convertir des relevés bancaires",
+      "intent": "Comparaison et évaluation du produit",
+      "user": "Responsables administratifs, cabinets",
+      "action": "REPOSITION",
+      "reason": "Choix de l’outil, critères et limites",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "oldSource": "src/app/fr/convertisseur-releve-bancaire/page.tsx",
+      "newTitle": "Convertisseur de relevé bancaire : bien choisir son outil",
+      "titleCharacters": 57,
+      "newDescription": "Comparez les critères utiles d’un convertisseur de relevé bancaire : aperçu, formats, OCR et contrôles. Choisissez un outil adapté à vos documents et usages.",
+      "descriptionCharacters": 157,
+      "h1": "Choisir un convertisseur de relevé bancaire",
+      "wordCount": 2052,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/convertisseur-releve-bancaire",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "releve-bancaire-csv",
+      "url": "/fr/releve-bancaire-csv",
+      "purpose": "Conversion CSV",
+      "oldTitle": "Relevé Bancaire CSV — Convertisseur PDF vers CSV Gratuit | StatementToExcel",
+      "oldDescription": "Convertissez vos relevés bancaires PDF en fichier CSV. Parfait pour Excel, QuickBooks, et logiciels comptables. Gratuit.",
+      "oldH1": "Relevé Bancaire CSV",
+      "primary": "convertir relevé bancaire PDF en CSV",
+      "secondary": "relevé bancaire CSV; export opérations CSV",
+      "longtail": "importer un relevé bancaire CSV avec le bon séparateur",
+      "intent": "Transactionnelle : obtenir et importer un CSV",
+      "user": "Comptables, utilisateurs de logiciels de gestion",
+      "action": "KEEP",
+      "reason": "Propriétaire du format CSV",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/extracteur-releve-bancaire"
+      ],
+      "oldSource": "src/app/fr/releve-bancaire-csv/page.tsx",
+      "newTitle": "Relevé bancaire PDF en CSV : préparez votre import",
+      "titleCharacters": 50,
+      "newDescription": "Transformez un relevé bancaire PDF en CSV et préparez son import : séparateur, accents, dates et montants. Vérifiez les opérations avant le téléchargement.",
+      "descriptionCharacters": 155,
+      "h1": "Convertir un relevé bancaire PDF en CSV",
+      "wordCount": 2015,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/releve-bancaire-csv",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "convertir-pdf-releve-bancaire-en-excel",
+      "url": "/fr/convertir-pdf-releve-bancaire-en-excel",
+      "purpose": "Variante de conversion Excel",
+      "oldTitle": "Convertir PDF Relevé Bancaire en Excel — Rapide et Précis | StatementToExcel",
+      "oldDescription": "Convertissez vos PDF de relevés bancaires en fichiers Excel propres. Détection automatique du format bancaire. Gratuit.",
+      "oldH1": "Convertir PDF Relevé Bancaire en Excel",
+      "primary": "convertir relevé bancaire scanné en Excel",
+      "secondary": "OCR relevé bancaire; PDF bancaire scanné",
+      "longtail": "extraire les opérations d’un relevé bancaire numérisé",
+      "intent": "Résoudre la conversion de scans par OCR",
+      "user": "Utilisateurs d’archives papier",
+      "action": "REPOSITION",
+      "reason": "Guide OCR, distinct du PDF texte",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/fr/releve-bancaire-pdf-excel"
+      ],
+      "oldSource": "src/app/fr/convertir-pdf-releve-bancaire-en-excel/page.tsx",
+      "newTitle": "Relevé bancaire scanné en Excel : préparez votre PDF",
+      "titleCharacters": 52,
+      "newDescription": "Convertissez un relevé bancaire scanné en Excel avec le parcours OCR. Préparez un PDF lisible et contrôlez les chiffres reconnus avant de télécharger.",
+      "descriptionCharacters": 150,
+      "h1": "Convertir un relevé bancaire scanné en Excel",
+      "wordCount": 2010,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/convertir-pdf-releve-bancaire-en-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "extracteur-releve-bancaire",
+      "url": "/fr/extracteur-releve-bancaire",
+      "purpose": "Extraction générique",
+      "oldTitle": "Extracteur Relevé Bancaire — Extrayez vos Transactions en Excel | StatementToExcel",
+      "oldDescription": "Extrayez automatiquement toutes vos transactions bancaires depuis un PDF vers Excel. Précis, rapide et gratuit.",
+      "oldH1": "Extracteur Relevé Bancaire",
+      "primary": "extraire les données d’un relevé bancaire",
+      "secondary": "extraction opérations bancaires; colonnes relevé bancaire",
+      "longtail": "extraire dates libellés débits crédits et soldes d’un PDF",
+      "intent": "Comprendre les données et contrôler leur extraction",
+      "user": "Comptables, analystes",
+      "action": "REPOSITION",
+      "reason": "Dictionnaire des données, structure et traçabilité",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr/releve-bancaire-pdf-excel"
+      ],
+      "oldSource": "src/app/fr/extracteur-releve-bancaire/page.tsx",
+      "newTitle": "Extraire un relevé bancaire : comprendre les colonnes",
+      "titleCharacters": 53,
+      "newDescription": "Extrayez les données d’un relevé bancaire PDF et comprenez chaque colonne : date, libellé, débit, crédit et solde. Repérez les informations à contrôler.",
+      "descriptionCharacters": 152,
+      "h1": "Extraire les données d’un relevé bancaire",
+      "wordCount": 2066,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/extracteur-releve-bancaire",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "convertisseur-releve-bancaire-excel",
+      "url": "/fr/convertisseur-releve-bancaire-excel",
+      "purpose": "Conversion générale Excel (page la plus développée)",
+      "oldTitle": "Convertir Relevé Bancaire PDF en Excel — Outil Gratuit en Ligne | StatementToExcel",
+      "oldDescription": "Convertissez votre relevé bancaire PDF en Excel ou CSV en quelques secondes. Sans inscription, sans installation. Compatible BNP Paribas, Société Générale, Crédit Agricole et 100+ autres banques.",
+      "oldH1": "Convertir relevé bancaire PDF en Excel en ligne",
+      "primary": "importer un relevé bancaire dans Excel",
+      "secondary": "ouvrir relevé bancaire Excel; dates et montants Excel",
+      "longtail": "corriger les dates et nombres d’un relevé importé dans Excel",
+      "intent": "Utiliser un export existant dans Excel",
+      "user": "Utilisateurs de tableur",
+      "action": "REPOSITION",
+      "reason": "Guide après conversion ; principal candidat alternatif si GSC confirme son autorité",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr/releve-bancaire-vers-excel"
+      ],
+      "oldSource": "src/app/fr/convertisseur-releve-bancaire-excel/page.tsx",
+      "newTitle": "Importer un relevé bancaire dans Excel sans décalages",
+      "titleCharacters": 53,
+      "newDescription": "Ouvrez votre relevé converti dans Excel et vérifiez les colonnes. Retrouvez les réglages utiles pour les dates, les nombres, les accents et les filtres.",
+      "descriptionCharacters": 152,
+      "h1": "Importer un relevé bancaire dans Excel",
+      "wordCount": 2044,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/convertisseur-releve-bancaire-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "pdf-releve-bancaire-vers-excel",
+      "url": "/fr/pdf-releve-bancaire-vers-excel",
+      "purpose": "Variante de conversion Excel",
+      "oldTitle": "PDF Relevé Bancaire vers Excel — Convertisseur Gratuit | StatementToExcel",
+      "oldDescription": "Convertisseur PDF relevé bancaire vers Excel. Aperçu en direct, édition possible, export en un clic.",
+      "oldH1": "PDF Relevé Bancaire vers Excel",
+      "primary": "convertir un relevé bancaire de plusieurs pages",
+      "secondary": "relevé PDF multipage; pages manquantes relevé",
+      "longtail": "regrouper les opérations d’un relevé bancaire multipage dans Excel",
+      "intent": "Préparer et contrôler un document multipage",
+      "user": "Entreprises, gestionnaires d’archives",
+      "action": "REPOSITION",
+      "reason": "Pagination, continuité, reports et doublons",
+      "links": [
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-pdf-excel"
+      ],
+      "oldSource": "src/app/fr/pdf-releve-bancaire-vers-excel/page.tsx",
+      "newTitle": "Relevé bancaire multipage : convertir sans perdre le fil",
+      "titleCharacters": 56,
+      "newDescription": "Préparez un relevé bancaire de plusieurs pages pour Excel. Contrôlez la pagination, les reports, les lignes de transition et les doublons après extraction.",
+      "descriptionCharacters": 155,
+      "h1": "Convertir un relevé bancaire de plusieurs pages",
+      "wordCount": 2027,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/pdf-releve-bancaire-vers-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "releve-bancaire-pdf-excel",
+      "url": "/fr/releve-bancaire-pdf-excel",
+      "purpose": "Variante de conversion Excel",
+      "oldTitle": "Relevé Bancaire PDF Excel — Convertisseur Gratuit En Ligne | StatementToExcel",
+      "oldDescription": "Convertissez vos relevés bancaires PDF en Excel. Compatible avec BNP, Crédit Agricole, Société Générale, La Banque Postale.",
+      "oldH1": "Relevé Bancaire PDF Excel",
+      "primary": "vérifier un relevé bancaire converti en Excel",
+      "secondary": "contrôle soldes bancaires; erreurs extraction PDF",
+      "longtail": "vérifier les débits crédits et le solde après conversion",
+      "intent": "Contrôle qualité du fichier obtenu",
+      "user": "Comptables, collaborateurs de cabinet",
+      "action": "REPOSITION",
+      "reason": "Validation après extraction et rapprochement des totaux",
+      "links": [
+        "/fr/extracteur-releve-bancaire",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire-excel"
+      ],
+      "oldSource": "src/app/fr/releve-bancaire-pdf-excel/page.tsx",
+      "newTitle": "Relevé bancaire converti : vérifiez votre fichier Excel",
+      "titleCharacters": 55,
+      "newDescription": "Vérifiez votre relevé bancaire converti en Excel : soldes, totaux, signes et doublons. Suivez une méthode de contrôle avant de transmettre vos opérations.",
+      "descriptionCharacters": 154,
+      "h1": "Vérifier un relevé bancaire converti en Excel",
+      "wordCount": 2001,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/extracteur-releve-bancaire",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/releve-bancaire-pdf-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "releve-bancaire-vers-excel",
+      "url": "/fr/releve-bancaire-vers-excel",
+      "purpose": "Variante de conversion Excel",
+      "oldTitle": "Relevé Bancaire vers Excel — Conversion Instantanée Gratuite | StatementToExcel",
+      "oldDescription": "Transformez vos relevés bancaires en feuilles Excel éditables. Fonctionne avec toutes les banques françaises et internationales.",
+      "oldH1": "Relevé Bancaire vers Excel",
+      "primary": "suivre sa trésorerie avec un relevé bancaire Excel",
+      "secondary": "analyse dépenses Excel; tableau trésorerie bancaire",
+      "longtail": "classer les opérations d’un relevé bancaire pour suivre sa trésorerie",
+      "intent": "Analyse des encaissements et décaissements après conversion",
+      "user": "TPE, indépendants, associations",
+      "action": "REPOSITION",
+      "reason": "Organisation d’un suivi de trésorerie réalisé dans Excel",
+      "links": [
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertir-releve-bancaire-en-excel"
+      ],
+      "oldSource": "src/app/fr/releve-bancaire-vers-excel/page.tsx",
+      "newTitle": "Relevé bancaire Excel : organisez votre trésorerie",
+      "titleCharacters": 50,
+      "newDescription": "Organisez les opérations d’un relevé bancaire Excel pour suivre votre trésorerie : catégories, virements internes et synthèse mensuelle à vérifier.",
+      "descriptionCharacters": 147,
+      "h1": "Suivre sa trésorerie avec un relevé bancaire Excel",
+      "wordCount": 2067,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/convertisseur-releve-bancaire-excel",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/releve-bancaire-pdf-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/releve-bancaire-vers-excel",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    },
+    {
+      "slug": "convertisseur-pdf-releve-bancaire",
+      "url": "/fr/convertisseur-pdf-releve-bancaire",
+      "purpose": "Convertisseur PDF générique",
+      "oldTitle": "Convertisseur PDF Relevé Bancaire — Outil Gratuit En Ligne | StatementToExcel",
+      "oldDescription": "Convertissez facilement vos PDF de relevés bancaires. Aperçu éditable inclus. Compatible avec toutes les banques françaises.",
+      "oldH1": "Convertisseur PDF Relevé Bancaire",
+      "primary": "problème de conversion de relevé bancaire PDF",
+      "secondary": "PDF bancaire illisible; conversion PDF échouée",
+      "longtail": "que faire si mon relevé bancaire PDF ne se convertit pas",
+      "intent": "Diagnostic et résolution des blocages",
+      "user": "Utilisateurs rencontrant une erreur",
+      "action": "REPOSITION",
+      "reason": "Guide de dépannage : accès, fichier, scan et export",
+      "links": [
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/releve-bancaire-csv"
+      ],
+      "oldSource": "src/app/fr/convertisseur-pdf-releve-bancaire/page.tsx",
+      "newTitle": "Conversion de relevé PDF bloquée : trouvez la cause",
+      "titleCharacters": 51,
+      "newDescription": "Un relevé bancaire PDF ne se convertit pas ? Identifiez un fichier protégé, un scan illisible ou un export bloqué et choisissez la vérification adaptée.",
+      "descriptionCharacters": 152,
+      "h1": "Résoudre un problème de conversion de relevé PDF",
+      "wordCount": 2095,
+      "faqCount": 8,
+      "internalLinks": [
+        "/fr",
+        "/fr/convertir-releve-bancaire-en-excel",
+        "/fr/releve-bancaire-csv",
+        "/fr#guides",
+        "/pricing",
+        "/app",
+        "/fr/convertir-pdf-releve-bancaire-en-excel",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire",
+        "/",
+        "/fr/sitemap.xml"
+      ],
+      "internalLinksAdded": [
+        "/fr#guides",
+        "/fr/pdf-releve-bancaire-vers-excel",
+        "/fr/convertisseur-releve-bancaire",
+        "/fr/convertisseur-pdf-releve-bancaire"
+      ],
+      "canonical": "https://bankstatementtoexcelconverter.com/fr/convertisseur-pdf-releve-bancaire",
+      "hreflang": "fr self; guessed en removed; no verified reciprocal translation cluster",
+      "schema": "Organization, WebSite, SoftwareApplication, WebPage, BreadcrumbList, FAQPage",
+      "redirectMerge": "None",
+      "remaining": "Shared root html lang=en; inherited global SoftwareApplication offer schema; no reciprocal EN/ES/PT translations; historical slug for repositioned guides",
+      "ctrReview": {
+        "query": true,
+        "benefit": true,
+        "descriptionSpecific": true,
+        "inputOutputAction": true
+      }
+    }
+  ],
+  "linkResults": [
+    {
+      "target": "/fr",
+      "status": 200
+    },
+    {
+      "target": "/fr/convertir-releve-bancaire-en-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/releve-bancaire-csv",
+      "status": 200
+    },
+    {
+      "target": "/pricing",
+      "status": 200
+    },
+    {
+      "target": "/app",
+      "status": 200
+    },
+    {
+      "target": "/fr/convertir-pdf-releve-bancaire-en-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/extracteur-releve-bancaire",
+      "status": 200
+    },
+    {
+      "target": "/fr/pdf-releve-bancaire-vers-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/convertisseur-releve-bancaire",
+      "status": 200
+    },
+    {
+      "target": "/fr/convertisseur-releve-bancaire-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/releve-bancaire-pdf-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/releve-bancaire-vers-excel",
+      "status": 200
+    },
+    {
+      "target": "/fr/convertisseur-pdf-releve-bancaire",
+      "status": 200
+    },
+    {
+      "target": "/",
+      "status": 200
+    },
+    {
+      "target": "/fr/sitemap.xml",
+      "status": 200
+    }
+  ],
+  "redirects": [
+    {
+      "from": "/fr/",
+      "to": "/fr",
+      "status": 308
+    },
+    {
+      "from": "/fr/convertir-releve-bancaire-en-excel/",
+      "to": "/fr/convertir-releve-bancaire-en-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/convertisseur-releve-bancaire/",
+      "to": "/fr/convertisseur-releve-bancaire",
+      "status": 308
+    },
+    {
+      "from": "/fr/releve-bancaire-csv/",
+      "to": "/fr/releve-bancaire-csv",
+      "status": 308
+    },
+    {
+      "from": "/fr/convertir-pdf-releve-bancaire-en-excel/",
+      "to": "/fr/convertir-pdf-releve-bancaire-en-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/extracteur-releve-bancaire/",
+      "to": "/fr/extracteur-releve-bancaire",
+      "status": 308
+    },
+    {
+      "from": "/fr/convertisseur-releve-bancaire-excel/",
+      "to": "/fr/convertisseur-releve-bancaire-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/pdf-releve-bancaire-vers-excel/",
+      "to": "/fr/pdf-releve-bancaire-vers-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/releve-bancaire-pdf-excel/",
+      "to": "/fr/releve-bancaire-pdf-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/releve-bancaire-vers-excel/",
+      "to": "/fr/releve-bancaire-vers-excel",
+      "status": 308
+    },
+    {
+      "from": "/fr/convertisseur-pdf-releve-bancaire/",
+      "to": "/fr/convertisseur-pdf-releve-bancaire",
+      "status": 308
+    }
+  ],
+  "checks": [
+    "11 HTTP 200 routes",
+    "unique titles, descriptions and H1s",
+    "1800–2400 main-content words including expandable FAQs",
+    "88 unique visible FAQ questions match schema",
+    "no identical article paragraphs",
+    "self canonicals and French hreflang",
+    "French OG/Twitter metadata",
+    "indexable and sitemap complete",
+    "internal links and fragments resolve",
+    "incoming French links for every route",
+    "single-hop local trailing-slash normalization",
+    "social PNG available"
+  ]
+}

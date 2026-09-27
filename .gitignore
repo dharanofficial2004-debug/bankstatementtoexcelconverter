@@ -48,3 +48,6 @@ uploaded_sample.pdf
 !postcss.config.json
 !.eslintrc.json
 !src/content/seo-guides/catalog.json
+!src/content/fr/*.json
+!docs/seo/fr-before.json
+!docs/seo/fr-validation.json

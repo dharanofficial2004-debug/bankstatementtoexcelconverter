@@ -1,0 +1,111 @@
+{
+  "id": "choice",
+  "slug": "convertisseur-releve-bancaire",
+  "title": "Convertisseur de relevé bancaire : bien choisir son outil",
+  "description": "Comparez les critères utiles d’un convertisseur de relevé bancaire : aperçu, formats, OCR et contrôles. Choisissez un outil adapté à vos documents et usages.",
+  "h1": "Choisir un convertisseur de relevé bancaire",
+  "intro": "Évaluez un outil sur vos propres relevés : qualité des lignes extraites, facilité de correction et formats de sortie. Voici les critères à examiner avant de l’intégrer à votre travail.",
+  "eyebrow": "Choisir son outil",
+  "variant": "guide",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Choisir selon le travail à accomplir",
+      "paragraphs": [
+        "Un convertisseur de relevé bancaire sert à récupérer des opérations dans un format exploitable. Le premier critère de choix est donc votre résultat attendu : ouvrir un fichier dans Excel, préparer un import CSV ou extraire des archives scannées. Ces tâches n’imposent pas exactement les mêmes vérifications. Un aperçu agréable ne suffit pas si le fichier téléchargé ne contient pas les colonnes nécessaires à votre destination ou s’il manque une partie des opérations.",
+        "Décrivez votre besoin avant de comparer les outils. Précisez les types de PDF, la longueur habituelle des relevés et les formats souhaités. Si vous travaillez pour plusieurs personnes, distinguez les présentations bancaires les plus fréquentes. Un essai représentatif vaut mieux qu’un choix fondé uniquement sur une liste de banques ou une promesse de rapidité. Cette page propose une méthode d’évaluation de StatementToExcel et de tout outil comparable, sans classement commercial ni avis clients inventés."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Vérifier la qualité sur un document représentatif",
+      "paragraphs": [
+        "Choisissez un relevé contenant des situations courantes dans votre travail : une description longue, plusieurs types de mouvements et un changement de page. Après extraction, comparez les dates, les libellés et les montants au PDF. Regardez aussi les reports de solde et les totaux imprimés. Une conversion qui récupère correctement trois premières lignes peut encore rencontrer un problème sur une section plus complexe du document.",
+        "Évaluez le temps de vérification nécessaire, sans vous limiter au temps de traitement affiché. Un résultat rapide mais difficile à corriger peut être moins adapté à votre organisation. Notez les erreurs observées et leur nature : caractère mal reconnu, mouvement omis ou donnée dans la mauvaise colonne. Vous disposerez ainsi de critères concrets pour juger la répétabilité sur vos sources. Aucun taux de précision universel ne remplace cet examen du type de relevé que vous utilisez réellement."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Examiner l’aperçu et les possibilités de correction",
+      "paragraphs": [
+        "Un aperçu modifiable permet de comparer les opérations avant d’exporter. Dans StatementToExcel, le parcours affiche les transactions dans une grille dont les cellules peuvent être corrigées. Vérifiez que vous pouvez retrouver une ligne et conserver le contexte nécessaire à sa modification. Le tableau illustratif présent sur cette page explique le résultat attendu ; la grille de travail se trouve dans l’application accessible par le bouton de conversion.",
+        "L’édition ne rend pas les données automatiquement justes. Chaque correction doit être justifiée par la source. Pour un usage régulier, prévoyez une méthode de conservation du PDF et de l’export initial, ainsi qu’une version de travail. Examinez aussi la reprise d’un aperçu : ici, les données sont conservées dans le navigateur. Cette caractéristique aide à revenir au travail sur le même environnement, mais ne constitue pas un espace partagé accessible depuis n’importe quel appareil."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Comparer les formats de sortie sur un vrai téléchargement",
+      "paragraphs": [
+        "Téléchargez un exemple autorisé dans le format qui vous servira réellement. XLSX convient à un travail dans un classeur ; CSV convient à un échange de données réglable. Le parcours XLSX actuel reprend les feuilles de l’aperçu, alors que CSV exporte la feuille active. Vérifiez cette différence si votre travail porte sur plusieurs ensembles d’opérations. La présence des deux boutons ne signifie pas que les deux fichiers contiennent exactement la même organisation.",
+        "Examinez les en-têtes, les dates et les montants après ouverture. Certaines colonnes de l’export sont en anglais ; vous pouvez préparer une correspondance française dans votre copie ou dans le logiciel de destination. Le CSV utilise la virgule et UTF-8. Si votre outil exige d’autres conventions, vérifiez l’effort d’adaptation avant de retenir un parcours. Une promesse générale de compatibilité avec tous les logiciels comptables ne doit pas remplacer ce test d’import réel."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Distinguer PDF natifs et archives scannées",
+      "paragraphs": [
+        "Si vos relevés proviennent directement d’un espace bancaire, ils peuvent contenir du texte exploitable. Si vous travaillez à partir de papier numérisé, vous avez besoin d’un parcours OCR. StatementToExcel prévoit la reconnaissance des documents scannés avant l’extraction des opérations. Évaluez cette capacité avec une source lisible et représentative, puis contrôlez les chiffres ambigus, les décimales et les descriptions réparties sur plusieurs lignes.",
+        "Ne comparez pas les résultats obtenus sur un PDF net avec ceux d’une photographie sombre sans tenir compte de la qualité des sources. Aucun outil ne garantit la lecture d’une information absente ou coupée. Pour un usage d’archives, ajoutez à vos critères la facilité de préparer des documents cohérents et de vérifier les transitions entre les pages. Le guide OCR explique ces points sans annoncer de durée fixe ni de précision absolue pour la reconnaissance."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Comprendre les conditions d’accès et les limites",
+      "paragraphs": [
+        "L’application prévoit une première utilisation et des droits d’usage selon l’offre et la situation affichées. Une connexion peut être demandée lors de l’export. Consultez les conditions présentes dans le parcours et la page de tarifs avant un usage régulier. Cette page n’annonce pas de conversions illimitées, de téléchargement sans compte ou de prix permanent. Ces règles relèvent du service existant et peuvent dépendre de votre utilisation.",
+        "Vérifiez également les contraintes documentaires : taille, nombre de pages et qualité du fichier. Le lecteur actuel prévoit un plafond de 100 pages pour un PDF, mais la réussite dépend aussi des autres étapes. Un volume autorisé ne garantit pas que chaque document complexe sera analysé sans difficulté. Si vous avez des relevés longs, testez la méthode de contrôle et l’organisation des exports avant d’en faire un processus récurrent pour tous vos dossiers."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Examiner le traitement des données sans supposer de garanties",
+      "paragraphs": [
+        "La conversion utilise des services distants, et les aperçus sont conservés dans le stockage du navigateur pour pouvoir être repris localement. Ces caractéristiques doivent entrer dans votre évaluation si vous manipulez des relevés professionnels. Assurez-vous que vous êtes autorisé à transmettre le document et que l’environnement utilisé convient aux données. Une formule marketing telle que « sécurisé » ne répond pas à elle seule aux questions de conservation, d’accès et de traitement.",
+        "Cette page ne garantit ni une suppression immédiate, ni un hébergement dans un pays donné, ni l’absence de stockage. Si votre organisation impose des conditions spécifiques, faites-les vérifier avant d’envoyer les fichiers concernés. Pour le travail courant, gardez aussi la maîtrise des copies téléchargées et des moyens de partage. L’évaluation doit porter sur l’ensemble du parcours documentaire, pas uniquement sur le moment où le PDF est déposé dans le navigateur."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Retenir un parcours adapté à votre organisation",
+      "paragraphs": [
+        "Après votre essai, comparez ce qui est réellement disponible avec vos critères initiaux. Les colonnes utiles sont-elles présentes ? Les corrections restent-elles compréhensibles ? L’export s’ouvre-t-il dans votre outil ? Les conditions d’accès conviennent-elles à votre fréquence d’utilisation ? Consignez les points qui nécessitent encore un contrôle. Une décision fondée sur ces observations évite de confondre une fonction annoncée avec une intégration complète dans votre travail.",
+        "Les noms de banques françaises servent à décrire les documents, pas à prouver une connexion directe. Une présentation BNP Paribas, Crédit Agricole ou Société Générale peut varier selon le compte et la période. Réévaluez votre méthode lorsque vos sources changent. Si votre besoin est simplement d’obtenir un XLSX, suivez le guide principal de conversion ; pour l’import, le scan ou le dépannage, utilisez le guide spécialisé. Vous garderez ainsi un parcours court tout en disposant des contrôles utiles au moment approprié."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Quel critère privilégier pour choisir un convertisseur de relevé ?",
+      "answer": "Commencez par le résultat attendu et vérifiez un export sur un document représentatif. Les colonnes, les corrections nécessaires et l’ouverture dans votre outil comptent davantage qu’une promesse générale de rapidité."
+    },
+    {
+      "question": "Une liste de banques suffit-elle à prouver la compatibilité ?",
+      "answer": "Non. Les formats varient au sein d’une même banque selon le compte et la période. Testez la présentation précise que vous utilisez et contrôlez les opérations récupérées avant d’adopter un parcours régulier."
+    },
+    {
+      "question": "Pourquoi tester le fichier téléchargé en plus de l’aperçu ?",
+      "answer": "L’outil de destination peut interpréter différemment les dates, les nombres ou les séparateurs. Le fichier téléchargé confirme aussi quelles feuilles et colonnes ont été exportées pour votre usage réel."
+    },
+    {
+      "question": "Ai-je besoin d’OCR si mon PDF contient du texte sélectionnable ?",
+      "answer": "Une lecture d’image n’est généralement pas nécessaire pour une couche de texte exploitable. Certains documents sont mixtes ou possèdent une ancienne couche OCR imparfaite ; vérifiez tout de même les pages et les données."
+    },
+    {
+      "question": "Le convertisseur remplace-t-il une connexion à ma banque ?",
+      "answer": "Le parcours décrit traite un document que vous fournissez. Il ne constitue pas une intégration directe avec votre banque ni une récupération automatique continue des mouvements du compte."
+    },
+    {
+      "question": "Comment évaluer l’effort de correction ?",
+      "answer": "Notez les types d’erreurs sur un essai représentatif et le travail nécessaire pour les vérifier contre la source. Une mesure du seul temps de traitement ne reflète pas toute la préparation du fichier utilisable."
+    },
+    {
+      "question": "Puis-je supposer que l’aperçu est disponible sur tous mes appareils ?",
+      "answer": "Non. Le parcours actuel conserve les données dans le navigateur de conversion. Vérifiez les conditions de reprise et exportez les fichiers utiles ; un lien d’aperçu ne remplace pas un espace documentaire partagé."
+    },
+    {
+      "question": "Quels points vérifier avant un usage professionnel régulier ?",
+      "answer": "Examinez les documents, les formats, les conditions d’accès et les règles de votre organisation concernant le traitement distant. Définissez aussi une méthode de contrôle et de conservation des sources et des versions corrigées."
+    }
+  ],
+  "faqTitle": "Questions pour choisir votre outil"
+}

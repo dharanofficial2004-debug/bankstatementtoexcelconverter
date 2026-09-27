@@ -1,0 +1,111 @@
+{
+  "id": "home",
+  "slug": "",
+  "title": "StatementToExcel en français : vos relevés exploitables",
+  "description": "Retrouvez les outils StatementToExcel pour préparer vos relevés PDF, vérifier les opérations et choisir un export Excel ou CSV adapté à votre travail.",
+  "h1": "Vos relevés bancaires, prêts à être exploités",
+  "intro": "Un espace de travail pour passer du PDF aux opérations vérifiables. Retrouvez le bon parcours, préparez votre document et ouvrez le convertisseur pour obtenir un tableau modifiable.",
+  "eyebrow": "Découvrir le parcours français",
+  "variant": "hub",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Trouver le parcours qui correspond à votre document",
+      "paragraphs": [
+        "StatementToExcel permet de préparer les opérations d’un relevé bancaire dans un tableau modifiable, puis de les exporter. Cette page rassemble les parcours en français pour choisir la bonne méthode. Si votre objectif est simplement d’obtenir un fichier Excel depuis un PDF, le guide principal de conversion vous accompagne du document à l’export. Vous pouvez aussi ouvrir directement l’application, puis revenir aux explications lorsqu’une question se présente.",
+        "Les guides répondent à des besoins différents. Le parcours CSV s’adresse à un import dans un outil de destination ; le parcours OCR traite les relevés scannés ; les guides de contrôle et de multipage aident à vérifier la couverture des opérations. Pour une opération ponctuelle, commencez par le format souhaité ; pour un dossier plus complexe, consultez les contrôles adaptés à votre source. Choisissez votre point de départ selon la source et le résultat souhaité, plutôt que selon le nom de votre banque uniquement."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Avant de déposer votre premier relevé",
+      "paragraphs": [
+        "Ouvrez le PDF pour vérifier son contenu. Identifiez le compte, la période et les pages disponibles. Privilégiez la version téléchargée depuis l’espace bancaire lorsque vous y avez accès, car une capture d’écran ou une copie fortement compressée peut perdre des informations utiles. Si le document est un scan, examinez les bords, l’orientation et la lisibilité des petits caractères. Les montants et les dates doivent pouvoir être confirmés sur la source.",
+        "Préparez un document que vous êtes autorisé à transmettre. Pour un usage professionnel, les règles de votre organisation concernant les services distants restent applicables. Gardez l’original dans votre dossier et donnez-lui un nom compréhensible, associant par exemple la période et une référence de compte adaptée. Une source identifiée facilite la comparaison avec l’export et les échanges avec un collègue. Elle permet également de retrouver rapidement la bonne version si vous reprenez le travail plusieurs jours plus tard."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Ce que vous trouverez dans l’application",
+      "paragraphs": [
+        "Le parcours commence par la sélection du document. Le traitement lit le contenu, utilise l’OCR lorsque le document nécessite une reconnaissance d’image, puis organise les transactions dans un aperçu. Vous pouvez y examiner et modifier les cellules avant de télécharger les données. Les colonnes principales correspondent à la date, au libellé, au débit, au crédit et au solde disponible. La récupération d’un champ dépend toujours des informations présentes et lisibles dans le fichier fourni.",
+        "L’illustration de cette page présente un exemple fictif en français. Elle montre comment deux mouvements peuvent être organisés et contrôlés ; elle n’est pas une conversion effectuée sur un compte réel. Les exports actuels utilisent certains en-têtes anglais, dont Description, Debit, Credit et Balance. Les guides expliquent leur correspondance et les vérifications utiles dans Excel. Le bouton d’accès mène au convertisseur existant, dont l’interface de travail peut comporter des libellés en anglais."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Des parcours pour les particuliers et les indépendants",
+      "paragraphs": [
+        "Pour un suivi personnel, un export vérifié permet de retrouver des opérations, de filtrer un fournisseur ou d’organiser une lecture des dépenses. Commencez avec une période limitée pour comprendre les colonnes et les contrôles. Ajoutez ensuite vos catégories dans votre tableur, en gardant les descriptions originales. Une dépense répétée peut être facile à reconnaître, mais les mouvements inhabituels doivent rester identifiables jusqu’à ce que vous les ayez compris.",
+        "Pour un indépendant, le tableau peut aider à préparer les échanges avec la personne chargée de la comptabilité. Associez les mouvements aux justificatifs lorsque cela est nécessaire et signalez les opérations non identifiées. Le convertisseur prépare les données bancaires ; il ne détermine pas à lui seul la nature comptable ou fiscale d’une entrée ou d’une sortie. Le guide de trésorerie explique comment organiser une base de travail sans confondre les mouvements réalisés et les prévisions."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Une méthode pour les entreprises et les cabinets",
+      "paragraphs": [
+        "Lorsque plusieurs comptes ou dossiers sont concernés, définissez une organisation avant de multiplier les conversions. Identifiez la provenance de chaque relevé, vérifiez un document représentatif de chaque présentation et choisissez un format de sortie adapté au destinataire. Une nomenclature de fichiers et une méthode de contrôle communes facilitent la reprise du travail par un collègue. Gardez les sources, les exports initiaux et les versions corrigées distincts dans votre dossier.",
+        "Les formats bancaires peuvent changer selon le type de compte, la période ou la génération du relevé. Une méthode validée sur un document doit donc rester attentive aux exceptions. Le guide d’extraction décrit les colonnes et leurs limites ; le guide de vérification aide à contrôler les mouvements et les soldes. Pour une préparation comptable, ces étapes soutiennent le travail de rapprochement mais ne remplacent pas les pièces ni la validation effectuée dans les outils et procédures de votre organisation."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Choisir entre Excel et CSV",
+      "paragraphs": [
+        "XLSX convient si vous voulez travailler dans un classeur, consulter les feuilles et organiser vos opérations dans Excel. L’export reprend les feuilles de l’aperçu actuel. Après ouverture, vérifiez les dates et les montants avant d’ajouter des filtres ou des formules. Les réglages de votre tableur peuvent influencer leur interprétation. Le guide d’import explique comment distinguer un nombre d’un texte et comment garder les lignes associées pendant un tri.",
+        "CSV convient lorsqu’un logiciel attend un fichier texte structuré. Il nécessite de vérifier le séparateur, l’encodage et les colonnes demandées. L’export actuel utilise la virgule et UTF-8, et porte sur la feuille active. La compatibilité avec un outil comptable dépend de son modèle d’import ; aucune intégration universelle n’est présumée. Pour choisir, partez de ce que le destinataire sait importer et du travail que vous souhaitez effectuer, puis testez un fichier avant un traitement plus large."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Comprendre les limites et les conditions d’accès",
+      "paragraphs": [
+        "L’application prévoit des conditions de première utilisation et des droits selon l’offre disponible. Une connexion peut être demandée pour exporter. Consultez les indications affichées dans le parcours et les tarifs avant un usage régulier. Les guides français ne promettent pas de conversions illimitées, de téléchargement sans compte ou de durée fixe de traitement. Ils décrivent les étapes et les possibilités constatées dans l’application afin de préparer un essai avec des attentes réalistes.",
+        "Le résultat dépend de la lisibilité et de la structure du document. Une opération peut nécessiter une correction ; une page floue peut rester inexploitable. Les noms de BNP Paribas, Crédit Agricole, Société Générale, La Banque Postale, Crédit Mutuel ou Caisse d’Épargne servent à situer des exemples français, pas à annoncer une connexion directe. Pour tout établissement, comparez votre propre relevé au tableau et vérifiez les limites affichées lorsqu’un fichier long ou volumineux est refusé."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Garder la maîtrise de votre travail",
+      "paragraphs": [
+        "La conversion fait appel à des services distants et l’aperçu est conservé dans le stockage du navigateur pour être retrouvé localement. Le service ne doit donc pas être présenté comme un traitement sans stockage. Un lien d’aperçu ne garantit pas l’accès aux données depuis un autre appareil. Conservez les fichiers utiles dans votre espace de travail et utilisez un moyen de partage approprié lorsque vous transmettez des opérations à un tiers.",
+        "Après l’export, gardez une copie du relevé et vérifiez le fichier effectivement téléchargé. Si une anomalie apparaît, identifiez son étape : lecture de la source, organisation des colonnes, export ou import dans le tableur. Le guide de dépannage propose un diagnostic adapté à chacune. Une méthode simple — source claire, aperçu contrôlé, export vérifié — permet de travailler de façon compréhensible et de reprendre un point précis lorsque les données ne correspondent pas encore au document."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Par où commencer sur l’espace français de StatementToExcel ?",
+      "answer": "Ouvrez directement le convertisseur si votre PDF est prêt, ou consultez le guide PDF vers Excel pour suivre le parcours complet. Les guides CSV, OCR et contrôle répondent ensuite aux besoins particuliers de votre document."
+    },
+    {
+      "question": "Quel guide choisir pour un relevé qui est une image ?",
+      "answer": "Consultez le parcours des relevés scannés. Il explique la préparation du scan, la reconnaissance OCR et les contrôles de chiffres utiles avant l’export. Un PDF texte et un scan ne présentent pas les mêmes difficultés."
+    },
+    {
+      "question": "Où trouver les explications pour un import comptable ?",
+      "answer": "Le guide CSV décrit le séparateur, l’encodage et l’adaptation des colonnes. Vérifiez aussi le modèle demandé par votre logiciel ou votre cabinet ; la conversion seule ne garantit pas un import accepté sans préparation."
+    },
+    {
+      "question": "L’espace français contient-il un outil différent ?",
+      "answer": "Les boutons mènent au même convertisseur existant. Les pages françaises apportent des explications, des exemples et des méthodes adaptées aux relevés bancaires. Elles ne modifient pas les règles d’accès ni le fonctionnement de l’application."
+    },
+    {
+      "question": "Les exemples affichés proviennent-ils de clients ?",
+      "answer": "Non. Les tableaux sont illustratifs et utilisent des opérations fictives. Ils montrent les notions de date, libellé, débit, crédit et solde sans divulguer de données bancaires réelles ni représenter un résultat garanti."
+    },
+    {
+      "question": "Puis-je travailler avec les relevés d’une association ?",
+      "answer": "Le parcours peut servir à préparer des opérations pour un suivi associatif, sous réserve d’une source exploitable et de votre autorisation à l’utiliser. Vérifiez les données et effectuez les classements dans vos outils habituels."
+    },
+    {
+      "question": "Comment retrouver le bon guide si le résultat est incorrect ?",
+      "answer": "Si les caractères sont mal lus, consultez le guide OCR. Si des lignes manquent aux changements de page, consultez le guide multipage. Pour les totaux et les soldes, utilisez la méthode de vérification du fichier converti."
+    },
+    {
+      "question": "Les pages françaises garantissent-elles un traitement sans conservation ?",
+      "answer": "Non. Le parcours utilise des services distants et sauvegarde l’aperçu dans le navigateur. Vérifiez les exigences de votre organisation avant d’envoyer un relevé et gérez les copies téléchargées dans un espace approprié."
+    }
+  ],
+  "faqTitle": "Questions sur l’espace français"
+}

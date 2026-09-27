@@ -1,0 +1,111 @@
+{
+  "id": "extract",
+  "slug": "extracteur-releve-bancaire",
+  "title": "Extraire un relevé bancaire : comprendre les colonnes",
+  "description": "Extrayez les données d’un relevé bancaire PDF et comprenez chaque colonne : date, libellé, débit, crédit et solde. Repérez les informations à contrôler.",
+  "h1": "Extraire les données d’un relevé bancaire",
+  "intro": "Passez du document bancaire aux lignes de transactions. Identifiez ce que représente chaque champ et les informations à préserver pour travailler sur un tableau fiable.",
+  "eyebrow": "Comprendre les données extraites",
+  "variant": "reference",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Distinguer extraction et présentation du document",
+      "paragraphs": [
+        "Un relevé bancaire est conçu pour être lu comme un document. L’extraction cherche à transformer son tableau d’opérations en données organisées : une ligne par mouvement et une colonne par information. Le résultat ne reproduit donc pas les logos, les encadrés commerciaux ou la présentation exacte du PDF. Il privilégie les champs que vous pourrez filtrer, comparer et exporter. Cette distinction explique pourquoi une copie visuellement fidèle n’est pas toujours un tableau réellement exploitable.",
+        "Le convertisseur lit le document puis organise les transactions dans un aperçu modifiable. Une mise en page complexe peut créer des ambiguïtés entre un en-tête, un report et une véritable opération. Pour évaluer l’extraction, comparez le sens de chaque colonne et la continuité des lignes au PDF. Le nombre de cellules remplies n’est pas un indicateur suffisant : une information absente doit rester identifiable comme telle plutôt que d’être complétée sans justification."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Date d’opération et date de valeur",
+      "paragraphs": [
+        "Certains relevés présentent plusieurs dates pour un même mouvement. La date d’opération situe son enregistrement sur le relevé ; la date de valeur répond à un autre usage bancaire. Le modèle de transactions exporté possède un champ de date principal. Il ne faut donc pas supposer que toutes les dates présentes sur le PDF seront conservées dans des colonnes distinctes. Identifiez la date reprise en comparant plusieurs lignes, notamment lorsque les dates imprimées diffèrent.",
+        "Conservez une convention cohérente pour votre analyse. Si vous devez travailler précisément avec la date de valeur, vérifiez sa disponibilité et prévoyez une préparation séparée lorsque nécessaire. Ne mélangez pas deux conventions au sein d’une même série chronologique. Un changement d’année ou une période à cheval sur deux mois mérite aussi un contrôle. Une date sans année peut dépendre du contexte de la page ; son interprétation doit être confirmée par la période du relevé."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Libellé, références et description complète",
+      "paragraphs": [
+        "Le libellé décrit le mouvement tel qu’il apparaît dans le document bancaire. Il peut contenir un bénéficiaire, un établissement, une référence de virement ou un identifiant de prélèvement. Ces informations aident à retrouver un justificatif. Dans l’export actuel, ce champ est intitulé Description. Conservez une version complète avant de créer une catégorie courte ou un nom simplifié de fournisseur dans votre tableur. Une normalisation utile pour l’analyse ne doit pas effacer la donnée de référence.",
+        "Les descriptions qui occupent plusieurs lignes sont un point de vigilance. Vérifiez que la référence située sous une opération n’a pas été rattachée à la suivante. Deux mouvements de même montant peuvent correspondre à des opérations différentes ; le libellé et la référence permettent parfois de les distinguer. Si vous raccourcissez les descriptions dans une copie de travail, gardez le PDF et l’export initial accessibles pour toute vérification ultérieure."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Débit, crédit et montant signé",
+      "paragraphs": [
+        "Le modèle du convertisseur prévoit une colonne débit et une colonne crédit. Du point de vue du relevé du compte, le débit correspond à une sortie et le crédit à une entrée. Certains documents affichent ces mouvements dans deux colonnes, d’autres dans une seule colonne avec un signe. L’extraction doit traduire cette présentation ; vérifiez le résultat sur des opérations faciles à identifier avant d’utiliser des formules ou de construire un import.",
+        "Un remboursement n’est pas nécessairement une dépense négative dans tous les modèles de destination. Il peut apparaître comme un crédit. La manière de préparer un montant signé dépend ensuite du format attendu par votre logiciel. Pour une convention d’entrées positives, crédit moins débit est une base de calcul, après validation des données. Gardez les colonnes sources dans une copie afin de pouvoir expliquer la transformation plutôt que de remplacer immédiatement toute la structure du fichier."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Solde courant et reports de période",
+      "paragraphs": [
+        "Le solde correspond à la position du compte et peut être indiqué à chaque opération, seulement à certaines étapes ou uniquement en ouverture et en clôture. Une cellule vide dans cette colonne n’autorise pas à inventer une valeur. Si vous calculez un solde intermédiaire dans Excel, distinguez clairement la valeur calculée de celle qui figurait sur le relevé. Vous conservez ainsi la possibilité de vérifier les hypothèses et de retrouver les informations effectivement extraites.",
+        "Un report de solde en début de page ne constitue pas une recette. De même, le total des mouvements présenté en fin de relevé ne doit pas être ajouté comme une opération. Repérez ces lignes dans l’aperçu. Pour un contrôle global, utilisez un solde d’ouverture confirmé, ajoutez les crédits et retranchez les débits sur la période correspondante. Comparer ce résultat au solde de clôture aide à repérer les erreurs de structure sans garantir à lui seul que chaque ligne est correcte."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Devise et informations complémentaires",
+      "paragraphs": [
+        "Le relevé peut annoncer une devise au niveau du compte, de la page ou de certaines opérations. L’export standard ne propose pas systématiquement une colonne de devise pour chaque transaction. Si votre travail concerne plusieurs devises, séparez les jeux de données et notez le contexte dans votre dossier. N’additionnez pas des valeurs de comptes différents sous prétexte que les colonnes portent le même nom. Une conversion de devise nécessite une méthode distincte, qui n’est pas réalisée par ce guide.",
+        "Le numéro de chèque et la catégorie peuvent être exportés lorsque ces champs sont présents dans les transactions. Leur existence dans le modèle ne signifie pas qu’ils seront renseignés pour chaque relevé. Une catégorie issue des données ne constitue pas une affectation comptable validée. Vérifiez les colonnes réellement disponibles dans l’aperçu et l’export. Pour une référence longue ou un identifiant, privilégiez ensuite un type texte dans votre outil afin d’éviter la perte de zéros initiaux."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Variations entre les relevés français",
+      "paragraphs": [
+        "BNP Paribas, Société Générale, La Banque Postale, CIC ou LCL peuvent utiliser des mises en page différentes. Les variations existent également au sein d’une banque : compte professionnel, compte particulier, relevé historique ou nouvelle présentation. La place des références, la largeur des descriptions et les conventions de montant ne sont pas toujours identiques. Ces exemples expliquent pourquoi une vérification sur votre document est plus utile qu’une promesse de compatibilité fondée uniquement sur un nom de banque.",
+        "Le service traite un fichier fourni par l’utilisateur ; ces mentions ne décrivent aucune intégration bancaire directe. Si vous recevez plusieurs relevés, essayez un document représentatif de chaque présentation. Identifiez les champs indispensables à votre destination, puis vérifiez qu’ils sont récupérés de manière utilisable. Pour une page scannée, ajoutez le contrôle des caractères reconnus à celui des colonnes. Un même tableau de sortie peut provenir de sources de qualité très différente."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Organiser un contrôle traçable de l’extraction",
+      "paragraphs": [
+        "Attribuez un nom clair à chaque source et conservez l’export initial avant correction. Dans votre copie de travail, notez les lignes modifiées et la raison du changement. Il peut s’agir d’une date rattachée à la mauvaise période, d’un libellé incomplet ou d’un montant lu dans la colonne voisine. Une correction justifiée permet à un collègue de comprendre votre intervention sans devoir recommencer tout le contrôle du document.",
+        "L’aperçu modifiable facilite cette préparation, mais ne remplace pas votre dossier de référence. Ses données sont conservées dans le navigateur et le traitement utilise des services distants. Vérifiez votre autorisation à transmettre le document et les conditions affichées pour accéder à l’export. Une fois les champs validés, choisissez XLSX pour travailler dans un classeur ou CSV pour préparer un import. Le guide de vérification complète cette lecture des colonnes par une méthode de contrôle des mouvements et des soldes."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Quelles données l’extracteur cherche-t-il à récupérer ?",
+      "answer": "Le modèle comporte notamment date, description, débit, crédit et solde. Des champs de numéro de chèque ou de catégorie peuvent aussi être présents. Leur remplissage dépend du document et doit être vérifié."
+    },
+    {
+      "question": "La date de valeur dispose-t-elle de sa propre colonne ?",
+      "answer": "Le modèle standard exporté possède un champ de date principal. Ne présumez pas une conservation séparée de toutes les dates imprimées. Comparez le résultat au PDF si cette distinction est importante pour votre travail."
+    },
+    {
+      "question": "Pourquoi un solde reste-t-il vide dans une ligne ?",
+      "answer": "Le relevé peut ne pas afficher de solde pour chaque mouvement, ou l’extraction peut ne pas l’avoir récupéré. Vérifiez la source. Ne remplacez pas une absence par un zéro sans connaître sa signification."
+    },
+    {
+      "question": "Une référence de mandat fait-elle partie du libellé ?",
+      "answer": "Elle peut figurer dans la description de l’opération selon le document. Conservez les références utiles au rapprochement et vérifiez que les fragments de texte sur plusieurs lignes restent associés au bon mouvement."
+    },
+    {
+      "question": "Le fichier distingue-t-il les devises de chaque transaction ?",
+      "answer": "Une colonne de devise par opération n’est pas systématiquement prévue dans l’export standard. Pour plusieurs devises, organisez des jeux de données séparés et conservez le contexte du relevé avant toute analyse."
+    },
+    {
+      "question": "L’extracteur crée-t-il automatiquement les comptes comptables ?",
+      "answer": "La préparation des transactions ne constitue pas une affectation comptable validée. La nature d’un mouvement doit être déterminée avec ses justificatifs et les règles de votre dossier, séparément de l’extraction."
+    },
+    {
+      "question": "Comment traiter un report de solde extrait comme une ligne ?",
+      "answer": "Comparez la ligne au PDF et distinguez-la d’une opération réelle. Un report ne doit pas augmenter les recettes ou les dépenses. Corrigez la copie de travail en gardant une trace de cette décision."
+    },
+    {
+      "question": "Puis-je extraire plusieurs comptes d’un document unique ?",
+      "answer": "Ne supposez pas une séparation automatique fiable de toutes les sections. Identifiez les comptes dans la source et contrôlez leur répartition dans le résultat. Des documents séparés facilitent souvent le contrôle et la traçabilité."
+    }
+  ],
+  "faqTitle": "Questions sur les données extraites"
+}

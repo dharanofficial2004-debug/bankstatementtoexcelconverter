@@ -1,0 +1,111 @@
+{
+  "id": "import",
+  "slug": "convertisseur-releve-bancaire-excel",
+  "title": "Importer un relevé bancaire dans Excel sans décalages",
+  "description": "Ouvrez votre relevé converti dans Excel et vérifiez les colonnes. Retrouvez les réglages utiles pour les dates, les nombres, les accents et les filtres.",
+  "h1": "Importer un relevé bancaire dans Excel",
+  "intro": "Vous avez obtenu un fichier XLSX ou CSV ? Préparez une feuille exploitable en vérifiant les types de données, l’ordre des colonnes et les réglages régionaux.",
+  "eyebrow": "Après la conversion",
+  "variant": "guide",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Partir du bon fichier téléchargé",
+      "paragraphs": [
+        "Vérifiez d’abord si vous disposez d’un classeur XLSX ou d’un fichier CSV. Leur ouverture ne suit pas la même logique. XLSX contient des feuilles et des cellules structurées ; CSV contient du texte que le logiciel doit répartir et interpréter. Si votre point de départ est encore un PDF, effectuez la conversion puis revenez à ce guide. Les conseils ci-dessous concernent la préparation dans le tableur après l’extraction des opérations, pas la lecture directe du PDF par Excel.",
+        "Gardez le téléchargement initial dans un dossier de référence. Créez une copie pour les réglages, les renommages et les formules. Donnez-lui un nom qui identifie le compte et la période. Évitez les intitulés vagues tels que « relevé final 2 », difficiles à distinguer quelques semaines plus tard. Une organisation simple facilite la reprise du travail et permet de comparer un problème d’import au fichier original sans perdre les valeurs de départ."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Ouvrir un classeur XLSX et repérer les feuilles",
+      "paragraphs": [
+        "Ouvrez le fichier XLSX dans votre tableur et examinez les onglets. L’export de l’aperçu peut reprendre les feuilles de l’espace de travail. Vérifiez leur nom, le nombre de lignes et les dates extrêmes. Une feuille vide ou inattendue doit être comprise avant de créer une synthèse. Ne fusionnez pas immédiatement plusieurs feuilles si elles représentent des comptes, des périodes ou des devises différentes : leur contexte doit rester identifiable dans la feuille de travail finale.",
+        "Les en-têtes de l’export comprennent actuellement des termes anglais. Vous pouvez renommer Description en Libellé, Debit en Débit, Credit en Crédit et Balance en Solde dans votre copie. Gardez cette correspondance à l’esprit si vous réutilisez des formules ou préparez un import dans un autre logiciel. La numérotation des lignes facilite le repérage initial ; elle n’est pas un identifiant bancaire unique et ne suffit pas à reconnaître une opération d’un fichier à l’autre."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Importer un CSV avec des réglages explicites",
+      "paragraphs": [
+        "Si vous avez choisi CSV, utilisez la fonction d’import de texte ou de CSV de votre version d’Excel. Les intitulés exacts des commandes peuvent varier. Sélectionnez le fichier, vérifiez l’encodage UTF-8 et choisissez la virgule comme séparateur de champs pour l’export actuel. L’aperçu doit montrer des colonnes distinctes. Si toute une ligne apparaît dans une seule cellule, corrigez le délimiteur avant de charger les données.",
+        "Ne validez pas uniquement parce que le tableau semble aligné. Regardez les libellés contenant des accents, les descriptions comportant une virgule et les montants avec décimales. Les guillemets présents dans le CSV peuvent protéger certains champs : ils ne doivent pas être supprimés au hasard. Le guide consacré au format CSV détaille ces conventions. Une fois le fichier correctement importé, enregistrez une copie XLSX si vous voulez conserver vos feuilles de travail et leurs réglages."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Vérifier les dates avant de trier",
+      "paragraphs": [
+        "Un tri correct dépend de dates réellement reconnues comme telles. Une colonne de texte peut afficher des dates plausibles tout en se classant dans un ordre inattendu. Essayez un tri sur une copie et comparez le début et la fin de la période au PDF. Contrôlez les dates ambiguës comme 04/05/2026, particulièrement si le logiciel applique des paramètres régionaux différents de ceux du relevé français.",
+        "Utilisez quelques lignes de référence pour confirmer le jour, le mois et l’année. Si une transformation est nécessaire, travaillez dans une nouvelle colonne et gardez la valeur initiale à côté. Comparez le résultat sur toute la période avant de remplacer la colonne de travail. Pour des relevés à cheval sur deux années, vérifiez les opérations de décembre et de janvier. Une date mal interprétée peut déplacer un mouvement dans une mauvaise synthèse mensuelle même si son montant est correct."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Transformer les montants en valeurs calculables",
+      "paragraphs": [
+        "Les montants doivent être interprétés comme des nombres pour que les additions et les comparaisons fonctionnent correctement. Examinez les séparateurs décimaux, les espaces et les symboles de devise. Si une somme ignore certaines cellules, elles peuvent être restées au format texte. Ne remplacez pas toutes les ponctuations sans contrôle : la convention de la source et celle du logiciel doivent être comprises avant une conversion globale.",
+        "Gardez les débits et les crédits dans leurs colonnes respectives au début du travail. Testez les totaux sur une période courte et comparez-les au document. Un champ vide n’est pas nécessairement une erreur, notamment lorsque l’opération n’utilise qu’une des deux colonnes. En revanche, un montant dans la mauvaise colonne modifie le sens du mouvement. Corrigez uniquement après comparaison au PDF, puis vérifiez les soldes pour détecter d’éventuels écarts supplémentaires."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Créer une feuille de travail lisible",
+      "paragraphs": [
+        "Une fois les types validés, ajustez la largeur du libellé, figez la ligne des en-têtes et activez des filtres selon les fonctions disponibles dans votre tableur. Une présentation simple suffit : dates homogènes, montants lisibles et colonnes clairement nommées. Évitez de fusionner des cellules dans la zone des opérations, car cela complique les tris et les filtres. Réservez les titres et les commentaires de synthèse à une zone distincte.",
+        "Si vous ajoutez une catégorie, une référence de facture ou un statut de contrôle, placez-les dans des colonnes séparées. Le libellé bancaire doit rester accessible. Après un tri, vérifiez que toutes les colonnes de la même opération se sont déplacées ensemble. Trier seulement les montants sans inclure les dates et descriptions détruirait leur association. Cette vérification est particulièrement utile lorsqu’un fichier a été préparé par plusieurs personnes ou contient déjà des colonnes ajoutées manuellement."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Préparer des filtres et des synthèses utiles",
+      "paragraphs": [
+        "Commencez par une question précise : retrouver les prélèvements d’un fournisseur, totaliser les entrées d’un mois ou isoler les opérations à justifier. Un filtre sur le libellé peut aider, mais une même contrepartie peut apparaître sous plusieurs formulations. Vérifiez quelques résultats avant de considérer le regroupement comme exhaustif. Pour une synthèse mensuelle, confirmez que toutes les lignes retenues appartiennent à la bonne période et au bon compte.",
+        "Un tableau croisé dynamique ou une formule de totalisation peut ensuite organiser les données validées. Ces outils sont utilisés dans Excel après l’export ; ils ne constituent pas des fonctions promises du convertisseur. Séparez les montants issus du relevé des catégories que vous attribuez. Pour le suivi de trésorerie, le guide dédié explique notamment le traitement des virements internes. Une synthèse lisible reste dépendante de la qualité des colonnes et des choix de classement qui l’alimentent."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Transmettre une version compréhensible",
+      "paragraphs": [
+        "Avant l’envoi à un collègue ou à votre expert-comptable, ouvrez la version finale et vérifiez les feuilles incluses, les filtres actifs et les lignes éventuellement masquées. Précisez la période et le compte concernés. Conservez une copie avec les données sources ainsi que le PDF, pour permettre un retour aux opérations en cas de question. Si certaines lignes restent à vérifier, signalez-les explicitement au lieu de leur donner l’apparence de données validées.",
+        "Les opérations bancaires contiennent des informations personnelles et professionnelles. Choisissez un emplacement et un mode de partage appropriés. Le convertisseur utilise des services distants et sauvegarde l’aperçu dans le navigateur ; le fichier téléchargé devient ensuite une copie supplémentaire à gérer. L’accès à l’export peut demander une connexion, selon la configuration du service. Les instructions de ce guide améliorent la préparation du tableau, sans modifier les règles d’accès, les montants facturés ou le fonctionnement d’Excel."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Dois-je ouvrir le XLSX ou importer le CSV dans Excel ?",
+      "answer": "Ouvrez directement le XLSX pour travailler sur un classeur. Pour un CSV, utilisez un import avec choix du séparateur, de l’encodage et des types de données, puis vérifiez l’aperçu avant chargement."
+    },
+    {
+      "question": "Pourquoi mes dates ne se trient-elles pas chronologiquement ?",
+      "answer": "Elles peuvent être stockées comme du texte ou avoir été interprétées avec un autre ordre jour/mois. Comparez plusieurs valeurs au relevé et convertissez-les dans une colonne de travail avant de refaire le tri."
+    },
+    {
+      "question": "Pourquoi Excel n’additionne-t-il pas certains montants ?",
+      "answer": "Des cellules peuvent contenir du texte, des espaces ou des séparateurs mal interprétés. Vérifiez le format réel et la valeur source avant transformation. Contrôlez le total obtenu sur une période connue."
+    },
+    {
+      "question": "Puis-je franciser les en-têtes de l’export ?",
+      "answer": "Oui, dans votre copie de travail : Description devient Libellé, Debit devient Débit, Credit devient Crédit et Balance devient Solde. Si un logiciel doit ensuite importer le fichier, respectez ses noms de colonnes attendus."
+    },
+    {
+      "question": "Comment éviter de désolidariser les libellés et les montants ?",
+      "answer": "Lorsque vous triez, incluez toute la zone des opérations et les colonnes ajoutées. Vérifiez quelques lignes après le tri. Un tri limité à une seule colonne peut associer un montant au mauvais mouvement."
+    },
+    {
+      "question": "Puis-je ajouter mes propres catégories dans le classeur ?",
+      "answer": "Oui, ajoutez une colonne dans Excel en gardant le libellé d’origine. Définissez des catégories cohérentes et vérifiez les mouvements ambigus. Le classement est un travail d’analyse distinct de la conversion du PDF."
+    },
+    {
+      "question": "Que vérifier avant de partager le classeur ?",
+      "answer": "Contrôlez les onglets, la période, les filtres et les lignes masquées. Indiquez les opérations encore incertaines et conservez le relevé source. Un destinataire doit comprendre ce qui est vérifié et ce qui reste à traiter."
+    },
+    {
+      "question": "Pourquoi conserver une copie avant les transformations ?",
+      "answer": "Elle permet de comparer une anomalie à l’export initial et de reprendre un import sans perdre les valeurs sources. Les changements de format, les tris et les catégories sont plus faciles à expliquer lorsque cette référence existe."
+    }
+  ],
+  "faqTitle": "Questions sur l’import dans Excel"
+}

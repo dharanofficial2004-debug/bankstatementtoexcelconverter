@@ -1,0 +1,111 @@
+{
+  "id": "help",
+  "slug": "convertisseur-pdf-releve-bancaire",
+  "title": "Conversion de relevé PDF bloquée : trouvez la cause",
+  "description": "Un relevé bancaire PDF ne se convertit pas ? Identifiez un fichier protégé, un scan illisible ou un export bloqué et choisissez la vérification adaptée.",
+  "h1": "Résoudre un problème de conversion de relevé PDF",
+  "intro": "Identifiez l’étape qui bloque : ouverture du document, lecture des pages, extraction des opérations ou téléchargement. Vous pourrez corriger la cause sans multiplier les essais inutiles.",
+  "eyebrow": "Reprendre la conversion",
+  "variant": "reference",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "Repérer l’étape où le problème apparaît",
+      "paragraphs": [
+        "Un échec de conversion peut survenir avant la lecture du document, pendant l’analyse ou au moment de l’export. Commencez par identifier cette étape. Le fichier est-il refusé dès sa sélection ? Les pages s’ouvrent-elles mais aucun tableau exploitable n’apparaît-il ? L’aperçu est-il correct alors que le téléchargement échoue ? Ces situations ne demandent pas la même vérification. Notez le message affiché plutôt que de relancer immédiatement plusieurs fois le même document.",
+        "Gardez une copie du PDF original et évitez de modifier plusieurs paramètres à la fois. Un essai méthodique permet de comprendre ce qui améliore le résultat. Si vous changez simultanément le fichier, le navigateur et le format de sortie, il devient difficile d’identifier la cause. Le tableau de diagnostic de cette page vous aide à orienter le contrôle ; il ne remplace pas les indications précises affichées par l’application pour votre document."
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "Si le fichier n’est pas accepté",
+      "paragraphs": [
+        "Ouvrez le document dans un lecteur PDF pour confirmer qu’il s’agit bien d’un fichier valide et complet. Renommer une image ou un autre fichier avec l’extension .pdf ne le transforme pas en PDF. Vérifiez aussi sa taille. La zone de dépôt actuelle accepte jusqu’à 20 Mo, mais les étapes de lecture et d’OCR ont leurs propres contraintes ; certains anciens parcours techniques utilisent une limite différente. Suivez donc l’erreur réellement affichée pour l’envoi concerné.",
+        "Si le document dépasse une limite, cherchez d’abord une version originale plus légère. Une compression excessive peut réduire la qualité des chiffres et compliquer l’OCR. Pour un document long, préparez des lots cohérents dans un outil adapté, en conservant la pagination et les périodes. Ne retirez pas des pages au hasard pour faire passer le fichier : vous risqueriez de produire un tableau incomplet sans repère clair sur les opérations absentes."
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Si le PDF demande un mot de passe",
+      "paragraphs": [
+        "Le lecteur du parcours peut demander un mot de passe pour ouvrir le fichier. Utilisez uniquement celui que vous êtes autorisé à employer et vérifiez la saisie. La protection du document est distincte de la connexion à votre compte sur le service. Les identifiants de votre banque ne doivent pas être nécessaires pour convertir un fichier déjà obtenu. Si vous ne connaissez pas le mot de passe, recherchez les instructions de la source du document.",
+        "Un PDF scanné protégé peut rencontrer un blocage à une étape ultérieure, même après une première lecture. Si cela se produit, préparez une copie lisible autorisée avec votre outil PDF ou récupérez une version adaptée auprès de la source. Vérifiez le nouveau document avant dépôt. N’interprétez pas un échec d’accès comme un problème de montant ou de colonne : tant que le contenu ne peut pas être lu, les réglages d’export ne résoudront pas le blocage."
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Si aucun texte utilisable n’est récupéré",
+      "paragraphs": [
+        "Essayez de sélectionner une phrase du relevé dans un lecteur PDF. Si le document est une image, le traitement nécessite une reconnaissance OCR. Contrôlez la netteté, l’orientation et les bords des pages. Une image très sombre, coupée ou compressée peut ne pas contenir assez d’informations lisibles. Le guide des relevés scannés détaille les corrections de source utiles et les caractères à vérifier après reconnaissance.",
+        "Si le PDF contient du texte sélectionnable mais que la lecture échoue dans l’application, un problème de chargement du lecteur, du réseau ou d’une extension peut intervenir. Vous pouvez essayer une session de navigateur adaptée ou un autre navigateur à jour, sans modifier les protections imposées par votre organisation. Ne transmettez pas le fichier à de multiples services uniquement pour comparer des erreurs : commencez par un diagnostic local de la source et du message reçu."
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Si des lignes ou des montants sont incorrects",
+      "paragraphs": [
+        "Comparez une petite série d’opérations au PDF. Repérez si l’erreur concerne les caractères eux-mêmes ou l’organisation du tableau. Une virgule mal lue sur un scan demande un contrôle de la source ; des fragments de libellé associés à la mauvaise date demandent une vérification de structure. Les en-têtes répétés, les soldes reportés et les descriptions sur plusieurs lignes sont des zones particulièrement utiles à examiner.",
+        "Corrigez dans l’aperçu les valeurs que vous pouvez confirmer, puis comparez les totaux et les soldes. Si de nombreuses opérations sont absentes, cherchez une page omise ou un changement de présentation dans le document. Ne corrigez pas un solde final pour masquer une erreur de transcription. Une différence persistante doit rester visible dans votre dossier de travail tant que sa cause n’est pas comprise. Une conversion réussie techniquement peut encore nécessiter une vérification approfondie."
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Si le traitement paraît bloqué",
+      "paragraphs": [
+        "La durée varie avec le nombre de pages, le type de document et les services utilisés. Un scan demande une lecture d’image en plus de l’organisation des opérations. Attendez le résultat ou le message d’erreur du parcours avant de lancer un nouvel essai. Cette page ne donne pas de délai garanti. Si un délai d’attente est dépassé, gardez le message et vérifiez si le problème concerne tout le fichier ou seulement un ensemble de pages.",
+        "Pour un document très long, des lots cohérents peuvent faciliter le diagnostic, dans les limites affichées. Vérifiez également votre connexion. Une interruption réseau et une source illisible ne se résolvent pas de la même manière. Si vous devez transmettre une description du problème à votre interlocuteur technique habituel, indiquez l’étape, le nombre de pages et le message, sans joindre inutilement un relevé complet ni des identifiants. Des informations ciblées aident à comprendre le blocage sans exposer davantage de données."
+      ]
+    },
+    {
+      "id": "section-7",
+      "title": "Si l’aperçu ou le téléchargement pose problème",
+      "paragraphs": [
+        "Le parcours sauvegarde l’aperçu dans le stockage local du navigateur. Un lien d’aperçu ouvert dans un autre navigateur ou sur un autre appareil peut donc ne pas retrouver les données. La suppression des données locales peut également empêcher sa restauration. Revenez au navigateur utilisé pour la conversion lorsque c’est possible. Le lien seul n’est pas présenté comme un partage de document accessible à toute personne qui le reçoit.",
+        "Lors de l’export, une connexion peut être demandée selon la configuration du service. Les limites d’utilisation et les offres suivent le parcours affiché ; elles ne se corrigent pas en modifiant le PDF. Si le fichier est bien téléchargé mais s’affiche dans une seule colonne, consultez le guide CSV : il peut s’agir d’un mauvais séparateur à l’ouverture. Si les dates ou les sommes se comportent mal dans Excel, le guide d’import aide à vérifier les types de cellules."
+      ]
+    },
+    {
+      "id": "section-8",
+      "title": "Reprendre le travail avec une source contrôlée",
+      "paragraphs": [
+        "Après un nouvel essai, comparez les premières et dernières opérations ainsi que les zones qui posaient problème. Conservez le résultat précédent comme référence tant que vous n’avez pas validé le nouveau. Si vous avez découpé le document, notez la correspondance entre chaque lot et les pages d’origine. Évitez de fusionner des exports sans vérifier les chevauchements : une reprise partielle peut doubler des transactions déjà présentes dans le premier fichier.",
+        "Les relevés de banques différentes et les anciennes présentations peuvent produire des difficultés distinctes. Cela ne permet ni de garantir une compatibilité générale ni de conclure qu’une banque entière est inutilisable à partir d’un seul document. Le diagnostic porte sur la source précise. Le traitement utilise des services distants et conserve l’aperçu dans le navigateur ; assurez-vous que vos essais restent adaptés à vos règles de gestion documentaire. Une fois la cause identifiée, reprenez le parcours correspondant à votre besoin réel."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Pourquoi mon PDF est-il refusé dès le dépôt ?",
+      "answer": "Vérifiez qu’il s’ouvre dans un lecteur, que son format est réel et que sa taille respecte le message affiché. Une simple extension .pdf ne garantit pas qu’un fichier soit un PDF valide."
+    },
+    {
+      "question": "La limite est-elle toujours de 20 Mo ?",
+      "answer": "La zone de dépôt actuelle utilise 20 Mo, mais d’autres étapes et anciens parcours ont leurs propres limites. Fiez-vous au message du traitement utilisé. Une taille acceptée au dépôt ne garantit pas la réussite de l’analyse."
+    },
+    {
+      "question": "Que faire si le mot de passe correct ne suffit pas pour un scan ?",
+      "answer": "Une étape ultérieure peut encore ne pas lire le fichier protégé. Obtenez une copie lisible autorisée avec votre outil PDF ou auprès de la source, puis vérifiez-la avant de réessayer."
+    },
+    {
+      "question": "Pourquoi le tableau manque-t-il d’opérations au milieu du relevé ?",
+      "answer": "Comparez les transitions de pages et les changements de présentation. Une page absente, une section scannée ou un libellé mal rattaché peut expliquer la lacune. Recherchez la cause dans le PDF avant de compléter manuellement."
+    },
+    {
+      "question": "Pourquoi mon lien d’aperçu ne fonctionne-t-il pas sur un autre ordinateur ?",
+      "answer": "Les données de l’aperçu sont sauvegardées dans le navigateur de conversion. Un autre appareil ne dispose pas nécessairement de ce stockage. Le lien ne remplace pas un fichier exporté destiné au partage."
+    },
+    {
+      "question": "Faut-il relancer immédiatement une conversion lente ?",
+      "answer": "Attendez son résultat ou le message d’échec. Les scans et documents longs peuvent demander davantage de traitement. Des envois répétés ne corrigent ni une source illisible ni une limite signalée par l’application."
+    },
+    {
+      "question": "Pourquoi une connexion est-elle demandée pour télécharger ?",
+      "answer": "Le parcours d’export peut demander une session utilisateur lorsque l’authentification est configurée. Ce comportement relève de l’accès au service, pas d’une erreur de votre relevé ou d’un problème de format PDF."
+    },
+    {
+      "question": "Le téléchargement a réussi mais le CSV paraît illisible : que vérifier ?",
+      "answer": "Contrôlez l’encodage UTF-8 et le séparateur virgule dans l’assistant d’import. Si les colonnes sont correctes mais les valeurs fausses, comparez plutôt l’extraction au PDF pour distinguer un problème d’ouverture d’une erreur de données."
+    }
+  ],
+  "faqTitle": "Questions sur les problèmes de conversion"
+}
