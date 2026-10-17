@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-export const dynamic = "force-dynamic";
-
+import { authenticate } from "@/lib/authServer";
+import { supabaseAdmin } from "@/lib/supabaseServer";
+import { validAffitorClickId } from "@/lib/affitor-server";
 import {
   LIFETIME_PRICE_INR,
   PER_CONVERSION_PRICE_INR,
   LIFETIME_OFFER_LIMIT,
   inrToPaisa,
 } from "@/lib/pricing";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,57 +22,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
-    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseAdmin) {
       return NextResponse.json(
-        { success: false, error: "Supabase is not configured on the server." },
-        { status: 500 }
+        { success: false, error: "Server configuration missing." },
+        { status: 503 }
       );
     }
+
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!razorpayKeyId || !razorpayKeySecret) {
       return NextResponse.json(
         { success: false, error: "Razorpay is not configured on the server." },
-        { status: 500 }
+        { status: 503 }
       );
     }
 
-    // Authenticate user from Authorization header
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const auth = await authenticate(request);
+    if (!auth.ok) {
       return NextResponse.json(
-        { success: false, error: "Authentication required." },
-        { status: 401 }
+        { success: false, error: auth.response.status === 401 ? "Authentication required." : "Invalid session." },
+        { status: auth.response.status || 401 }
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or expired session." },
-        { status: 401 }
-      );
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    // Determine fixed INR price for the plan
     const priceINR = plan === "lifetime" ? LIFETIME_PRICE_INR : PER_CONVERSION_PRICE_INR;
     const filename = plan === "lifetime" ? "Lifetime Access" : "Per Conversion Credit";
     const documentSize = "Plan";
 
-    // Lifetime offer sold-out check
+    // ── Lifetime sold-out check ─────────────────────────────────────
     if (plan === "lifetime") {
       const { count, error: countError } = await supabaseAdmin
         .from("payments")
@@ -95,8 +75,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create Razorpay order
+    // ── Create Razorpay order ───────────────────────────────────────
     const razorpayAuth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString("base64");
+    const clickId = validAffitorClickId(request.cookies.get("affitor_click_id")?.value) || "";
+
     const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
@@ -106,10 +88,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         amount: inrToPaisa(priceINR),
         currency: "INR",
-        receipt: `receipt_${Date.now()}`,
+        receipt: `receipt_${Date.now()}_${auth.ctx.userId.slice(0, 8)}`,
         notes: {
           plan,
-          user_id: user.id,
+          user_id: auth.ctx.userId,
+          affitor_click_id: clickId,
         },
       }),
     });
@@ -125,11 +108,11 @@ export async function POST(request: NextRequest) {
 
     const razorpayOrder = await razorpayResponse.json();
 
-    // Insert payment record into Supabase
+    // ── Insert payment record ───────────────────────────────────────
     const { data: paymentRecord, error: insertError } = await supabaseAdmin
       .from("payments")
       .insert({
-        user_id: user.id,
+        user_id: auth.ctx.userId,
         filename,
         pages: 0,
         words: 0,
@@ -141,6 +124,8 @@ export async function POST(request: NextRequest) {
         payment_status: "created",
         razorpay_order_id: razorpayOrder.id,
         plan,
+        affitor_click_id: clickId || null,
+        razorpay_raw_notes: { plan, user_id: auth.ctx.userId, affitor_click_id: clickId },
       })
       .select("id")
       .single();

@@ -60,6 +60,12 @@ export default function Navbar() {
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-6">
               <Link
+                href="/affiliate"
+                className="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors"
+              >
+                Affiliate
+              </Link>
+              <Link
                 href="/blog"
                 className="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors"
               >
@@ -104,6 +110,13 @@ export default function Navbar() {
           {isOpen && (
             <div className="md:hidden pb-4 animate-slide-down">
               <div className="flex flex-col gap-3 pt-2">
+                <Link
+                  href="/affiliate"
+                  className="text-sm font-medium text-slate-600 py-2 px-3 rounded-lg hover:bg-slate-50"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Affiliate
+                </Link>
                 <Link
                   href="/blog"
                   className="text-sm font-medium text-slate-600 py-2 px-3 rounded-lg hover:bg-slate-50"

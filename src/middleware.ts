@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
 
-// Middleware is intentionally minimal — no x-pathname header injection.
-// The root layout is statically generated (lang="en"), so we must NOT
-// call headers() there. Locale sub-layouts handle their own lang attributes.
-//
-// This middleware only runs on API routes (to allow future session refresh
-// logic) and does NOT touch marketing/landing pages, keeping them fully
-// static and served from Vercel's CDN edge in every region.
+// Middleware only adds security headers.
+// Page view tracking was removed — it blocked responses.
+// API events (extract, convert, export) are tracked inside their own routes.
 export function middleware() {
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  return response;
 }
 
 export const config = {
-  matcher: [
-    // Only intercept API routes — not marketing pages.
-    // This keeps all landing pages statically cached at the CDN edge.
-    "/api/:path*",
-  ],
+  matcher: ["/api/:path*"],
 };
+

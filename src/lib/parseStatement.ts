@@ -31,6 +31,7 @@ interface ParseResult {
   pages: number;
   headers?: string[];
   error?: string;
+  _requiresCreditConsumption?: boolean;
 }
 
 

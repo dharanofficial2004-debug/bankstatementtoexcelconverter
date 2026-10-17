@@ -1,1447 +1,665 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useRef } from "react";
-import Link from "next/link";
+import React, { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import UploadZone, { UploadZoneHandle } from "@/components/app/UploadZone";
-import ProcessingSteps from "@/components/app/ProcessingSteps";
-
-const Spreadsheet = dynamic(() => import("@/components/app/Spreadsheet"), { ssr: false });
-const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 import { useToast } from "@/components/ui/Toast";
-import { Transaction, Sheet, ConvertResponse } from "@/lib/types";
-import { calculateConversionSummary, createConversionId, saveConversionSnapshot, saveLatestConversion } from "@/lib/conversionSession";
+import { trackUploadPdf } from "@/lib/analytics";
 
-// Every auth-dependent action awaits the same module before checking the session.
-// An SDK that is still loading must never be treated as anonymous/unconfigured.
-const loadSupabase = () => import("@/lib/supabase");
+const LoginModal = dynamic(() => import("@/components/app/LoginModal"), { ssr: false });
 
-import {
-  trackUploadPdf,
-  trackConversionStarted,
-  trackPreviewDisplayed,
-  trackSignupStarted,
-  trackDownloadButtonClicked,
-  trackDownloadExcel,
-  trackDownloadCsv,
-  trackPaymentPageViewed,
-  trackPaymentInitiated,
-  trackPaymentSuccess,
-  trackPaymentFailed,
-  detectTrafficSource,
-} from "@/lib/analytics";
-import {
-  LIFETIME_PRICE_USD,
-  PER_CONVERSION_PRICE_USD,
-  LIFETIME_OFFER_LIMIT,
-  formatUSD,
-} from "@/lib/pricing";
-import {
-  FileSpreadsheet,
-  Download,
-  FileDown,
-  User,
-  Sparkles,
-  Zap,
-  X,
-  Clock,
-  Lock,
-  ChevronDown,
-} from "lucide-react";
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-// Add Razorpay window typing
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Razorpay: any;
-  }
+type Stage =
+  | "idle"          // file not yet selected
+  | "selected"      // file selected, showing filename + Extract button
+  | "authorizing"   // calling /api/extract/authorize
+  | "extracting"    // browser reading PDF pages
+  | "ocr_reauth"    // calling /api/extract/authorize again for OCR
+  | "ocr_running"   // browser OCR-ing pages
+  | "extracted"     // extraction done, showing preview + Convert button
+  | "converting"    // calling /api/convert
+  | "done";         // got jobId, navigating to /preview/{jobId}
+
+interface ServerLimits {
+  conversionId: string;
+  maxPages: number;
+  maxChars: number;
+  isTrial: boolean;
+  kind: "text" | "ocr";
 }
 
-// Loads the Razorpay checkout script on demand — only when the user
-// opens the payment modal. Resolves immediately if already loaded.
-function loadRazorpayScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof window.Razorpay !== "undefined") {
-      resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Razorpay checkout script"));
-    document.body.appendChild(script);
-  });
-}
-
-type AppState = "upload" | "processing" | "spreadsheet";
-
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function AppPage() {
   const router = useRouter();
-  const [appState, setAppState] = useState<AppState>("upload");
-  const [sheets, setSheets] = useState<Sheet[]>([]);
-  const [activeSheetId, setActiveSheetId] = useState<string>("");
-  const [pendingUploadData, setPendingUploadData] = useState<{
-    transactions: Transaction[];
-    bankDetected: string | null;
-    currencySymbol: string;
-    headers: string[];
-    fileName: string;
-  } | null>(null);
-
-  const [fileName, setFileName] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userPlan, setUserPlan] = useState<string | null>(null);
-  const [processingStep, setProcessingStep] = useState<number>(0);
-  const [pdfPageCount, setPdfPageCount] = useState<number>(0);
-  const [isOcrMode, setIsOcrMode] = useState(false);
-  const [ocrPageProgress, setOcrPageProgress] = useState<{ current: number; total: number } | null>(null);
   const { showToast } = useToast();
-
-  // Payment / usage flow state
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [pendingExportFormat, setPendingExportFormat] = useState<"csv" | "xlsx" | "json" | "iif" | null>(null);
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [pendingPickerIntent, setPendingPickerIntent] = useState(false);
-  const [offerSoldOut, setOfferSoldOut] = useState(false);
-  const [offerRemaining, setOfferRemaining] = useState<number>(LIFETIME_OFFER_LIMIT);
-  const [countdown, setCountdown] = useState<string>("");
   const uploadZoneRef = useRef<UploadZoneHandle>(null);
-  const pickerBusyRef = useRef(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
-  const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  // PDF password prompt state
-  const [pdfPasswordPrompt, setPdfPasswordPrompt] = useState<{
-    incorrect: boolean;
-    fileName: string;
-  } | null>(null);
+  const [stage, setStage] = useState<Stage>("idle");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [limits, setLimits] = useState<ServerLimits | null>(null);
+  const [extractedText, setExtractedText] = useState<string>("");
+  const [extractedPages, setExtractedPages] = useState<number>(0);
+  const [extractProgress, setExtractProgress] = useState<{ page: number; total: number } | null>(null);
   const [pdfPassword, setPdfPassword] = useState("");
-  const pendingPdfPasswordRef = useRef<{ resolve: (pw: string) => void } | null>(null);
-  const submittedPdfPasswordRef = useRef<string | null>(null);
+  const [passwordPrompt, setPasswordPrompt] = useState<{ incorrect: boolean } | null>(null);
+  const pendingPasswordRef = useRef<{ resolve: (pw: string) => void } | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
 
-  const activeSheet = useMemo(() => {
-    return sheets.find((s) => s.id === activeSheetId) || null;
-  }, [sheets, activeSheetId]);
-
-  const transactions = useMemo(() => activeSheet ? activeSheet.transactions : [], [activeSheet]);
-  const bankDetected = activeSheet ? activeSheet.bankDetected : null;
-  const currencySymbol = activeSheet ? (activeSheet.currencySymbol || "₹") : "₹";
-  const headers = activeSheet ? activeSheet.headers : [];
-
-  const handleTransactionsChange = useCallback((updated: Transaction[]) => {
-    setSheets((prev) =>
-      prev.map((s) => (s.id === activeSheetId ? { ...s, transactions: updated } : s))
-    );
-  }, [activeSheetId]);
-
-  // Fetch conversions_used for the current user
-  const fetchUserUsage = useCallback(async (accessToken: string) => {
-    try {
-      const res = await fetch("/api/usage/get", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (res.ok) {
-        const d = await res.json();
-        if (d?.plan) setUserPlan(d.plan);
-      }
-    } catch {
-      // ignore
-    }
+  // ── File selected ──────────────────────────────────────────────────────────
+  const handleFileSelect = useCallback((file: File) => {
+    setSelectedFile(file);
+    setStage("selected");
+    setLimits(null);
+    setExtractedText("");
+    setExtractedPages(0);
+    setExtractProgress(null);
+    setPasswordPrompt(null);
+    trackUploadPdf({ file_name: file.name });
   }, []);
 
-  // Check auth state
-  React.useEffect(() => {
-    // Capture traffic source on first render
-    detectTrafficSource();
-
-    let disposed = false;
-    let unsubscribe: (() => void) | undefined;
-    void loadSupabase().then(({ supabase, isSupabaseConfigured }) => {
-      if (disposed || !isSupabaseConfigured() || !supabase) return;
-
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (disposed) return;
-        if (session) {
-          setIsAuthenticated(true);
-          setUserEmail(session.user.email || null);
-          fetchUserUsage(session.access_token);
-        }
-      });
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthenticated(!!session);
-        setUserEmail(session?.user.email || null);
-        if (session) {
-          setShowLoginModal(false);
-          fetchUserUsage(session.access_token);
-        }
-      });
-
-      unsubscribe = () => subscription.unsubscribe();
-    });
-    return () => {
-      disposed = true;
-      unsubscribe?.();
-    };
-  }, [fetchUserUsage]);
-
-  // Daily countdown for the lifetime offer ("Offer ends soon")
-  React.useEffect(() => {
-    if (!showPlanModal) return;
-    const update = () => {
-      const now = new Date();
-      const midnight = new Date(now);
-      midnight.setHours(24, 0, 0, 0);
-      const diff = Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000));
-      const h = String(Math.floor(diff / 3600)).padStart(2, "0");
-      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
-      const s = String(diff % 60).padStart(2, "0");
-      setCountdown(`${h}:${m}:${s}`);
-    };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, [showPlanModal]);
-
-  const extractPdfText = useCallback(async (file: File): Promise<{ text: string; pages: number }> => {
-    interface PdfJsModule {
-      GlobalWorkerOptions: { workerSrc: string };
-      getDocument: (args: {
-        data: ArrayBuffer;
-      }) => {
-        onPassword?: (updatePassword: (pw: string) => void, reason: number) => void;
-        promise: Promise<{
-          numPages: number;
-          getPage: (index: number) => Promise<{
-            getTextContent: () => Promise<{
-              items: Array<{ str: string }>;
-            }>;
-          }>;
-        }>;
-      };
-    }
-
-    // Load pdfjs from jsDelivr (faster/more reliable than unpkg).
-    // Worker is served from /public on our own server — no external dependency.
-    const PDFJS_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/legacy/build/pdf.min.mjs";
-
-    let pdfjs: PdfJsModule | null = null;
-    try {
-      pdfjs = (await import(/* webpackIgnore: true */ PDFJS_URL)) as PdfJsModule;
-    } catch {
-      throw new Error("Could not load the PDF reader. Please check your internet connection and try again.");
-    }
-    // Worker served from our own /public folder — no CDN for the worker.
-    pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-
-    const arrayBuffer = await file.arrayBuffer();
-
-    // Load the PDF. If it is password protected, ask the user for the password
-    // (via the modal) and then continue loading exactly as before.
-    const pdf = await new Promise<{
-      numPages: number;
-      getPage: (index: number) => Promise<{
-        getTextContent: () => Promise<{ items: Array<{ str: string }> }>;
-      }>;
-    }>((resolve, reject) => {
-      let loadTimer: ReturnType<typeof setTimeout> | null = null;
-      const startLoadTimer = () => {
-        if (loadTimer) clearTimeout(loadTimer);
-        loadTimer = setTimeout(() => {
-          reject(new Error("Timed out reading this PDF. Please try a smaller file."));
-        }, 60000);
-      };
-
-      const loadingTask = pdfjs.getDocument({
-        data: arrayBuffer,
-      });
-      loadingTask.onPassword = (updatePassword, reason) => {
-        setPdfPassword("");
-        setPdfPasswordPrompt({ incorrect: reason === 2, fileName: file.name });
-        pendingPdfPasswordRef.current = {
-          resolve: (pw: string) => {
-            startLoadTimer();
-            updatePassword(pw);
-          },
-        };
-      };
-
-      startLoadTimer();
-      loadingTask.promise.then(
-        (loadedPdf) => {
-          if (loadTimer) clearTimeout(loadTimer);
-          resolve(loadedPdf);
-        },
-        (err) => {
-          if (loadTimer) clearTimeout(loadTimer);
-          reject(err);
-        }
-      );
-    });
-
-    if (pdf.numPages > 100) {
-      throw new Error("File has too many pages. Maximum page limit is 100.");
-    }
-
-    let fullText = "";
-    const startedAt = Date.now();
-    for (let i = 1; i <= pdf.numPages; i++) {
-      if (Date.now() - startedAt > 120000) {
-        throw new Error("Timed out extracting text. Please try a smaller file.");
-      }
-      // Yield to the browser so the page stays responsive while parsing large statements.
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const strings = content.items.map((item) => (item as { str: string }).str);
-      fullText += strings.join(" ") + "\n";
-    }
-
-    return { text: fullText, pages: pdf.numPages };
+  const handleRemoveFile = useCallback(() => {
+    setSelectedFile(null);
+    setStage("idle");
+    setLimits(null);
+    setExtractedText("");
+    setExtractedPages(0);
   }, []);
 
-  /**
-   * Quick scan: load the PDF and check whether ANY page has embedded text.
-   * Returns true if the file is a scanned-image-only PDF and needs OCR.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const detectScannedPdf = useCallback(async (file: File): Promise<boolean> => {
-    // Only attempt on PDFs
-    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) return false;
+
+  // ── Step 1: Click Extract → server authorize first ─────────────────────────
+  const handleExtract = useCallback(async () => {
+    if (!selectedFile || stage !== "selected") return;
+
+    const isImage = selectedFile.type.startsWith("image/");
+    const kind = isImage ? "ocr" : "text";
+
+    setStage("authorizing");
     try {
-      const { text } = await extractPdfText(file);
-      // If less than 80 characters total, it's almost certainly a scanned PDF
-      return text.replace(/\s/g, "").length < 80;
+      const res = await fetch("/api/extract/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, filename: selectedFile.name, fileSize: selectedFile.size }),
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        if (data.code === "trial_complete") {
+          setStage("selected");
+          showToast(data.error || "Free trial complete.", "error");
+          return;
+        }
+        if (res.status === 429) {
+          setStage("selected");
+          showToast(data.error || "Too many attempts. Please wait.", "error");
+          return;
+        }
+        setStage("selected");
+        showToast(data.error || "Server busy. Please try again.", "error");
+        return;
+      }
+
+      const serverLimits: ServerLimits = {
+        conversionId: data.conversionId,
+        maxPages: data.maxPages,
+        maxChars: data.maxChars,
+        isTrial: data.isTrial,
+        kind: data.kind,
+      };
+      setLimits(serverLimits);
+
+      if (isImage || data.kind === "ocr") {
+        await runOcr(selectedFile, serverLimits);
+      } else {
+        await runTextExtraction(selectedFile, serverLimits);
+      }
     } catch {
-      return false;
+      setStage("selected");
+      showToast("Server busy. Please try again.", "error");
     }
-  }, [extractPdfText]);
+  }, [selectedFile, stage, showToast]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /**
-   * Send the file to the server-side OCR route, streaming page-by-page
-   * progress back to the UI via polling the ocrPageProgress state.
-   */
-  const runOcr = useCallback(async (file: File, pages: number): Promise<string> => {
-    setOcrPageProgress({ current: 0, total: pages });
-
-    const form = new FormData();
-    form.append("file", file);
-
-    // Simulate page-by-page progress while the server is busy.
-    // (The actual OCR runs server-side; we can only estimate progress here.)
-    const avgSecondsPerPage = 2.5;
-    const totalMs = pages * avgSecondsPerPage * 1000;
-    const intervalMs = 1200;
-    let simulatedPage = 0;
-    const progressId = setInterval(() => {
-      simulatedPage = Math.min(simulatedPage + 1, pages - 1);
-      setOcrPageProgress({ current: simulatedPage, total: pages });
-    }, intervalMs);
-
+  // ── Text extraction (browser-side, page-limited by server) ────────────────
+  const runTextExtraction = useCallback(async (file: File, serverLimits: ServerLimits) => {
+    setStage("extracting");
     try {
+      const pdfjs = await loadPdfJs();
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await openPdf(pdfjs, arrayBuffer);
+      const pageCount = Math.min(pdf.numPages, serverLimits.maxPages);
+      setExtractProgress({ page: 0, total: pageCount });
+
+      let fullText = "";
+      let foundImageOnlyPage = false;
+
+      for (let i = 1; i <= pageCount; i++) {
+        await new Promise((r) => setTimeout(r, 0)); // yield to browser
+        setExtractProgress({ page: i, total: pageCount });
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = (content.items as { str: string }[]).map((it) => it.str).join(" ") + "\n";
+        const isImagePage = pageText.replace(/\s/g, "").length < 80;
+
+        if (isImagePage && !foundImageOnlyPage) {
+          // Mixed PDF: switch to OCR, re-authorize for OCR limits
+          foundImageOnlyPage = true;
+          setStage("ocr_reauth");
+          const ocrLimits = await reauthorizeForOcr(serverLimits.conversionId);
+          if (!ocrLimits) return; // error already shown
+          await runOcr(file, ocrLimits);
+          return;
+        }
+
+        fullText += pageText;
+        if (fullText.length >= serverLimits.maxChars) break;
+      }
+
+      if (fullText.replace(/\s/g, "").length < 30) {
+        setStage("selected");
+        showToast("Couldn't read this PDF. Try a different file or incognito mode.", "error");
+        return;
+      }
+
+      setExtractedText(fullText);
+      setExtractedPages(pageCount);
+      setStage("extracted");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Couldn't read this PDF.";
+      if (msg.toLowerCase().includes("password")) {
+        setPasswordPrompt({ incorrect: false });
+        // stage stays as extracting — password modal is shown
+      } else {
+        setStage("selected");
+        showToast(msg, "error");
+      }
+    }
+  }, [showToast]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Re-authorize for OCR (reuses same reservation) ─────────────────────────
+  const reauthorizeForOcr = useCallback(async (conversionId: string): Promise<ServerLimits | null> => {
+    try {
+      const res = await fetch("/api/extract/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "ocr", conversionId }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setStage("selected");
+        showToast(data.error || "Server busy. Please try again.", "error");
+        return null;
+      }
+      const newLimits: ServerLimits = {
+        conversionId: data.conversionId,
+        maxPages: data.maxPages,
+        maxChars: data.maxChars,
+        isTrial: data.isTrial,
+        kind: "ocr",
+      };
+      setLimits(newLimits);
+      return newLimits;
+    } catch {
+      setStage("selected");
+      showToast("Server busy. Please try again.", "error");
+      return null;
+    }
+  }, [showToast]);
+
+  // ── OCR extraction (browser renders pages, calls /api/ocr/parse per page) ──
+  const runOcr = useCallback(async (file: File, serverLimits: ServerLimits) => {
+    setStage("ocr_running");
+    const pageLimit = serverLimits.maxPages; // 1 for trial, 100 for paid
+    setExtractProgress({ page: 0, total: pageLimit });
+    try {
+      const form = new FormData();
+      form.append("file", file);
       const res = await fetch("/api/ocr/parse", {
         method: "POST",
         body: form,
-        signal: AbortSignal.timeout(Math.max(totalMs + 30_000, 90_000)),
+        signal: AbortSignal.timeout(120_000),
       });
-
-      clearInterval(progressId);
-      setOcrPageProgress({ current: pages, total: pages });
-
-      const contentType = res.headers.get("content-type");
-      let data;
-      if (contentType && contentType.includes("application/json")) {
-        data = await res.json();
-      } else {
-        const textRes = await res.text();
-        console.error("Non-JSON OCR API response:", textRes);
-        throw new Error("The OCR server took too long to process this image. Please try a clearer or smaller scan.");
+      setExtractProgress({ page: pageLimit, total: pageLimit });
+      if (!res.ok) {
+        setStage("selected");
+        showToast("Couldn't read this PDF.", "error");
+        return;
       }
-
+      const data = await res.json();
       if (!data.success || !data.text) {
-        throw new Error(data.error || "OCR failed — please try a clearer scan.");
-      }
-      return data.text as string;
-    } catch (err) {
-      clearInterval(progressId);
-      throw err;
-    }
-  }, []);
-
-  const startUpload = async (file: File) => {
-    setFileName(file.name);
-    setAppState("processing");
-    setProcessingStep(0);
-    setIsOcrMode(false);
-    setOcrPageProgress(null);
-    setPdfPasswordPrompt(null);
-    setPdfPassword("");
-    pendingPdfPasswordRef.current = null;
-    submittedPdfPasswordRef.current = null;
-
-    // Track upload
-    trackUploadPdf({ file_name: file.name });
-
-    try {
-      setProcessingStep(1);
-
-      // Check if it's an image file — always needs OCR
-      const isImage = file.type.startsWith("image/");
-
-      if (isImage) {
-        // ── Image-only upload path ──────────────────────────────────────
-        setIsOcrMode(true);
-        setProcessingStep(2); // OCR step
-        setPdfPageCount(1);
-        const ocrText = await runOcr(file, 1);
-        await startAIConversion(ocrText);
+        setStage("selected");
+        showToast(data.error || "Couldn't read this PDF.", "error");
         return;
       }
-
-      // ── PDF path ─────────────────────────────────────────────────────
-      const { text: extractedText, pages } = await extractPdfText(file);
-      setPdfPageCount(pages);
-
-      const isScanned = extractedText.replace(/\s/g, "").length < 80;
-
-      if (isScanned) {
-        // ── Scanned PDF path: use OCR ─────────────────────────────────
-        setIsOcrMode(true);
-        setProcessingStep(2); // OCR step
-        const ocrText = await runOcr(file, pages);
-
-        // Guard: if OCR also returned no usable text, it's unreadable
-        if (!ocrText || ocrText.replace(/\s/g, "").length < 30) {
-          throw new Error(
-            "We could not extract any text from this file. If you're on a work or school network, try opening the site in an incognito window. If the problem continues, try a different PDF."
-          );
-        }
-
-        await startAIConversion(ocrText);
-      } else {
-        // Guard: PDF.js loaded but returned near-empty text — blocked CDN or unsupported encoding
-        if (extractedText.replace(/\s/g, "").length < 30) {
-          throw new Error(
-            "We could not read the text in this PDF. This can happen when a browser extension or network blocks our PDF reader. Try opening this page in an incognito window and uploading again."
-          );
-        }
-
-        // ── Normal text-based PDF path ────────────────────────────────
-        await startAIConversion(extractedText);
-      }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "We could not fully extract this statement. Please try again.";
-      showToast(errorMsg, "error");
-      setAppState("upload");
-    }
-  };
-
-  const submitPdfPassword = () => {
-    const pw = pdfPassword;
-    submittedPdfPasswordRef.current = pw;
-    pendingPdfPasswordRef.current?.resolve(pw);
-    pendingPdfPasswordRef.current = null;
-    setPdfPassword("");
-    setPdfPasswordPrompt(null);
-  };
-
-  const cancelPdfPassword = () => {
-    // Resolve with an empty password — pdf.js throws "No password given"
-    // and the upload is aborted like before.
-    pendingPdfPasswordRef.current?.resolve("");
-    pendingPdfPasswordRef.current = null;
-    setPdfPassword("");
-    setPdfPasswordPrompt(null);
-  };
-
-  const fetchOfferStatus = async () => {
-    try {
-      const res = await fetch("/api/payment/offer-status");
-      const d = await res.json();
-      if (d && typeof d.soldOut === "boolean") {
-        setOfferSoldOut(d.soldOut);
-        setOfferRemaining(d.remaining ?? 0);
-      }
+      const text = String(data.text);
+      setExtractedText(text);
+      setExtractedPages(1);
+      setLimits(serverLimits);
+      setStage("extracted");
     } catch {
-      // ignore
+      setStage("selected");
+      showToast("Couldn't read this PDF.", "error");
     }
-  };
+  }, [showToast]);
 
-  // Called when the user clicks the upload area but BEFORE the file picker opens.
-  // If the free conversion is used, block the picker and show payment.
-  const attemptOpenPicker = async () => {
-    if (pickerBusyRef.current) return;
-    pickerBusyRef.current = true;
-    try {
-      const { supabase, isSupabaseConfigured } = await loadSupabase();
-      if (!isSupabaseConfigured() || !supabase) {
-        // No auth configured — gate anonymous users by localStorage
-        if (appState === "spreadsheet") {
-          const used = typeof window !== "undefined" && localStorage.getItem("free_conversion_used") === "1";
-          if (used) {
-            setPendingPickerIntent(true);
-            setShowPlanModal(true);
-            fetchOfferStatus();
-            return;
-          }
-        }
-        uploadZoneRef.current?.openPicker();
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // Logged-out user — gate by localStorage once they've used their free conversion
-        if (appState === "spreadsheet") {
-          const used = typeof window !== "undefined" && localStorage.getItem("free_conversion_used") === "1";
-          if (used) {
-            setPendingPickerIntent(true);
-            setShowPlanModal(true);
-            fetchOfferStatus();
-            return;
-          }
-        }
-        uploadZoneRef.current?.openPicker();
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/usage/get", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (res.ok) {
-          const d = await res.json();
-          const isFree = (d.conversions_used ?? 0) === 0;
-          if (d.plan === "lifetime" || isFree || (d.paid_credits ?? 0) > 0) {
-            uploadZoneRef.current?.openPicker();
-          } else {
-            setPendingPickerIntent(true);
-            setShowPlanModal(true);
-            fetchOfferStatus();
-          }
-        } else {
-          uploadZoneRef.current?.openPicker();
-        }
-      } catch {
-        uploadZoneRef.current?.openPicker();
-      }
-    } finally {
-      pickerBusyRef.current = false;
-    }
-  };
-
-  const handleAreaClick = () => {
-    attemptOpenPicker();
-  };
-
-  const processPendingUpload = async (file: File) => {
-    const { supabase, isSupabaseConfigured } = await loadSupabase();
-    setPendingFile(null);
-
-    if (!isSupabaseConfigured() || !supabase) {
-      await startUpload(file);
-      return;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      await startUpload(file);
-      return;
-    }
-
-    // Block the conversion when the free one is already used
-    try {
-      const res = await fetch("/api/usage/get", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (res.ok) {
-        const d = await res.json();
-        const isFree = (d.conversions_used ?? 0) === 0;
-        if (d.plan === "lifetime" || isFree) {
-          await startUpload(file);
-        } else if ((d.paid_credits ?? 0) > 0) {
-          const cRes = await fetch("/api/usage/consume", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          });
-          if (cRes.ok) {
-            await startUpload(file);
-          } else {
-            setPendingFile(file);
-            setShowPlanModal(true);
-            fetchOfferStatus();
-          }
-        } else {
-          setPendingFile(file);
-          setShowPlanModal(true);
-          fetchOfferStatus();
-        }
-      } else {
-        await startUpload(file);
-      }
-    } catch {
-      await startUpload(file);
-    }
-  };
-
-  const handleFileSelect = async (file: File) => {
-    const { supabase, isSupabaseConfigured } = await loadSupabase();
-    if (!isSupabaseConfigured() || !supabase) {
-      await startUpload(file);
-      return;
-    }
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      setPendingFile(null);
-      await startUpload(file);
-      return;
-    }
-    setPendingFile(file);
-    await processPendingUpload(file);
-  };
-
-  const startAIConversion = async (text: string) => {
-    // In OCR mode the AI step is step 3 (after OCR step 2);
-    // in normal mode it remains step 2.
-    setProcessingStep(isOcrMode ? 3 : 2); // Analyzing with AI...
-
-    // Track conversion started
-    trackConversionStarted();
-
-    try {
-      const { supabase } = await loadSupabase();
-      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (supabase) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          fetchHeaders["Authorization"] = `Bearer ${session.access_token}`;
-        }
-      }
-
-      const response = await fetch("/api/parse-bank-statement", {
-        method: "POST",
-        headers: fetchHeaders,
-        body: JSON.stringify({ text }),
-      });
-
-      // Prevent "Unexpected token A" crash by safely checking if the response is JSON
-      const contentType = response.headers.get("content-type");
-      let data: ConvertResponse;
-      
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        // Vercel returned an HTML/text error page (like 504 Timeout or 500 Application Error)
-        const textResponse = await response.text();
-        console.error("Non-JSON API response:", textResponse);
-        data = {
-          success: false,
-          errorCode: "API_BUSY",
-          bank_detected: "",
-          currency_symbol: "₹",
-          transactions: [],
-          total: 0,
-          pages: 0,
-          error: "Our servers took too long to process this file. Please try a smaller file or try again later.",
-        };
-      }
-
-      if (data.success && data.transactions.length > 0) {
-        // Final step: Preparing spreadsheet
-        setProcessingStep(isOcrMode ? 4 : 3);
-        await new Promise((resolve) => setTimeout(resolve, 800)); // Small transition delay
-        
-        const cleanName = fileName.replace(/\.pdf$/i, "");
-        const conversionId = createConversionId();
-        
-        if (sheets.length > 0) {
-          setPendingUploadData({
-            transactions: data.transactions,
-            bankDetected: data.bank_detected,
-            currencySymbol: data.currency_symbol || "₹",
-            headers: data.headers || [],
-            fileName: cleanName,
-          });
-          setAppState("spreadsheet");
-        } else {
-          const newSheet = {
-            id: crypto.randomUUID(),
-            name: cleanName,
-            transactions: data.transactions,
-            bankDetected: data.bank_detected,
-            currencySymbol: data.currency_symbol || "₹",
-            headers: data.headers || [],
-          };
-          setSheets([newSheet]);
-          setActiveSheetId(newSheet.id);
-          setAppState("spreadsheet");
-        }
-
-        // Persist the completed conversion before leaving the upload route.
-        // The preview can be restored after a reload from this durable browser snapshot.
-        const previewSheets = sheets.length > 0
-          ? [...sheets, {
-              id: crypto.randomUUID(), name: cleanName, transactions: data.transactions,
-              bankDetected: data.bank_detected, currencySymbol: data.currency_symbol || "₹",
-              headers: data.headers || [],
-            }]
-          : [{
-              id: crypto.randomUUID(), name: cleanName, transactions: data.transactions,
-              bankDetected: data.bank_detected, currencySymbol: data.currency_symbol || "₹",
-              headers: data.headers || [],
-            }];
-        const previewActiveId = previewSheets[previewSheets.length - 1].id;
-        if (sheets.length === 0 && saveConversionSnapshot(conversionId, { sheets: previewSheets, activeSheetId: previewActiveId, fileName: cleanName, createdAt: Date.now(), summary: calculateConversionSummary(data.transactions, data.bank_detected, data.currency_symbol || "₹") })) {
-          saveLatestConversion(conversionId);
-          router.push(`/preview/${conversionId}`);
-        }
-
-        // Track preview displayed
-        trackPreviewDisplayed({
-          bank: data.bank_detected ?? undefined,
-          transaction_count: data.transactions.length,
-        });
-
-        // Count this conversion towards usage (only when signed in)
-        try {
-          if (supabase) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-              const incRes = await fetch("/api/usage/increment", {
-                method: "POST",
-                headers: { Authorization: `Bearer ${session.access_token}` },
-              });
-              if (!incRes.ok) {
-                const errBody = await incRes.json().catch(() => ({}));
-                console.error("[usage] increment failed:", incRes.status, errBody);
-              }
-            } else {
-              // Anonymous user — mark free conversion used in localStorage
-              if (typeof window !== "undefined") {
-                localStorage.setItem("free_conversion_used", "1");
-              }
-            }
-          } else {
-            // No supabase configured — mark free conversion used in localStorage
-            if (typeof window !== "undefined") {
-              localStorage.setItem("free_conversion_used", "1");
-            }
-          }
-        } catch (e) {
-          console.error("[usage] increment error:", e);
-        }
-
-      } else {
-        if (data.errorCode === "API_BUSY") {
-          showToast(
-            <span>
-              Our free service is currently busy due to high demand.{" "}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowLoginModal(true);
-                }}
-                className="underline font-bold text-error-700 hover:text-error-800 transition-colors"
-              >
-                Sign up for free
-              </button>{" "}
-              to prioritize your conversion.
-            </span>,
-            "error"
-          );
-        } else {
-          showToast(data.error || "We could not fully parse this statement. Try opening the site in an incognito window and uploading again, or try a different PDF.", "error");
-        }
-        setAppState("upload");
-      }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Something went wrong. Try opening this page in an incognito window and uploading again.";
-      showToast(errorMsg, "error");
-      setAppState("upload");
-    } finally {
-      // conversion complete
-    }
-  };
-
-  const initPlanPayment = async (plan: "lifetime" | "per_conversion") => {
-    const { supabase, isSupabaseConfigured } = await loadSupabase();
-    if (!isSupabaseConfigured() || !supabase) return;
-    setIsProcessingPayment(true);
-
-    // Track payment page viewed
-    trackPaymentPageViewed({ plan });
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setIsProcessingPayment(false);
-        setShowPlanModal(false);
-        trackSignupStarted({ trigger: "payment_gate" });
-        setShowLoginModal(true);
-        return;
-      }
-
-      // Create order
-      const createOrderRes = await fetch("/api/payment/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ plan }),
-      });
-
-      const orderData = await createOrderRes.json();
-
-      if (!orderData.success) {
-        throw new Error(orderData.error || "Failed to create payment order");
-      }
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "StatementToExcel",
-        description: plan === "lifetime" ? "Lifetime Access ($100)" : "Per Conversion Credit ($2)",
-        order_id: orderData.orderId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        handler: async function (response: any) {
-          try {
-            // Verify payment
-            const verifyRes = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${session.access_token}`
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                payment_record_id: orderData.paymentRecordId
-              }),
-            });
-
-            const verifyData = await verifyRes.json();
-
-            if (verifyData.success) {
-              // Track successful payment
-              trackPaymentSuccess({
-                plan,
-                value: orderData.priceINR ?? 0,
-                currency: orderData.currency ?? "INR",
-                transaction_id: response.razorpay_payment_id,
-              });
-              showToast(
-                plan === "lifetime"
-                  ? "Lifetime access unlocked! 🎉"
-                  : "Credit added! You can convert your file now.",
-                "success"
-              );
-              setShowPlanModal(false);
-              setIsProcessingPayment(false);
-              setPendingPickerIntent(false);
-              if (pendingFile) {
-                const fileToProcess = pendingFile;
-                setPendingFile(null);
-                await processPendingUpload(fileToProcess);
-              } else if (pendingExportFormat) {
-                const fmt = pendingExportFormat;
-                setPendingExportFormat(null);
-                await handleExport(fmt);
-              } else {
-                attemptOpenPicker();
-              }
-            } else {
-              throw new Error(verifyData.error || "Payment verification failed");
-            }
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : "Payment verification failed";
-            showToast(msg, "error");
-            setIsProcessingPayment(false);
-          }
-        },
-        prefill: {
-          email: userEmail || "",
-        },
-        theme: {
-          color: "#2563EB",
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessingPayment(false);
-          }
-        }
+  // ── PDF.js helpers ─────────────────────────────────────────────────────────
+  async function loadPdfJs() {
+    const PDFJS_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/legacy/build/pdf.min.mjs";
+    type PdfJsModule = {
+      GlobalWorkerOptions: { workerSrc: string };
+      getDocument: (args: { data: ArrayBuffer; password?: string }) => {
+        onPassword?: (update: (pw: string) => void, reason: number) => void;
+        promise: Promise<{
+          numPages: number;
+          getPage: (n: number) => Promise<{ getTextContent: () => Promise<{ items: { str: string }[] }> }>;
+        }>;
       };
+    };
+    const mod = (await import(/* webpackIgnore: true */ PDFJS_URL)) as PdfJsModule;
+    mod.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+    return mod;
+  }
 
-      // Load Razorpay script on demand — only now when the user is
-      // actually about to pay, not on every page load.
-      await loadRazorpayScript();
+  async function openPdf(pdfjs: Awaited<ReturnType<typeof loadPdfJs>>, arrayBuffer: ArrayBuffer) {
+    return new Promise<{
+      numPages: number;
+      getPage: (n: number) => Promise<{ getTextContent: () => Promise<{ items: { str: string }[] }> }>;
+    }>((resolve, reject) => {
+      const task = pdfjs.getDocument({ data: arrayBuffer });
+      task.onPassword = (_update, reason) => {
+        setPasswordPrompt({ incorrect: reason === 2 });
+        pendingPasswordRef.current = { resolve: _update };
+      };
+      task.promise.then(resolve, reject);
+    });
+  }
 
-      const rzp = new window.Razorpay(options);      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rzp.on("payment.failed", function (response: any) {
-        trackPaymentFailed({ plan, reason: response.error?.description });
-        showToast(response.error.description || "Payment failed", "error");
-        setIsProcessingPayment(false);
-      });
-
-      // Track payment initiated (Razorpay modal about to open)
-      trackPaymentInitiated({
-        plan,
-        value: orderData.priceINR ?? 0,
-        currency: orderData.currency ?? "INR",
-      });
-
-      rzp.open();
-
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Payment initialization failed";
-      showToast(errorMsg, "error");
-      setIsProcessingPayment(false);
-    }
+  // ── Password submit ────────────────────────────────────────────────────────
+  const submitPassword = () => {
+    const pw = pdfPassword;
+    setPdfPassword("");
+    setPasswordPrompt(null);
+    pendingPasswordRef.current?.resolve(pw);
+    pendingPasswordRef.current = null;
   };
 
-  const handleLoginSuccess = useCallback(async () => {
-    setShowLoginModal(false);
-    setIsAuthenticated(true);
-    const { supabase } = await loadSupabase();
-    if (!supabase) return;
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUserEmail(session.user.email || null);
-        fetchUserUsage(session.access_token).then(() => {
-          // Re-trigger the pending export directly after login (bypassing stale auth checks)
-          if (pendingExportFormat) {
-            const fmt = pendingExportFormat;
-            setPendingExportFormat(null);
-            performExport(fmt);
-          }
-          // Re-trigger the pending upload after login
-          if (pendingFile) {
-            const fileToProcess = pendingFile;
-            setPendingFile(null);
-            processPendingUpload(fileToProcess);
-          }
-          // Re-trigger the file picker after login
-          if (pendingPickerIntent) {
-            setPendingPickerIntent(false);
-            attemptOpenPicker();
-          }
-        });
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchUserUsage, pendingExportFormat, pendingFile, pendingPickerIntent]);
-
-  const handleExport = useCallback(
-    async (format: "csv" | "xlsx" | "json" | "iif") => {
-      // Track button click immediately (before auth check)
-      trackDownloadButtonClicked({ format });
-      const { supabase, isSupabaseConfigured } = await loadSupabase();
-
-      if (!isSupabaseConfigured() || !supabase) {
-        await performExport(format);
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        showToast("Sign in to download your converted file.", "info");
-        setPendingExportFormat(format);
-        trackSignupStarted({ trigger: "download_gate" });
-        setShowLoginModal(true);
-        return;
-      }
-
-      setIsAuthenticated(true);
-      await performExport(format);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transactions, sheets, headers, bankDetected]
-  );
-
-  const performExport = async (format: "csv" | "xlsx" | "json" | "iif") => {
+  // ── Step 2: Click Convert → server convert ─────────────────────────────────
+  const handleConvert = useCallback(async () => {
+    if (!limits || !extractedText || stage !== "extracted") return;
+    setStage("converting");
     try {
-      const bodyPayload = format === "xlsx" 
-        ? { sheets: sheets.map(s => ({ name: s.name, transactions: s.transactions })), format }
-        : { transactions, format, headers };
-
-      const response = await fetch("/api/export", {
+      const res = await fetch("/api/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyPayload),
+        body: JSON.stringify({
+          conversionId: limits.conversionId,
+          text: extractedText,
+          pagesSubmitted: extractedPages,
+          kind: limits.kind,
+        }),
       });
-
-      if (!response.ok) {
-        showToast("Export failed. Please try again.", "error");
+      const data = await res.json();
+      if (!data.ok) {
+        setStage("extracted");
+        if (data.code === "too_many") {
+          showToast(`Too many attempts. Retry in ${data.retryAfterSec ?? 30}s.`, "error");
+        } else {
+          showToast(data.error || "Server busy. Please try again.", "error");
+        }
         return;
       }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const date = new Date().toISOString().split("T")[0];
-      a.download = `bankstatement_${date}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      // Track successful download
-      if (format === "xlsx") {
-        trackDownloadExcel({ bank: bankDetected ?? undefined, transaction_count: transactions.length });
-      } else if (format === "csv") {
-        trackDownloadCsv({ bank: bankDetected ?? undefined, transaction_count: transactions.length });
-      }
-
-      showToast(`Downloaded successfully ✓`, "success");
+      setStage("done");
+      router.push(`/preview/${data.jobId}`);
     } catch {
-      showToast("Export failed. Please try again.", "error");
+      setStage("extracted");
+      showToast("Server busy. Please try again.", "error");
     }
-  };
+  }, [limits, extractedText, extractedPages, stage, router, showToast]);
 
-  // Calculate dynamic stats
-  const summary = useMemo(() => {
-    const totalTransactions = transactions.length;
-    let totalDebit = 0;
-    let totalCredit = 0;
-    let openingBalance = 0;
-    let closingBalance = 0;
+  // ─── Render ─────────────────────────────────────────────────────────────────
 
-    transactions.forEach((tx) => {
-      const debitVal = parseFloat(String(tx.debit).replace(/,/g, "")) || 0;
-      const creditVal = parseFloat(String(tx.credit).replace(/,/g, "")) || 0;
-      totalDebit += debitVal;
-      totalCredit += creditVal;
-    });
-
-    if (transactions.length > 0) {
-      const opRow = transactions.find((tx) =>
-        tx.description.toLowerCase().includes("opening balance")
-      );
-      if (opRow) {
-        openingBalance = parseFloat(String(opRow.balance).replace(/,/g, "")) || 0;
-      } else {
-        const firstWithBal = transactions.find(
-          (tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, "")))
-        );
-        if (firstWithBal) {
-          const bal = parseFloat(String(firstWithBal.balance).replace(/,/g, "")) || 0;
-          const cr = parseFloat(String(firstWithBal.credit).replace(/,/g, "")) || 0;
-          const dr = parseFloat(String(firstWithBal.debit).replace(/,/g, "")) || 0;
-          openingBalance = bal - cr + dr;
-        }
-      }
-
-      const lastWithBal = [...transactions]
-        .reverse()
-        .find((tx) => tx.balance && !isNaN(parseFloat(String(tx.balance).replace(/,/g, ""))));
-      if (lastWithBal) {
-        closingBalance = parseFloat(String(lastWithBal.balance).replace(/,/g, "")) || 0;
-      } else {
-        closingBalance = openingBalance + totalCredit - totalDebit;
-      }
-    }
-
-    return { totalTransactions, totalDebit, totalCredit, openingBalance, closingBalance };
-  }, [transactions]);
+  const isWorking = ["authorizing", "extracting", "ocr_reauth", "ocr_running", "converting", "done"].includes(stage);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
-      {/* Top Navbar */}
-      <nav className="flex items-center h-14 px-4 bg-white border-b border-slate-200 gap-3 flex-shrink-0 relative z-10">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-slate-800 hover:text-primary-600 transition-colors mr-4"
-        >
-          <FileSpreadsheet size={22} className="text-primary-600" />
-          <span className="font-bold text-sm hidden sm:inline">StatementToExcel</span>
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      {/* Navbar */}
+      <nav className="flex items-center h-16 px-6 bg-white border-b border-slate-200 shadow-sm">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span className="font-bold text-slate-900 text-lg">StatementToExcel</span>
         </Link>
-
-        {/* Filename */}
-        {fileName && appState !== "upload" && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-lg text-sm text-slate-600 max-w-[200px]">
-            <span className="truncate">{fileName}</span>
+        <span className="flex-1" />
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-1 text-sm text-slate-600">
+            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Secure & Private
           </div>
-        )}
-
-        {/* Upload another */}
-        {appState === "spreadsheet" && (
-          <UploadZone onFileSelect={handleFileSelect} isCollapsed={true} ref={uploadZoneRef} onAreaClick={handleAreaClick} />
-        )}
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Export Dropdown */}
-        {appState === "spreadsheet" && (
-          <div className="relative" ref={exportMenuRef}>
-            <button
-              onClick={() => setShowExportMenu((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                text-white bg-primary-600 rounded-lg
-                hover:bg-primary-700 transition-all shadow-sm"
-            >
-              <FileDown size={13} />
-              <span>Export</span>
-              <ChevronDown size={12} className={`transition-transform duration-150 ${showExportMenu ? "rotate-180" : ""}`} />
-            </button>
-
-            {showExportMenu && (
-              <>
-                {/* backdrop to close on outside click */}
-                <div
-                  className="fixed inset-0 z-[15]"
-                  onClick={() => setShowExportMenu(false)}
-                />
-                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-[20] py-1 overflow-hidden">
-                  {(
-                    [
-                      { format: "xlsx", label: "Excel (.xlsx)", icon: <FileDown size={13} /> },
-                      { format: "csv",  label: "CSV (.csv)",    icon: <Download size={13} /> },
-                      { format: "iif",  label: "IIF (QuickBooks)", icon: <Download size={13} /> },
-                      { format: "json", label: "JSON (.json)",  icon: <Download size={13} /> },
-                    ] as const
-                  ).map(({ format, label, icon }) => (
-                    <button
-                      key={format}
-                      onClick={() => {
-                        setShowExportMenu(false);
-                        handleExport(format);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700
-                        hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <span className="text-slate-400">{icon}</span>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* User */}
-        {isAuthenticated ? (
-          <div className="flex items-center gap-2 ml-2">
-            {userPlan === "lifetime" && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                <Sparkles size={9} />
-                Lifetime
-              </span>
-            )}
-            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
-              {userEmail?.charAt(0).toUpperCase() || "U"}
-            </div>
-          </div>
-        ) : (
           <button
-            onClick={() => {
-              trackSignupStarted({ trigger: "navbar" });
-              setShowLoginModal(true);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600
-              hover:text-primary-600 transition-colors ml-2"
+            onClick={() => setShowLogin(true)}
+            className="bg-primary-100 text-primary-700 hover:bg-primary-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
           >
-            <User size={16} />
-            <span className="hidden sm:inline">Sign in</span>
+            Sign in
           </button>
-        )}
+        </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative">
-        {appState === "upload" && (
-          <UploadZone onFileSelect={handleFileSelect} isCollapsed={false} ref={uploadZoneRef} onAreaClick={handleAreaClick} />
-        )}
+      {/* 3-column layout */}
+      <div className="flex-1 flex overflow-hidden">
 
-        {appState === "processing" && (
-          <ProcessingSteps
-            fileName={fileName}
-            currentStep={processingStep}
-            pageCount={pdfPageCount}
-            isOcrMode={isOcrMode}
-            ocrPageProgress={ocrPageProgress}
-          />
-        )}        
-        
-        {appState === "spreadsheet" && (
-          <div className="h-full p-4 flex flex-col overflow-hidden relative">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4 flex-shrink-0">
-              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-primary-200">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Transactions</p>
-                <h4 className="text-xl font-bold text-slate-800">{summary.totalTransactions}</h4>
-              </div>
-              {bankDetected && bankDetected !== "Parsed with AI" && (
-                <div className="col-span-2 lg:col-span-1 bg-white p-4 rounded-xl border border-primary-100 shadow-sm transition-all hover:shadow hover:border-primary-200">
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Bank Detected</p>
-                  <h4 className="text-base font-bold text-primary-700 truncate" title={bankDetected}>{bankDetected}</h4>
+        {/* ── LEFT PANEL: Stats + Testimonials ── */}
+        <aside className="hidden lg:flex flex-col w-72 xl:w-80 border-r border-slate-200 bg-white">
+          <div className="flex flex-col h-full p-6 gap-5">
+
+            {/* Stats grid — TOP */}
+            <div className="grid grid-cols-2 gap-2 flex-shrink-0">
+              {[
+                { val: "10K+", label: "Converted", color: "bg-blue-50 text-blue-700" },
+                { val: "99%+", label: "Accuracy", color: "bg-green-50 text-green-700" },
+                { val: "350+", label: "Banks", color: "bg-violet-50 text-violet-700" },
+                { val: "4.9★", label: "Rating", color: "bg-amber-50 text-amber-700" },
+              ].map((s) => (
+                <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
+                  <p className="text-lg font-bold leading-none">{s.val}</p>
+                  <p className="text-xs mt-1 opacity-80">{s.label}</p>
                 </div>
-              )}
-              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-red-200">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Debit (Out)</p>
-                <h4 className="text-xl font-bold text-rose-600">
-                  {summary.totalDebit > 0 ? `${currencySymbol}${summary.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currencySymbol}0.00`}
-                </h4>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-emerald-200">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Credit (In)</p>
-                <h4 className="text-xl font-bold text-emerald-600">
-                  {summary.totalCredit > 0 ? `${currencySymbol}${summary.totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currencySymbol}0.00`}
-                </h4>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-violet-200">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Opening Balance</p>
-                <h4 className="text-xl font-bold text-slate-700">
-                  {currencySymbol}{summary.openingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h4>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm transition-all hover:shadow hover:border-indigo-200">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Closing Balance</p>
-                <h4 className={`text-xl font-bold ${summary.closingBalance >= 0 ? "text-slate-800" : "text-red-700"}`}>
-                  {currencySymbol}{summary.closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h4>
-              </div>
+              ))}
             </div>
 
-            {/* Spreadsheet Grid */}
-            <div className="flex-1 min-h-0">
-              <Spreadsheet
-                transactions={transactions}
-                bankDetected={bankDetected}
-                isGhostMode={false}
-                onTransactionsChange={handleTransactionsChange}
-                sheets={sheets}
-                activeSheetId={activeSheetId}
-                onSheetsChange={setSheets}
-                onActiveSheetIdChange={setActiveSheetId}
-              />
+            {/* Testimonials — BOTTOM, fill remaining space */}
+            <div className="flex flex-col gap-3 flex-1 min-h-0">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex-shrink-0">What people say</p>
+              {[
+                { quote: "Saved me hours every month. The lender accepted the output immediately.", name: "Sarah M.", role: "Chartered Accountant" },
+                { quote: "Works perfectly with scanned statements. Far better than anything else.", name: "David R.", role: "Business Owner" },
+                { quote: "Live preview is a game changer — I fix errors before downloading.", name: "Maria L.", role: "Freelance Bookkeeper" },
+              ].map((t) => (
+                <div key={t.name} className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex-shrink-0">
+                  <div className="flex gap-0.5 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed mb-2">"{t.quote}"</p>
+                  <p className="text-xs font-semibold text-slate-900">{t.name} <span className="font-normal text-slate-400">· {t.role}</span></p>
+                </div>
+              ))}
             </div>
+
           </div>
-        )}
-      </main>
+        </aside>
 
-      {/* Auth Modal */}
-      {showLoginModal && <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => { setShowLoginModal(false); setPendingExportFormat(null); }}
-        onLoginSuccess={handleLoginSuccess}
-      />}
+        {/* ── CENTER: Upload / Conversion ── */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 gap-6 overflow-y-auto">
 
-      {/* Plan Modal — shown before upload when the free conversion is used */}
-      {showPlanModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowPlanModal(false)} />
-          <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl p-8">
-            <button
-              onClick={() => setShowPlanModal(false)}
-              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-              aria-label="Close"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-extrabold text-slate-900 mb-1">You've used your free conversion</h2>
-              <p className="text-sm text-slate-500">Pick a plan to keep converting bank statements to Excel.</p>
-            </div>
-
-            <div className="grid gap-4">
-              {/* Lifetime Access */}
-              <div className="relative rounded-2xl border-2 border-primary-500 p-5 shadow-sm">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-1 px-3 py-1 bg-rose-600 text-white text-[10px] font-bold rounded-full shadow">
-                    <Clock size={11} />
-                    {offerSoldOut ? "SOLD OUT" : `OFFER ENDS IN ${countdown}`}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                    <Sparkles size={22} className="text-primary-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-bold text-slate-900">Lifetime Access</h3>
-                    <p className="text-xs text-slate-500">Pay once, convert unlimited statements forever</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <span className="text-3xl font-extrabold text-slate-900">{formatUSD(LIFETIME_PRICE_USD)}</span>
-                    <span className="text-sm text-slate-500 ml-1">one-time</span>
-                  </div>
-                  <button
-                    onClick={() => initPlanPayment("lifetime")}
-                    disabled={isProcessingPayment || offerSoldOut}
-                    className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
-                  >
-                    {isProcessingPayment ? "Processing..." : offerSoldOut ? "Sold Out" : "Get Lifetime Access"}
-                  </button>
-                </div>
-                <p className="mt-3 text-[11px] text-slate-400">
-                  {offerSoldOut
-                    ? "This offer is no longer available."
-                    : `Limited to ${LIFETIME_OFFER_LIMIT} users — only ${offerRemaining} spots left.`}
+          {/* Upload zone */}
+          {stage === "idle" && (
+            <>
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                  Convert Bank Statement to Excel
+                </h1>
+                <p className="text-slate-500 text-sm">
+                  Upload your PDF — get a clean, editable spreadsheet in seconds.
                 </p>
               </div>
+              <div className="w-full max-w-md">
+                <UploadZone
+                  ref={uploadZoneRef}
+                  onFileSelect={handleFileSelect}
+                  isCollapsed={false}
+                />
+              </div>
+              <div className="flex items-center gap-5 text-xs text-slate-400">
+                {["SSL Encrypted", "99%+ Accuracy", "Files Auto-Deleted", "No Signup"].map((badge) => (
+                  <div key={badge} className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {badge}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
-              {/* Pay Per Conversion */}
-              <div className="rounded-2xl border border-slate-200 p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-                    <Zap size={22} className="text-amber-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-bold text-slate-900">Pay Per Conversion</h3>
-                    <p className="text-xs text-slate-500">Pay only when you need to convert a statement</p>
-                  </div>
+          {/* File selected card */}
+          {(stage === "selected" || isWorking || stage === "extracted") && selectedFile && (
+            <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+              <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-slate-900 truncate text-sm">{selectedFile.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              {stage === "selected" && (
+                <button onClick={handleRemoveFile} className="text-slate-300 hover:text-slate-500 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Progress bar */}
+          {(stage === "extracting" || stage === "ocr_running") && extractProgress && (
+            <div className="w-full max-w-md">
+              <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+                <span>Reading page {extractProgress.page} of {extractProgress.total}…</span>
+                <span>{Math.round((extractProgress.page / Math.max(extractProgress.total, 1)) * 100)}%</span>
+              </div>
+              <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className="h-2 bg-primary-500 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${extractProgress.total > 0 ? (extractProgress.page / extractProgress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Status messages */}
+          {["authorizing", "ocr_reauth", "converting"].includes(stage) && (
+            <div className="flex items-center gap-2 text-primary-600 text-sm font-medium">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent" />
+              {stage === "authorizing" && "Preparing conversion…"}
+              {stage === "ocr_reauth" && "Switching to advanced OCR…"}
+              {stage === "converting" && "Creating your Excel file…"}
+            </div>
+          )}
+          {stage === "done" && (
+            <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Done! Redirecting to your preview…
+            </div>
+          )}
+
+          {/* Action buttons */}
+          {stage === "selected" && (
+            <button
+              onClick={handleExtract}
+              className="px-10 py-3.5 bg-primary-600 text-white rounded-xl font-semibold text-base hover:bg-primary-700 active:scale-95 transition-all shadow-md hover:shadow-lg"
+            >
+              Convert to Excel →
+            </button>
+          )}
+          {stage === "extracted" && (
+            <button
+              onClick={handleConvert}
+              className="px-10 py-3.5 bg-primary-600 text-white rounded-xl font-semibold text-base hover:bg-primary-700 active:scale-95 transition-all shadow-md hover:shadow-lg"
+            >
+              Download Excel →
+            </button>
+          )}
+          {isWorking && !["extracted", "done"].includes(stage) && (
+            <button disabled className="px-10 py-3.5 bg-primary-300 text-white rounded-xl font-semibold text-base cursor-not-allowed flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              Processing…
+            </button>
+          )}
+        </div>
+
+        {/* ── RIGHT PANEL: Lifetime + Why choose us ── */}
+        <aside className="hidden lg:flex flex-col w-72 xl:w-80 border-l border-slate-200 bg-white">
+          <div className="flex flex-col h-full p-6 gap-5">
+
+            {/* Lifetime plan — TOP */}
+            <div className="rounded-2xl bg-gradient-to-b from-primary-600 to-primary-800 p-5 text-white flex-shrink-0">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
                 </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <span className="text-3xl font-extrabold text-slate-900">{formatUSD(PER_CONVERSION_PRICE_USD)}</span>
-                    <span className="text-sm text-slate-500 ml-1">per file</span>
+                <p className="font-bold text-sm">Lifetime Access</p>
+              </div>
+              <p className="text-primary-200 text-xs leading-relaxed mb-4">
+                One payment. Unlimited conversions forever — no subscriptions, no renewal fees.
+              </p>
+              <div className="space-y-1.5 mb-4">
+                {["Unlimited conversions", "All export formats", "Priority processing", "30-day money-back"].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <svg className="w-3 h-3 text-primary-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-xs text-primary-100">{item}</span>
                   </div>
-                  <button
-                    onClick={() => initPlanPayment("per_conversion")}
-                    disabled={isProcessingPayment}
-                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
-                  >
-                    {isProcessingPayment ? "Processing..." : `Pay ${formatUSD(PER_CONVERSION_PRICE_USD)} & Convert`}
-                  </button>
-                </div>
+                ))}
+              </div>
+              <Link
+                href="/pricing"
+                className="block w-full bg-white text-primary-700 text-center py-2.5 rounded-xl font-bold text-sm hover:bg-primary-50 transition-colors"
+              >
+                Get Lifetime Access →
+              </Link>
+            </div>
+
+            {/* Why choose us — BOTTOM */}
+            <div className="flex flex-col gap-3 flex-1 min-h-0">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex-shrink-0">Why choose us</p>
+              <div className="flex flex-col gap-2">
+                {[
+                  {
+                    title: "Live Editable Preview",
+                    desc: "Review and fix every row before you download.",
+                    icon: (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    title: "350+ Banks Supported",
+                    desc: "HDFC, Chase, Barclays, HSBC auto-detected.",
+                    icon: (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    title: "Scanned PDF & OCR",
+                    desc: "Reads image-based and scanned statements.",
+                    icon: (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    title: "No Merged Cells",
+                    desc: "Clean output ready for QuickBooks & Xero.",
+                    icon: (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M10 3v18M14 3v18" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    title: "Bank-Grade Security",
+                    desc: "256-bit SSL. Files deleted in 1 hour.",
+                    icon: (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    ),
+                  },
+                ].map((f) => (
+                  <div key={f.title} className="flex items-start gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors">
+                    <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      {f.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 leading-none mb-0.5">{f.title}</p>
+                      <p className="text-xs text-slate-500">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <p className="mt-5 text-center text-xs text-slate-400">
-              Secure payments via Razorpay. Your file is processed right after payment.
-            </p>
           </div>
-        </div>
-      )}
+        </aside>
 
-      {/* PDF Password Modal — shown when the uploaded PDF is password protected */}
-      {pdfPasswordPrompt && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={cancelPdfPassword}
-          />
-          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-8">
-            <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
-              <Lock size={24} className="text-primary-600" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-1">
-              {pdfPasswordPrompt.incorrect
-                ? "Incorrect password"
-                : "This PDF is password protected"}
-            </h2>
-            <p className="text-sm text-slate-500 mb-5">
-              {pdfPasswordPrompt.incorrect
-                ? "The password you entered is wrong. Please try again."
-                : `Enter the password to unlock "${pdfPasswordPrompt.fileName}".`}
+      </div>
+
+      {/* PDF password modal */}
+      {passwordPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h2 className="font-bold text-slate-800 mb-1">Password Protected</h2>
+            <p className="text-sm text-slate-500 mb-4">
+              {passwordPrompt.incorrect ? "Incorrect password. Try again." : "This PDF requires a password."}
             </p>
             <input
               type="password"
               value={pdfPassword}
               onChange={(e) => setPdfPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submitPdfPassword();
-              }}
+              onKeyDown={(e) => e.key === "Enter" && submitPassword()}
               placeholder="Enter PDF password"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary-300"
               autoFocus
-              className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl
-                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                placeholder:text-slate-400"
             />
-            <div className="mt-5 flex gap-2">
+            <div className="flex gap-2">
               <button
-                onClick={cancelPdfPassword}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={submitPdfPassword}
-                className="flex-1 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors"
+                onClick={submitPassword}
+                className="flex-1 bg-primary-600 text-white rounded-lg py-2 text-sm font-medium"
               >
                 Unlock
+              </button>
+              <button
+                onClick={() => { setPasswordPrompt(null); setStage("selected"); }}
+                className="flex-1 border border-slate-200 text-slate-600 rounded-lg py-2 text-sm"
+              >
+                Cancel
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Merge/New Sheet Prompt Modal */}
-      {pendingUploadData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 max-w-md w-full mx-4 animate-scale-in">
-            <h3 className="text-base font-semibold text-slate-800 mb-2">Import Statement</h3>
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              We parsed <strong>{pendingUploadData.transactions.length}</strong> transactions from <strong>{pendingUploadData.fileName}</strong>. 
-              How would you like to add them to your workspace?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => {
-                  // Merge into active sheet
-                  setSheets(prev => prev.map(s => {
-                    if (s.id === activeSheetId) {
-                      const merged = [
-                        ...s.transactions,
-                        ...pendingUploadData.transactions.map(t => ({ ...t, id: crypto.randomUUID() }))
-                      ];
-                      return { ...s, transactions: merged };
-                    }
-                    return s;
-                  }));
-                  setPendingUploadData(null);
-                  showToast("Merged transactions successfully!", "success");
-                }}
-                className="w-full py-2 px-4 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors border border-primary-200"
-              >
-                Merge with Active Sheet ({sheets.find(s => s.id === activeSheetId)?.name})
-              </button>
-              <button
-                onClick={() => {
-                  // Create new sheet
-                  const newSheet: Sheet = {
-                    id: crypto.randomUUID(),
-                    name: pendingUploadData.fileName,
-                    transactions: pendingUploadData.transactions,
-                    bankDetected: pendingUploadData.bankDetected,
-                    currencySymbol: pendingUploadData.currencySymbol || "",
-                    headers: pendingUploadData.headers
-                  };
-                  setSheets(prev => [...prev, newSheet]);
-                  setActiveSheetId(newSheet.id);
-                  setPendingUploadData(null);
-                  showToast("Created new sheet!", "success");
-                }}
-                className="w-full py-2 px-4 bg-primary-600 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
-              >
-                Create New Sheet
-              </button>
-              <button
-                onClick={() => setPendingUploadData(null)}
-                className="w-full py-2 px-4 bg-white text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-50 border border-slate-200 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Login modal */}
+      {showLogin && (
+        <LoginModal
+          isOpen
+          onClose={() => setShowLogin(false)}
+          onLoginSuccess={() => setShowLogin(false)}
+        />
       )}
     </div>
   );

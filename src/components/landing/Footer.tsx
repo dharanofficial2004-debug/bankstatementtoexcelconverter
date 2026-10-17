@@ -60,6 +60,9 @@ export default function Footer() {
               >
                 Blog
               </Link>
+              <Link href="/affiliate" className="block hover:text-primary-600 transition-colors">
+                Affiliate program
+              </Link>
               <Link
                 href="https://www.youtube.com/@smartpost_sheduler"
                 className="inline-flex items-center gap-2 hover:text-primary-600 transition-colors"

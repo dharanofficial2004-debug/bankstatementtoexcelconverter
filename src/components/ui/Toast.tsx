@@ -11,7 +11,7 @@ interface Toast {
 }
 
 interface ToastContextType {
-  showToast: (message: React.ReactNode, type?: "success" | "error" | "info") => void;
+  showToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 const ToastContext = createContext<ToastContextType>({
@@ -20,13 +20,23 @@ const ToastContext = createContext<ToastContextType>({
 
 export const useToast = () => useContext(ToastContext);
 
+function makeToastMessageUserFriendly(message: string): string {
+  if (/loading\s+(?:javascript\s+)?chunk|chunkloaderror|failed to fetch dynamically imported module|unable to preload css|chunk load failed|_next\/static\/chunks/i.test(message)) {
+    return "This page was updated. Refresh it, then try again.";
+  }
+  if (/\b(?:TypeError|ReferenceError|SyntaxError|UnhandledPromiseRejection|ChunkLoadError|SQLSTATE|PGRST\d{3}|ECONN\w*|ENOTFOUND|ETIMEDOUT|NetworkError|Supabase|Postgres)\b|failed to fetch|internal server error|row-level security|stack trace|https?:\/\/[^/\s]+\/_next|(?:\.js|\.mjs):\d+:\d+/i.test(message)) {
+    return "Something went wrong. Please try again.";
+  }
+  return message;
+}
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback(
-    (message: React.ReactNode, type: "success" | "error" | "info" = "success") => {
+    (message: string, type: "success" | "error" | "info" = "success") => {
       const id = crypto.randomUUID();
-      setToasts((prev) => [...prev, { id, message, type }]);
+      setToasts((prev) => [...prev, { id, message: makeToastMessageUserFriendly(message), type }]);
     },
     []
   );

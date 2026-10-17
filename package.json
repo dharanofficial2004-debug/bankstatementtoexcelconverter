@@ -12,6 +12,7 @@
     "node": "22.x"
   },
   "dependencies": {
+    "@affitor/sdk": "^2.1.0",
     "@supabase/supabase-js": "^2.108.2",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",

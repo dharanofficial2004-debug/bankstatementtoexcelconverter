@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, Mail, Lock, Eye, EyeOff, Shield, Loader2, UserPlus, LogIn, UserRound } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { trackSignupCompleted, trackLoginCompleted } from "@/lib/analytics";
+import { trackAffiliateSignup } from "@/lib/affitor-client";
 
 export const PROFESSIONS = [
   "Accountant",
@@ -27,10 +28,9 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   const [tab, setTab] = useState<Tab>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [profession, setProfession] = useState<string>("");
+  const [customProfession, setCustomProfession] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,11 +39,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   const resetForm = () => {
     setEmail("");
     setPassword("");
-    setConfirmPassword("");
     setProfession("");
+    setCustomProfession("");
     setError(null);
     setShowPassword(false);
-    setShowConfirm(false);
   };
 
   const switchTab = (t: Tab) => {
@@ -51,76 +50,63 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     resetForm();
   };
 
+  // If "Other" is chosen, use the typed value; otherwise use the dropdown value
+  const resolvedProfession = profession === "Other"
+    ? (customProfession.trim() || "Other")
+    : profession;
+
   /* ── Sign Up ──────────────────────────────────────────── */
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!email || !email.includes("@")) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (!profession) {
-      setError("Please select your profession.");
-      return;
-    }
+    if (!email || !email.includes("@")) { setError("Please enter a valid email address."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (!profession) { setError("Please select your profession."); return; }
+    if (profession === "Other" && !customProfession.trim()) { setError("Please describe your role."); return; }
 
-    // Demo / no-Supabase mode
-    if (!isSupabaseConfigured() || !supabase) {
-      onLoginSuccess();
-      return;
-    }
+    if (!isSupabaseConfigured() || !supabase) { onLoginSuccess(); return; }
 
     setIsLoading(true);
     try {
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { profession } },
+        options: { data: { profession: resolvedProfession } },
       });
 
       if (authError) {
-        // Account exists — send the user to the Sign In tab
         if (/already registered|already exists/i.test(authError.message)) {
           switchTab("signin");
-          setError("This email is already registered. Please sign in with your password.");
+          setError("This email is already registered. Please sign in.");
           return;
         }
         setError(authError.message);
         return;
       }
 
-      // If Supabase returns a session immediately (email confirm disabled), log in
+      if (data.user?.email && data.user.identities?.length) {
+        void trackAffiliateSignup(data.user.id, data.user.email, data.session?.access_token);
+      }
+
       if (data.session) {
-        // Store profession in user_usage (best-effort, RLS allows own row)
         try {
           await supabase.from("user_usage").upsert(
-            { user_id: data.session.user.id, profession, updated_at: new Date().toISOString() },
+            { user_id: data.session.user.id, profession: resolvedProfession, updated_at: new Date().toISOString() },
             { onConflict: "user_id" }
           );
-        } catch {
-          // non-critical
-        }
+        } catch { /* non-critical */ }
         trackSignupCompleted({ method: "email" });
         onLoginSuccess();
         return;
       }
 
-      // If email confirmation is enabled, try signing in anyway
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (!signInError) {
         trackSignupCompleted({ method: "email" });
         onLoginSuccess();
       } else {
-        setError("Account created! Please check your email to confirm, then sign in.");
+        setError("Account created! Check your email to confirm, then sign in.");
         setTab("signin");
       }
     } catch {
@@ -135,34 +121,18 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     e.preventDefault();
     setError(null);
 
-    if (!email || !email.includes("@")) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (!password) {
-      setError("Please enter your password.");
-      return;
-    }
+    if (!email || !email.includes("@")) { setError("Please enter a valid email address."); return; }
+    if (!password) { setError("Please enter your password."); return; }
 
-    // Demo / no-Supabase mode
-    if (!isSupabaseConfigured() || !supabase) {
-      onLoginSuccess();
-      return;
-    }
+    if (!isSupabaseConfigured() || !supabase) { onLoginSuccess(); return; }
 
     setIsLoading(true);
     try {
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
       if (authError) {
-        if (authError.message.toLowerCase().includes("invalid")) {
-          setError("Incorrect email or password.");
-        } else {
-          setError(authError.message);
-        }
+        setError(authError.message.toLowerCase().includes("invalid") ? "Incorrect email or password." : authError.message);
         return;
       }
-
       trackLoginCompleted({ method: "email" });
       onLoginSuccess();
     } catch {
@@ -175,14 +145,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 animate-slide-up">
+      <div className="relative w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+
           {/* Close */}
           <button
             onClick={onClose}
@@ -193,46 +161,32 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
           {/* Tab Bar */}
           <div className="flex border-b border-slate-100">
-            <button
-              onClick={() => switchTab("signup")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
-                tab === "signup"
-                  ? "text-primary-600 border-b-2 border-primary-600 bg-primary-50/40"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <UserPlus size={15} />
-              Sign Up
-            </button>
-            <button
-              onClick={() => switchTab("signin")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
-                tab === "signin"
-                  ? "text-primary-600 border-b-2 border-primary-600 bg-primary-50/40"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <LogIn size={15} />
-              Sign In
-            </button>
+            {(["signup", "signin"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => switchTab(t)}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors ${
+                  tab === t
+                    ? "text-primary-600 border-b-2 border-primary-600 bg-primary-50/40"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t === "signup" ? <UserPlus size={15} /> : <LogIn size={15} />}
+                {t === "signup" ? "Sign Up" : "Sign In"}
+              </button>
+            ))}
           </div>
 
           <div className="p-8">
             {/* Header */}
             <div className="text-center mb-6">
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary-50 flex items-center justify-center">
-                {tab === "signup" ? (
-                  <UserPlus size={24} className="text-primary-600" />
-                ) : (
-                  <LogIn size={24} className="text-primary-600" />
-                )}
+                {tab === "signup" ? <UserPlus size={24} className="text-primary-600" /> : <LogIn size={24} className="text-primary-600" />}
               </div>
               {tab === "signup" ? (
                 <>
                   <h2 className="text-xl font-bold text-slate-900 mb-1">Create your account</h2>
-                  <p className="text-sm text-slate-500">
-                    Your first conversion is <span className="font-semibold text-emerald-600">free 🎉</span>
-                  </p>
+                  <p className="text-sm text-slate-500">Your first conversion is <span className="font-semibold text-emerald-600">free 🎉</span></p>
                 </>
               ) : (
                 <>
@@ -242,190 +196,117 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               )}
             </div>
 
-            {/* Sign Up Form */}
+            {/* ── Sign Up Form ── */}
             {tab === "signup" && (
               <form onSubmit={handleSignUp} className="space-y-3">
-                {/* Email */}
                 <div className="relative">
                   <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    id="signup-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     autoFocus
-                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      placeholder:text-slate-400"
+                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400"
                   />
                 </div>
 
-                {/* Password */}
                 <div className="relative">
                   <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    id="signup-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password (min. 6 characters)"
-                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      placeholder:text-slate-400"
+                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
 
-                {/* Confirm Password */}
+                {/* Profession dropdown */}
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="signup-confirm-password"
-                    type={showConfirm ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm password"
-                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      placeholder:text-slate-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-
-                {/* Profession */}
-                <div className="relative">
-                  <UserRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <UserRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <select
-                    id="signup-profession"
                     value={profession}
-                    onChange={(e) => setProfession(e.target.value)}
-                    className={`w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      appearance-none bg-white ${
-                        profession ? "text-slate-900" : "text-slate-400"
-                      }`}
+                    onChange={(e) => { setProfession(e.target.value); setCustomProfession(""); }}
+                    className={`w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white ${profession ? "text-slate-900" : "text-slate-400"}`}
                   >
-                    <option value="" disabled>
-                      Select your profession
-                    </option>
+                    <option value="" disabled>Select your profession</option>
                     {PROFESSIONS.map((p) => (
-                      <option key={p} value={p} className="text-slate-900">
-                        {p}
-                      </option>
+                      <option key={p} value={p} className="text-slate-900">{p}</option>
                     ))}
                   </select>
                 </div>
 
-                {error && (
-                  <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+                {/* "Other" manual entry */}
+                {profession === "Other" && (
+                  <div className="relative">
+                    <UserRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={customProfession}
+                      onChange={(e) => setCustomProfession(e.target.value)}
+                      placeholder="Describe your role…"
+                      autoFocus
+                      maxLength={80}
+                      className="w-full pl-9 pr-4 py-3 text-sm border border-primary-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400"
+                    />
+                  </div>
                 )}
 
-                <button
-                  id="signup-submit"
-                  type="submit"
-                  disabled={isLoading}
-                  className="btn-primary w-full mt-1"
-                >
-                  {isLoading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    "Create Account & Download Free"
-                  )}
+                {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+
+                <button type="submit" disabled={isLoading} className="btn-primary w-full mt-1">
+                  {isLoading ? <Loader2 size={18} className="animate-spin" /> : "Create Account & Download Free"}
                 </button>
 
                 <p className="text-xs text-center text-slate-400 mt-2">
                   Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => switchTab("signin")}
-                    className="text-primary-600 hover:underline font-medium"
-                  >
-                    Sign in
-                  </button>
+                  <button type="button" onClick={() => switchTab("signin")} className="text-primary-600 hover:underline font-medium">Sign in</button>
                 </p>
               </form>
             )}
 
-            {/* Sign In Form */}
+            {/* ── Sign In Form ── */}
             {tab === "signin" && (
               <form onSubmit={handleSignIn} className="space-y-3">
-                {/* Email */}
                 <div className="relative">
                   <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    id="signin-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     autoFocus
-                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      placeholder:text-slate-400"
+                    className="w-full pl-9 pr-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400"
                   />
                 </div>
 
-                {/* Password */}
                 <div className="relative">
                   <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    id="signin-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                      placeholder:text-slate-400"
+                    className="w-full pl-9 pr-10 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
 
-                {error && (
-                  <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
-                )}
+                {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
-                <button
-                  id="signin-submit"
-                  type="submit"
-                  disabled={isLoading}
-                  className="btn-primary w-full mt-1"
-                >
-                  {isLoading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    "Sign In & Download"
-                  )}
+                <button type="submit" disabled={isLoading} className="btn-primary w-full mt-1">
+                  {isLoading ? <Loader2 size={18} className="animate-spin" /> : "Sign In & Download"}
                 </button>
 
                 <p className="text-xs text-center text-slate-400 mt-2">
                   New here?{" "}
-                  <button
-                    type="button"
-                    onClick={() => switchTab("signup")}
-                    className="text-primary-600 hover:underline font-medium"
-                  >
-                    Create a free account
-                  </button>
+                  <button type="button" onClick={() => switchTab("signup")} className="text-primary-600 hover:underline font-medium">Create a free account</button>
                 </p>
               </form>
             )}

@@ -1,0 +1,509 @@
+-- ============================================================
+-- Migration 008: jobs, reservations, Gemini accounting, attribution
+-- Non-destructive. Does not reset user_usage.plan / paid_credits / payments.
+-- Requires 006 + 007. Apply after those.
+--
+-- Rollback (manual): DROP the new tables/functions in reverse order.
+-- Do NOT drop user_usage columns after backfill; leave trial_consumed in place.
+-- ============================================================
+
+-- ────────────────────────────────────────────────────────────
+-- 1. Harden user_usage + payments (no entitlement reset)
+-- ────────────────────────────────────────────────────────────
+
+ALTER TABLE user_usage
+  ADD COLUMN IF NOT EXISTS trial_consumed boolean NOT NULL DEFAULT false;
+ALTER TABLE user_usage
+  ADD COLUMN IF NOT EXISTS profession_detail text;
+
+UPDATE user_usage
+SET trial_consumed = true
+WHERE COALESCE(conversions_used, 0) >= 1
+  AND trial_consumed = false;
+
+DROP POLICY IF EXISTS "Users can update own usage (self-serve only)" ON user_usage;
+CREATE POLICY "Users can update own usage (self-serve only)"
+  ON user_usage FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id
+    AND plan = (SELECT plan FROM user_usage uu WHERE uu.user_id = auth.uid())
+    AND paid_credits = (SELECT paid_credits FROM user_usage uu WHERE uu.user_id = auth.uid())
+    AND conversions_used = (SELECT conversions_used FROM user_usage uu WHERE uu.user_id = auth.uid())
+    AND trial_consumed = (SELECT trial_consumed FROM user_usage uu WHERE uu.user_id = auth.uid())
+  );
+
+DROP POLICY IF EXISTS "Users can insert their own payments" ON payments;
+ALTER TABLE payments
+  ADD COLUMN IF NOT EXISTS entitlement_applied_at timestamptz;
+
+-- ────────────────────────────────────────────────────────────
+-- 2. Guest session extras (007 table)
+-- ────────────────────────────────────────────────────────────
+
+ALTER TABLE guest_sessions
+  ADD COLUMN IF NOT EXISTS bound_extraction_id uuid;
+ALTER TABLE guest_sessions
+  ADD COLUMN IF NOT EXISTS extract_fail_count integer NOT NULL DEFAULT 0;
+ALTER TABLE guest_sessions
+  ADD COLUMN IF NOT EXISTS last_ip_hash text;
+ALTER TABLE guest_sessions
+  ADD COLUMN IF NOT EXISTS cookie_issued_at timestamptz;
+
+-- ────────────────────────────────────────────────────────────
+-- 3. Pricing versions (Gemini, not OpenAI)
+--    Amounts are estimates for internal dashboards — not Google invoices.
+--    Confirm against https://ai.google.dev/gemini-api/docs/pricing before changing.
+-- ────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS model_pricing (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  model text NOT NULL,
+  version text NOT NULL,
+  effective_from timestamptz NOT NULL,
+  input_usd_per_million numeric(12, 6) NOT NULL,
+  output_usd_per_million numeric(12, 6) NOT NULL,
+  notes text,
+  UNIQUE (model, version)
+);
+
+INSERT INTO model_pricing (model, version, effective_from, input_usd_per_million, output_usd_per_million, notes)
+VALUES (
+  'gemini-2.5-flash-lite',
+  '2026-01-vertex',
+  '2026-01-01+00',
+  0.10,
+  0.40,
+  'Vertex Gemini 2.5 Flash-Lite estimate for internal cost dashboards. Not provider invoices.'
+)
+ON CONFLICT (model, version) DO NOTHING;
+
+-- ────────────────────────────────────────────────────────────
+-- 4. Extraction + jobs + chunks + reservations + outbox
+-- ────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS extractions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  guest_session_id uuid REFERENCES guest_sessions(id) ON DELETE SET NULL,
+  reservation_id uuid,
+  file_name text,
+  file_fingerprint text,
+  declared_page_count integer,
+  max_text_pages integer NOT NULL,
+  max_ocr_pages integer NOT NULL,
+  paid_unlimited boolean NOT NULL DEFAULT false,
+  status text NOT NULL DEFAULT 'authorized'
+    CHECK (status IN ('authorized', 'extracted', 'converted', 'expired')),
+  CONSTRAINT extractions_owner_chk CHECK (user_id IS NOT NULL OR guest_session_id IS NOT NULL)
+);
+
+CREATE INDEX IF NOT EXISTS idx_extractions_user ON extractions(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_extractions_guest ON extractions(guest_session_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS usage_reservations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  guest_session_id uuid REFERENCES guest_sessions(id) ON DELETE SET NULL,
+  kind text NOT NULL CHECK (kind IN ('trial', 'paid_credit', 'lifetime')),
+  status text NOT NULL DEFAULT 'reserved'
+    CHECK (status IN ('reserved', 'committed', 'released', 'expired')),
+  extraction_id uuid REFERENCES extractions(id) ON DELETE SET NULL,
+  job_id uuid,
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '2 hours'),
+  committed_at timestamptz,
+  released_at timestamptz,
+  CONSTRAINT usage_reservations_owner_chk CHECK (user_id IS NOT NULL OR guest_session_id IS NOT NULL)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_one_active_guest_trial
+  ON usage_reservations(guest_session_id)
+  WHERE kind = 'trial' AND status = 'reserved' AND guest_session_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_one_active_user_trial
+  ON usage_reservations(user_id)
+  WHERE kind = 'trial' AND status = 'reserved' AND user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_reservations_status_expires
+  ON usage_reservations(status, expires_at);
+
+ALTER TABLE extractions
+  DROP CONSTRAINT IF EXISTS extractions_reservation_fk;
+ALTER TABLE extractions
+  ADD CONSTRAINT extractions_reservation_fk
+  FOREIGN KEY (reservation_id) REFERENCES usage_reservations(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS conversion_jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  support_ref text NOT NULL UNIQUE,
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  guest_session_id uuid REFERENCES guest_sessions(id) ON DELETE SET NULL,
+  extraction_id uuid NOT NULL REFERENCES extractions(id),
+  reservation_id uuid REFERENCES usage_reservations(id),
+  status text NOT NULL DEFAULT 'queued'
+    CHECK (status IN ('queued', 'processing', 'retrying', 'validating', 'ready', 'failed')),
+  stage text NOT NULL DEFAULT 'queued',
+  file_name text,
+  extract_mode text,
+  pages_extracted integer,
+  page_count_declared integer,
+  chunks_total integer NOT NULL DEFAULT 0,
+  chunks_done integer NOT NULL DEFAULT 0,
+  source_text text,
+  source_text_purge_at timestamptz,
+  result_json jsonb,
+  edits_json jsonb,
+  validation_notices jsonb NOT NULL DEFAULT '[]'::jsonb,
+  error_code text,
+  retry_count integer NOT NULL DEFAULT 0,
+  retry_after timestamptz,
+  uncertain_provider boolean NOT NULL DEFAULT false,
+  lease_owner text,
+  lease_until timestamptz,
+  priority integer NOT NULL DEFAULT 0,
+  CONSTRAINT conversion_jobs_owner_chk CHECK (user_id IS NOT NULL OR guest_session_id IS NOT NULL)
+);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_user ON conversion_jobs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_guest ON conversion_jobs(guest_session_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON conversion_jobs(status, priority DESC, created_at);
+CREATE INDEX IF NOT EXISTS idx_jobs_lease ON conversion_jobs(lease_until) WHERE status IN ('queued', 'processing', 'retrying');
+
+ALTER TABLE usage_reservations
+  DROP CONSTRAINT IF EXISTS usage_reservations_job_fk;
+ALTER TABLE usage_reservations
+  ADD CONSTRAINT usage_reservations_job_fk
+  FOREIGN KEY (job_id) REFERENCES conversion_jobs(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS conversion_chunks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id uuid NOT NULL REFERENCES conversion_jobs(id) ON DELETE CASCADE,
+  chunk_index integer NOT NULL,
+  source_excerpt text NOT NULL,
+  status text NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'leased', 'succeeded', 'failed', 'uncertain')),
+  result_json jsonb,
+  attempt_count integer NOT NULL DEFAULT 0,
+  lease_owner text,
+  lease_until timestamptz,
+  last_error text,
+  UNIQUE (job_id, chunk_index)
+);
+
+CREATE TABLE IF NOT EXISTS job_outbox (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  job_id uuid NOT NULL REFERENCES conversion_jobs(id) ON DELETE CASCADE,
+  kind text NOT NULL DEFAULT 'process_job',
+  status text NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'published', 'failed')),
+  publish_attempts integer NOT NULL DEFAULT 0,
+  last_error text,
+  published_at timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON job_outbox(status, created_at) WHERE status = 'pending';
+
+CREATE TABLE IF NOT EXISTS gemini_attempts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  started_at timestamptz,
+  ended_at timestamptz,
+  duration_ms integer,
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  guest_session_id uuid REFERENCES guest_sessions(id) ON DELETE SET NULL,
+  job_id uuid REFERENCES conversion_jobs(id) ON DELETE SET NULL,
+  chunk_id uuid REFERENCES conversion_chunks(id) ON DELETE SET NULL,
+  operation text NOT NULL,
+  model text NOT NULL,
+  endpoint_region text,
+  provider_response_id text,
+  input_tokens integer,
+  output_tokens integer,
+  total_tokens integer,
+  cached_tokens integer,
+  thinking_tokens integer,
+  tool_use_tokens integer,
+  tokens_known boolean NOT NULL DEFAULT false,
+  raw_usage jsonb,
+  status text NOT NULL,
+  finish_reason text,
+  retry_reason text,
+  sanitized_error text,
+  pricing_version text,
+  estimated_cost_usd numeric(14, 8),
+  idempotency_key text UNIQUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_gemini_attempts_job ON gemini_attempts(job_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_gemini_attempts_created ON gemini_attempts(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS signup_attribution (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  first_touch jsonb NOT NULL DEFAULT '{}'::jsonb,
+  last_touch jsonb NOT NULL DEFAULT '{}'::jsonb,
+  landing_url text,
+  signup_page_url text,
+  signup_path text,
+  referrer text,
+  acquisition_country text,
+  first_touch_at timestamptz,
+  last_touch_at timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS admin_audit (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  actor_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  action text NOT NULL,
+  target_type text,
+  target_id text,
+  reason text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS rate_limit_windows (
+  bucket text NOT NULL,
+  window_start timestamptz NOT NULL,
+  count integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket, window_start)
+);
+
+ALTER TABLE extractions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usage_reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversion_jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversion_chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE job_outbox ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gemini_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE signup_attribution ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_audit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rate_limit_windows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE model_pricing ENABLE ROW LEVEL SECURITY;
+
+-- No client access; service_role bypasses RLS.
+CREATE POLICY "lock extractions" ON extractions FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock reservations" ON usage_reservations FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock jobs" ON conversion_jobs FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock chunks" ON conversion_chunks FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock outbox" ON job_outbox FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock gemini_attempts" ON gemini_attempts FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock attribution" ON signup_attribution FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock admin_audit" ON admin_audit FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "lock rate_limits" ON rate_limit_windows FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "read model_pricing authenticated" ON model_pricing FOR SELECT TO authenticated USING (true);
+CREATE POLICY "lock model_pricing writes" ON model_pricing FOR INSERT TO anon, authenticated WITH CHECK (false);
+
+-- ────────────────────────────────────────────────────────────
+-- 5. RPCs (service_role / security definer)
+-- ────────────────────────────────────────────────────────────
+
+CREATE OR REPLACE FUNCTION bump_rate_limit(p_bucket text, p_window_seconds integer, p_max integer)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_start timestamptz;
+  v_count integer;
+BEGIN
+  v_start := to_timestamp(floor(extract(epoch from now()) / p_window_seconds) * p_window_seconds);
+  INSERT INTO rate_limit_windows(bucket, window_start, count)
+  VALUES (p_bucket, v_start, 1)
+  ON CONFLICT (bucket, window_start)
+  DO UPDATE SET count = rate_limit_windows.count + 1
+  RETURNING count INTO v_count;
+  RETURN v_count <= p_max;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION increment_conversions_used(p_user_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_next integer;
+BEGIN
+  INSERT INTO user_usage(user_id, conversions_used, trial_consumed, plan, paid_credits, updated_at)
+  VALUES (p_user_id, 1, true, 'free', 0, now())
+  ON CONFLICT (user_id) DO UPDATE
+    SET conversions_used = COALESCE(user_usage.conversions_used, 0) + 1,
+        trial_consumed = true,
+        updated_at = now()
+  RETURNING conversions_used INTO v_next;
+  RETURN v_next;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION apply_payg_credit(p_user_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_credits integer;
+BEGIN
+  INSERT INTO user_usage(user_id, plan, paid_credits, updated_at)
+  VALUES (p_user_id, 'payg', 1, now())
+  ON CONFLICT (user_id) DO UPDATE
+    SET paid_credits = COALESCE(user_usage.paid_credits, 0) + 1,
+        plan = CASE WHEN user_usage.plan = 'lifetime' THEN 'lifetime' ELSE 'payg' END,
+        updated_at = now()
+  RETURNING paid_credits INTO v_credits;
+  RETURN v_credits;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION apply_lifetime_plan(p_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO user_usage(user_id, plan, updated_at)
+  VALUES (p_user_id, 'lifetime', now())
+  ON CONFLICT (user_id) DO UPDATE
+    SET plan = 'lifetime',
+        updated_at = now();
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION apply_payment_entitlement(p_payment_id uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_pay payments%ROWTYPE;
+BEGIN
+  SELECT * INTO v_pay FROM payments WHERE id = p_payment_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN 'missing';
+  END IF;
+  IF v_pay.payment_status <> 'paid' THEN
+    RETURN 'not_paid';
+  END IF;
+  IF v_pay.entitlement_applied_at IS NOT NULL THEN
+    RETURN 'already_applied';
+  END IF;
+  IF v_pay.plan = 'lifetime' THEN
+    PERFORM apply_lifetime_plan(v_pay.user_id);
+  ELSIF v_pay.plan = 'per_conversion' THEN
+    PERFORM apply_payg_credit(v_pay.user_id);
+  END IF;
+  UPDATE payments SET entitlement_applied_at = now() WHERE id = p_payment_id;
+  RETURN 'applied';
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION expire_stale_reservations()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_n integer;
+BEGIN
+  -- Do not expire a reservation whose job is still leased / in-flight.
+  WITH released AS (
+    UPDATE usage_reservations r
+    SET status = 'expired', released_at = now(), updated_at = now()
+    WHERE r.status = 'reserved'
+      AND r.expires_at < now()
+      AND (
+        r.job_id IS NULL
+        OR NOT EXISTS (
+          SELECT 1 FROM conversion_jobs j
+          WHERE j.id = r.job_id
+            AND j.status IN ('queued', 'processing', 'retrying', 'validating')
+            AND (j.lease_until IS NULL OR j.lease_until > now() - interval '2 minutes')
+        )
+      )
+    RETURNING 1
+  )
+  SELECT count(*) INTO v_n FROM released;
+  RETURN COALESCE(v_n, 0);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION purge_expired_job_text()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_n integer;
+BEGIN
+  UPDATE conversion_jobs
+  SET source_text = NULL
+  WHERE source_text IS NOT NULL
+    AND source_text_purge_at IS NOT NULL
+    AND source_text_purge_at < now();
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  UPDATE conversion_chunks c
+  SET source_excerpt = ''
+  FROM conversion_jobs j
+  WHERE c.job_id = j.id
+    AND j.source_text IS NULL
+    AND j.source_text_purge_at IS NOT NULL
+    AND j.source_text_purge_at < now()
+    AND c.source_excerpt <> '';
+  RETURN COALESCE(v_n, 0);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION require_admin_user(p_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM admin_users WHERE user_id = p_user_id);
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 6. Lock DEFINER functions to service_role
+-- ────────────────────────────────────────────────────────────
+
+REVOKE ALL ON FUNCTION bump_rate_limit(text, integer, integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION increment_conversions_used(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION apply_payg_credit(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION apply_lifetime_plan(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION apply_payment_entitlement(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION expire_stale_reservations() FROM PUBLIC;
+REVOKE ALL ON FUNCTION purge_expired_job_text() FROM PUBLIC;
+REVOKE ALL ON FUNCTION require_admin_user(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION consume_paid_credit(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION reserve_guest_trial(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION consume_guest_trial(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION link_guest_session_to_user(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION promote_admin(uuid, uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION demote_admin(uuid) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION bump_rate_limit(text, integer, integer) TO service_role;
+GRANT EXECUTE ON FUNCTION increment_conversions_used(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION apply_payg_credit(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION apply_lifetime_plan(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION apply_payment_entitlement(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION expire_stale_reservations() TO service_role;
+GRANT EXECUTE ON FUNCTION purge_expired_job_text() TO service_role;
+GRANT EXECUTE ON FUNCTION require_admin_user(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION consume_paid_credit(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION reserve_guest_trial(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION consume_guest_trial(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION link_guest_session_to_user(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION promote_admin(uuid, uuid, text) TO service_role;
+GRANT EXECUTE ON FUNCTION demote_admin(uuid) TO service_role;

@@ -96,9 +96,14 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
     }
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
+      <div className="w-full">
         <div
-          className={cn("upload-zone w-full max-w-2xl", isDragOver && "upload-zone--active")}
+          className={cn(
+            "relative w-full border-2 border-dashed rounded-2xl p-12 transition-all duration-300 cursor-pointer group",
+            isDragOver
+              ? "border-primary-400 bg-primary-50"
+              : "border-slate-300 bg-white hover:border-primary-300 hover:bg-primary-25"
+          )}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragOver(true);
@@ -116,43 +121,54 @@ const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(
             className="hidden"
           />
 
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-6">
             <div
               className={cn(
-                "w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300",
+                "w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-300",
                 isDragOver
-                  ? "bg-primary-100 scale-110"
-                  : "bg-primary-50"
+                  ? "bg-primary-200 scale-110"
+                  : "bg-primary-100"
               )}
             >
               {isDragOver ? (
-                <FileText size={36} className="text-primary-600" />
+                <FileText size={28} className="text-primary-700" />
               ) : (
-                <Upload size={36} className="text-primary-500" />
+                <Upload size={28} className="text-primary-600" />
               )}
             </div>
 
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-slate-800 mb-1">
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
                 {isDragOver
                   ? "Drop your PDF here"
-                  : "Drop your bank statement PDF here"}
+                  : "Upload your bank statement"}
               </h3>
-              <p className="text-sm text-slate-500">or click to browse files</p>
-            </div>
-
-            <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
-              <span>Supports all banks</span>
-              <span className="w-1 h-1 rounded-full bg-slate-300" />
-              <span>Max 20MB</span>
-              <span className="w-1 h-1 rounded-full bg-slate-300" />
-              <span>PDF or Image</span>
+              <p className="text-slate-600 mb-4">
+                Drag & drop your PDF file here, or click to browse
+              </p>
+              
+              <div className="inline-flex items-center gap-4 text-sm text-slate-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  All major banks supported
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  Up to 20MB
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  PDF & Image files
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* no decorative overlay */}
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-error-50 text-error-600 rounded-lg text-sm">
+          <div className="flex items-center gap-2 mt-4 px-4 py-3 bg-red-50 text-red-700 rounded-xl text-sm border border-red-200">
             <AlertCircle size={16} />
             {error}
           </div>
