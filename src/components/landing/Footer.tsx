@@ -196,6 +196,17 @@ export default function Footer() {
         <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500 text-center">
           <div className="mb-6 flex items-center justify-center gap-3">
             <a
+              href="https://toolfame.com/item/bank-statement-to-excel"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://toolfame.com/badge-light.svg"
+                alt="Featured on toolfame.com"
+                style={{ height: 54, width: "auto" }}
+              />
+            </a>
+            <a
               href="https://boostdomainrating.com/item/bankstatementtoexcelconverter.com?utm_source=badge"
               target="_blank"
               rel="noopener noreferrer"
