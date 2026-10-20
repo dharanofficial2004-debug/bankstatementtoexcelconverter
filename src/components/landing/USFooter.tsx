@@ -68,7 +68,18 @@ export default function USFooter() {
         </div>
 
         {/* Bottom */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-6 flex items-center justify-center gap-3">
+          <a
+            href="https://boostdomainrating.com/item/bankstatementtoexcelconverter.com?utm_source=badge"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://boostdomainrating.com/api/badge/bankstatementtoexcelconverter.com?style=tiny&shape=round&textStyle=italic-uppercase&primary=%23166ca2"
+              alt="StatementToExcel - Domain Rating"
+              style={{ height: 20, width: "auto" }}
+            />
+          </a>
           <a
             href="https://1000tools.best/projects/bankstatementtoexcelconverter?utm_source=badge"
             target="_blank"
