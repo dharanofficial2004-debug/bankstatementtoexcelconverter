@@ -196,6 +196,19 @@ export default function Footer() {
         <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500 text-center">
           <div className="mb-6 flex items-center justify-center gap-3">
             <a
+              href="https://openhunts.com"
+              target="_blank"
+              title="OpenHunts Club"
+            >
+              <img
+                alt="OpenHunts Club Member"
+                height="105"
+                src="https://cdn.openhunts.com/badges/club.webp"
+                style={{ width: 195, height: "auto" }}
+                width="486"
+              />
+            </a>
+            <a
               href="https://toolfame.com/item/bank-statement-to-excel"
               target="_blank"
               rel="noopener noreferrer"

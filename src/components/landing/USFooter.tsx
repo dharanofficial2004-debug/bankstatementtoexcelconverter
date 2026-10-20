@@ -70,6 +70,19 @@ export default function USFooter() {
         {/* Bottom */}
         <div className="mb-6 flex items-center justify-center gap-3">
           <a
+            href="https://openhunts.com"
+            target="_blank"
+            title="OpenHunts Club"
+          >
+            <img
+              alt="OpenHunts Club Member"
+              height="105"
+              src="https://cdn.openhunts.com/badges/club.webp"
+              style={{ width: 195, height: "auto" }}
+              width="486"
+            />
+          </a>
+          <a
             href="https://toolfame.com/item/bank-statement-to-excel"
             target="_blank"
             rel="noopener noreferrer"
