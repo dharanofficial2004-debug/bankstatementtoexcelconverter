@@ -68,6 +68,19 @@ export default function USFooter() {
         </div>
 
         {/* Bottom */}
+        <div className="mb-6 flex justify-center">
+          <a
+            href="https://1000tools.best/projects/bankstatementtoexcelconverter?utm_source=badge"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://1000tools.best/images/badges/featured-on-light.svg"
+              alt="Featured on 1000 Tools"
+              style={{ height: 44, width: "auto" }}
+            />
+          </a>
+        </div>
         <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-600">
             © {new Date().getFullYear()} StatementToExcel. All rights reserved.

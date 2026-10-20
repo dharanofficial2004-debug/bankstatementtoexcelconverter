@@ -194,6 +194,19 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500 text-center">
+          <div className="mb-6 flex justify-center">
+            <a
+              href="https://1000tools.best/projects/bankstatementtoexcelconverter?utm_source=badge"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://1000tools.best/images/badges/featured-on-light.svg"
+                alt="Featured on 1000 Tools"
+                style={{ height: 44, width: "auto" }}
+              />
+            </a>
+          </div>
           © {new Date().getFullYear()} StatementToExcel. All rights reserved.
         </div>
       </div>
