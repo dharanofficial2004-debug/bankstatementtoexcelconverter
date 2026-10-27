@@ -70,6 +70,17 @@ export default function USFooter() {
         {/* Bottom */}
         <div className="mb-6 flex items-center justify-center gap-3">
           <a
+            href="https://smolsaas.com/projects/bankstatementtoexcelconverter?utm_source=badge"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://smolsaas.com/smolsaas/images/badges/featured-on-light.svg"
+              alt="Featured on Smol Saas"
+              style={{ height: 44, width: "auto" }}
+            />
+          </a>
+          <a
             href="https://openhunts.com"
             target="_blank"
             title="OpenHunts Club"
