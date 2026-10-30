@@ -6,17 +6,17 @@ import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title:
-    "How to Download Union Bank Statement in Excel Format (Step-by-Step)",
+    "Download Union Bank Statement to Excel",
   description:
-    "Learn how to download your Union Bank statement in Excel format. Step-by-step guide for mobile app and net banking, plus how to convert the PDF to Excel for accounting.",
+    "Follow this guide to download your Union Bank statement from mobile or internet banking, then convert the PDF into an Excel spreadsheet.",
   alternates: {
     canonical:
       "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
   },
   openGraph: {
-    title: "How to Download Union Bank Statement in Excel Format (Step-by-Step)",
+    title: "Download Union Bank Statement to Excel",
     description:
-      "Step-by-step guide to download Union Bank of India statements in Excel format and convert the PDF to a clean spreadsheet.",
+      "Learn how to get your Union Bank statement from mobile or internet banking and convert its PDF into an Excel spreadsheet.",
     url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
     siteName: "StatementToExcel",
     locale: "en_US",

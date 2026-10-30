@@ -13,9 +13,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Convert Bank Statement to CSV Online Instantly | StatementToExcel",
+  title: "Bank Statement PDF to CSV",
   description:
-    "Convert PDF bank statements to CSV online securely. Extract financial tables dynamically, edit transactions in preview grid, and export cleanly.",
+    "Turn a bank statement PDF into an editable CSV. Review extracted transactions in the preview, make corrections, and export a file ready for your workflow.",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/bank-statement-to-csv",
   },

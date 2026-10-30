@@ -6,17 +6,17 @@ import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title:
-    "How to Download ICICI Bank Statement in Excel Format (Step-by-Step)",
+    "Download ICICI Bank Statement to Excel",
   description:
-    "Learn how to download your ICICI bank statement in Excel format. Step-by-step guide for mobile app and net banking, plus how to convert the PDF to Excel for accounting.",
+    "Follow this guide to download your ICICI Bank statement from mobile or internet banking, then convert the PDF into an Excel spreadsheet.",
   alternates: {
     canonical:
       "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
   },
   openGraph: {
-    title: "How to Download ICICI Bank Statement in Excel Format (Step-by-Step)",
+    title: "Download ICICI Bank Statement to Excel",
     description:
-      "Learn how to download your ICICI bank statement in Excel format from net banking and the mobile app, and how to convert the PDF to Excel.",
+      "Learn how to get your ICICI Bank statement from mobile or internet banking and convert its PDF into an Excel spreadsheet.",
     url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
     siteName: "StatementToExcel",
     locale: "en_US",

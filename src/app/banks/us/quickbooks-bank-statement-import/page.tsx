@@ -5,8 +5,8 @@ import USFooter from "@/components/landing/USFooter";
 import { ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "QuickBooks Bank Statement Import — Convert PDF to CSV for QuickBooks",
-  description: "Convert your US bank statement PDF to a QuickBooks-compatible CSV file. Supports Chase, Bank of America, Wells Fargo and all major US banks. Starts at $1.",
+  title: "Import Bank Statements to QuickBooks",
+  description: "Convert a US bank statement PDF to CSV, review the transaction details, and prepare the file for import into QuickBooks Online or Desktop.",
   alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/quickbooks-bank-statement-import" },
 };
 

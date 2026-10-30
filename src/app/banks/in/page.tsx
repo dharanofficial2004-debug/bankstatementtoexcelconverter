@@ -6,8 +6,8 @@ import Footer from "@/components/landing/Footer";
 import { ArrowRight, Building2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Convert Indian Bank Statements to Excel | Supported Banks",
-  description: "View the full list of supported Indian banks for our PDF bank statement to Excel converter. Convert HDFC, SBI, ICICI, and more instantly.",
+  title: "Indian Banks: Statement PDF to Excel",
+  description: "Find your Indian bank and convert its statement PDF to Excel or CSV. Browse bank-specific guides, review extracted transactions, and export a spreadsheet.",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/banks/in",
   },

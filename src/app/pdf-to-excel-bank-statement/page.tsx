@@ -13,9 +13,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Secure PDF to Excel Bank Statement Converter Online | StatementToExcel",
+  title: "PDF Bank Statement to Excel",
   description:
-    "Convert PDF bank statements to Excel files accurately and securely. Review and clean transaction tables locally in your browser. Free exports included.",
+    "Convert a PDF bank statement into an Excel spreadsheet. Check extracted transaction details in the preview, make edits, and export your reviewed file.",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/pdf-to-excel-bank-statement",
   },

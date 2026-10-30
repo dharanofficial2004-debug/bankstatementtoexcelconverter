@@ -6,8 +6,8 @@ import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Bank Statement for Taxes USA — Convert PDF for CPA & Tax Filing",
-  description: "Convert your US bank statement PDF to Excel for tax preparation. Perfect for Schedule C, self-employment, and CPA review. Starts at $1.",
+  title: "Bank Statements to Excel for Taxes",
+  description: "Convert a US bank statement PDF to Excel for tax preparation. Review transactions, organize records, and share a spreadsheet with your tax professional.",
   alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-for-taxes" },
 };
 

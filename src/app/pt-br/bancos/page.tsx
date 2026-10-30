@@ -8,9 +8,9 @@ import Link from "next/link";
 import { CloudUpload, Download, PencilLine, Grid3X3, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Conversor de Extrato Bancário para Excel e CSV | Grátis Online",
+  title: "Converter Extrato Bancário PDF para Excel",
   description:
-    "Converta extratos bancários em PDF para Excel ou CSV. Revise e edite transações antes de exportar uma planilha organizada.",
+    "Converta extratos bancários em PDF para Excel ou CSV. Confira e edite os lançamentos antes de exportar uma planilha para sua contabilidade.",
   alternates: {
     canonical: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
     languages: {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Conversor de Extrato Bancário para Excel",
     description:
-      "Extraia transações de extratos PDF para Excel ou CSV e revise os dados antes de baixar.",
+      "Converta extratos PDF para Excel ou CSV, confira os lançamentos e exporte uma planilha organizada para sua contabilidade.",
     url: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
     siteName: "StatementToExcel",
     locale: "pt_BR",

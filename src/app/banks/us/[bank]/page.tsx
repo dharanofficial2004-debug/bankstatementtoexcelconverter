@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bank = usBanks[params.bank];
   if (!bank) return {};
   return {
-    title: `${bank.name} Statement to Excel Converter — Starts at $1`,
-    description: `Convert ${bank.name} bank statement PDF to Excel, CSV, or JSON online. Works with all ${bank.name} account types. Free preview. Perfect for QuickBooks, taxes, and bookkeeping.`,
+    title: `${bank.name} Statement to Excel`,
+    description: `Convert a ${bank.name} statement PDF to Excel, CSV, or JSON. Review extracted transactions, then export a spreadsheet for bookkeeping, tax preparation, or accounting.`,
     alternates: {
       canonical: `https://bankstatementtoexcelconverter.com/banks/us/${params.bank}`,
     },

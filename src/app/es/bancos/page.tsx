@@ -8,13 +8,13 @@ import FaqSection from "@/components/landing/FaqSection";
 const siteUrl = "https://bankstatementtoexcelconverter.com";
 
 export const metadata: Metadata = {
-  title: "Conversor de Extractos Bancarios a Excel y CSV | PDF Gratis",
+  title: "Convertir Extractos Bancarios PDF a Excel",
   description:
-    "Convierte extractos bancarios o estados de cuenta PDF a Excel o CSV. Revisa y edita las transacciones antes de descargar tu archivo.",
+    "Convierte extractos bancarios PDF a Excel o CSV. Revisa las transacciones, corrige los datos y exporta una hoja de cálculo lista para tu contabilidad.",
   openGraph: {
     title: "Conversor de Extractos Bancarios PDF a Excel",
     description:
-      "Extrae transacciones de extractos bancarios PDF a Excel o CSV y revisa los datos antes de exportarlos.",
+      "Convierte extractos bancarios PDF a Excel o CSV. Revisa las transacciones y exporta una hoja de cálculo para tu contabilidad.",
     url: `${siteUrl}/es/bancos`,
     siteName: "StatementToExcel",
     locale: "es",

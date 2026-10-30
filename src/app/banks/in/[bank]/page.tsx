@@ -29,16 +29,8 @@ export async function generateMetadata({
     return {};
   }
 
-  // HDFC Bank gets a hand-crafted, query-focused title and description
-  const isHdfc = params.bank === "hdfc-bank";
-
-  const title = isHdfc
-    ? "HDFC Bank Statement to Excel — Convert PDF to Excel Free (2026)"
-    : `${bank.name} Bank Statement to Excel — Convert PDF to Excel Free (2026)`;
-
-  const description = isHdfc
-    ? "Convert HDFC Bank statement PDF to Excel or CSV free. Upload your statement, review transactions in an editable table, and export a clean spreadsheet for loans, ITR, and accounting."
-    : `Convert ${bank.name} bank statement PDF to Excel or CSV free. 99%+ accuracy, no signup required. Works with iBanking/net banking statements. Download instantly →`;
+  const title = `${bank.name} Statement to Excel`;
+  const description = `Convert your ${bank.name} statement PDF to Excel or CSV. Review extracted transactions before exporting a spreadsheet for bookkeeping, tax preparation, or accounting.`;
 
   return {
     title,
