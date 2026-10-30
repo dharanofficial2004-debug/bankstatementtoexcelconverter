@@ -70,6 +70,17 @@ export default function USFooter() {
         {/* Bottom */}
         <div className="mb-6 flex items-center justify-center gap-3">
           <a
+            href="https://findtop.tools/projects/bankstatementtoexcelconverter?utm_source=badge"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://findtop.tools/findtoptools/images/badges/featured-on-light.svg"
+              alt="Featured on Find Top Tools"
+              style={{ height: 44, width: "auto" }}
+            />
+          </a>
+          <a
             href="https://smolsaas.com/projects/bankstatementtoexcelconverter?utm_source=badge"
             target="_blank"
             rel="noopener noreferrer"
