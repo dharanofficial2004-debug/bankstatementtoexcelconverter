@@ -4,12 +4,13 @@ import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Bank Statements to Excel for Taxes",
   description: "Convert a US bank statement PDF to Excel for tax preparation. Review transactions, organize records, and share a spreadsheet with your tax professional.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-for-taxes" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/bank-statement-for-taxes" },
+}, "/banks/us/bank-statement-for-taxes");
 
 const taxUseCases = [
   { title: "Schedule C (Sole Proprietors)", body: "Freelancers and self-employed Americans need to categorize every business transaction. Export your bank statement to Excel and add a Category column for fast Schedule C prep." },

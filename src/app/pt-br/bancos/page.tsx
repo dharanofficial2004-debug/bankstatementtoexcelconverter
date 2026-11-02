@@ -6,29 +6,29 @@ import Footer from "@/components/landing/Footer";
 import FaqSection from "@/components/landing/FaqSection";
 import Link from "next/link";
 import { CloudUpload, Download, PencilLine, Grid3X3, CheckCircle2 } from "lucide-react";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 
 export const metadata: Metadata = {
   title: "Converter Extrato Bancário PDF para Excel",
   description:
     "Converta extratos bancários em PDF para Excel ou CSV. Confira e edite os lançamentos antes de exportar uma planilha para sua contabilidade.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
+    canonical: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
     languages: {
-      "pt-BR": "https://bankstatementtoexcelconverter.com/pt-br/bancos",
-      "x-default": "https://bankstatementtoexcelconverter.com/",
+      ...converterLandingAlternates,
     },
   },
   openGraph: {
     title: "Conversor de Extrato Bancário para Excel",
     description:
       "Converta extratos PDF para Excel ou CSV, confira os lançamentos e exporte uma planilha organizada para sua contabilidade.",
-    url: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
+    url: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
     siteName: "StatementToExcel",
     locale: "pt_BR",
     type: "website",
     images: [
       {
-        url: "https://bankstatementtoexcelconverter.com/icon-512.png",
+        url: "https://www.bankstatementtoexcelconverter.com/icon-512.png",
         width: 512,
         height: 512,
         alt: "Conversor de Extrato Bancário para Excel",
@@ -180,13 +180,13 @@ export default function PtBrBanksPage() {
                 "@type": "ListItem",
                 position: 1,
                 name: "Home",
-                item: "https://bankstatementtoexcelconverter.com/",
+                item: "https://www.bankstatementtoexcelconverter.com/",
               },
               {
                 "@type": "ListItem",
                 position: 2,
                 name: "Brasil",
-                item: "https://bankstatementtoexcelconverter.com/pt-br/bancos",
+                item: "https://www.bankstatementtoexcelconverter.com/pt-br/bancos",
               },
               {
                 "@type": "ListItem",

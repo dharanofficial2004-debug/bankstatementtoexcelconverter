@@ -3,25 +3,23 @@ import Navbar from "@/components/landing/Navbar";
 import VideoDemo from "@/components/landing/VideoDemo";
 import Footer from "@/components/landing/Footer";
 import FaqSection from "@/components/landing/FaqSection";
-import Image from "next/image";
 import Link from "next/link";
 import { CloudUpload, Download, PencilLine, Grid3X3 } from "lucide-react";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 
 export const metadata: Metadata = {
-  title: "تحويل كشف حساب بنكي أردني إلى Excel مجاناً | PDF إلى Excel",
-  description:
-    "حوّل كشف حسابك البنكي الأردني من PDF إلى Excel أو CSV. راجع وعدّل المعاملات قبل التصدير باستخدام أداة سهلة عبر الإنترنت.",
+  title: "تحويل كشف حساب بنكي أردني إلى Excel",
+  description: "حوّل كشفك البنكي الأردني من PDF إلى Excel أو CSV بسهولة.",
   openGraph: {
-    title: "محول كشف الحساب البنكي الأردني إلى Excel",
-    description:
-      "استخرج معاملات كشف الحساب PDF إلى ملف Excel أو CSV منظم وقابل للتعديل.",
-    url: "https://bankstatementtoexcelconverter.com/ar-jo/banks",
+    title: "تحويل كشف حساب بنكي أردني إلى Excel",
+    description: "حوّل كشفك البنكي الأردني من PDF إلى Excel أو CSV بسهولة.",
+    url: "https://www.bankstatementtoexcelconverter.com/ar-jo/banks",
     siteName: "StatementToExcel",
     locale: "ar_JO",
     type: "website",
     images: [
       {
-        url: "https://bankstatementtoexcelconverter.com/icon-512.png",
+        url: "https://www.bankstatementtoexcelconverter.com/icon-512.png",
         width: 512,
         height: 512,
         alt: "محول كشف الحساب البنكي الأردني إلى Excel",
@@ -29,10 +27,9 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/ar-jo/banks",
+    canonical: "https://www.bankstatementtoexcelconverter.com/ar-jo/banks",
     languages: {
-      "ar-JO": "https://bankstatementtoexcelconverter.com/ar-jo/banks",
-      "x-default": "https://bankstatementtoexcelconverter.com/",
+      ...converterLandingAlternates,
     },
   },
 };
@@ -169,13 +166,13 @@ export default function JordanBanksPage() {
                 "@type": "ListItem",
                 position: 1,
                 name: "الرئيسية",
-                item: "https://bankstatementtoexcelconverter.com/",
+                item: "https://www.bankstatementtoexcelconverter.com/",
               },
               {
                 "@type": "ListItem",
                 position: 2,
                 name: "الأردن",
-                item: "https://bankstatementtoexcelconverter.com/ar-jo/banks",
+                item: "https://www.bankstatementtoexcelconverter.com/ar-jo/banks",
               },
               {
                 "@type": "ListItem",
@@ -250,37 +247,6 @@ export default function JordanBanksPage() {
             </div>
           </div>
 
-          <div
-            className="mx-auto mt-10 flex max-w-5xl items-center justify-center gap-3 animate-fade-in-up"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <a
-              href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt"
-                width={250}
-                height={54}
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-                unoptimized
-              />
-            </a>
-            <a
-              href="https://nicklaunches.com/products/bank-statement-to-excel-converter/?utm_source=bankstatementtoexcelconverter.com&utm_medium=badge&utm_campaign=featured"
-              target="_blank"
-              rel="noopener"
-            >
-              <Image
-                src="https://nicklaunches.com/badges/featured.png"
-                alt="Bank Statement to Excel Converter on Nick Launches"
-                width={244}
-                height={56}
-                unoptimized
-              />
-            </a>
-          </div>
         </section>
 
         {/* ── Section 1 – Intro ── */}

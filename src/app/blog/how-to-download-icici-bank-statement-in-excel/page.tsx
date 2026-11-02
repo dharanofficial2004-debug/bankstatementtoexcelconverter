@@ -11,13 +11,13 @@ export const metadata: Metadata = {
     "Follow this guide to download your ICICI Bank statement from mobile or internet banking, then convert the PDF into an Excel spreadsheet.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
+      "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
   },
   openGraph: {
     title: "Download ICICI Bank Statement to Excel",
     description:
       "Learn how to get your ICICI Bank statement from mobile or internet banking and convert its PDF into an Excel spreadsheet.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "article",
@@ -64,16 +64,16 @@ export default function ICICIBlogPost() {
     headline: "How to Download ICICI Bank Statement in Excel Format (Step-by-Step)",
     description:
       "Learn how to download your ICICI bank statement in Excel format from net banking and the mobile app.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
     publisher: {
       "@type": "Organization",
       name: "StatementToExcel",
-      url: "https://bankstatementtoexcelconverter.com",
+      url: "https://www.bankstatementtoexcelconverter.com",
     },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id":
-        "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
+        "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel",
     },
   };
 
@@ -91,9 +91,9 @@ export default function ICICIBlogPost() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://bankstatementtoexcelconverter.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://bankstatementtoexcelconverter.com/blog" },
-      { "@type": "ListItem", position: 3, name: "How to Download ICICI Bank Statement in Excel Format", item: "https://bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.bankstatementtoexcelconverter.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.bankstatementtoexcelconverter.com/blog" },
+      { "@type": "ListItem", position: 3, name: "How to Download ICICI Bank Statement in Excel Format", item: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-icici-bank-statement-in-excel" },
     ],
   };
 

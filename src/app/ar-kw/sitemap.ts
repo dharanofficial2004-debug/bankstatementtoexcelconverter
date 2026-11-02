@@ -34,8 +34,7 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://bankstatementtoexcelconverter.com/ar-kw";
-  const lastModified = new Date();
+  const baseUrl = "https://www.bankstatementtoexcelconverter.com/ar-kw";
 
   const srcAppDir = path.join(process.cwd(), "src", "app", "ar-kw");
   const rootAppDir = path.join(process.cwd(), "app", "ar-kw");
@@ -57,7 +56,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return {
       url,
-      lastModified,
       changeFrequency,
       priority,
     };

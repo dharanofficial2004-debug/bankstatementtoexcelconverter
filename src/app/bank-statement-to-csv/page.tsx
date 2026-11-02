@@ -11,15 +11,16 @@ import {
   Zap,
   HelpCircle
 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Bank Statement PDF to CSV",
   description:
     "Turn a bank statement PDF into an editable CSV. Review extracted transactions in the preview, make corrections, and export a file ready for your workflow.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/bank-statement-to-csv",
+    canonical: "https://www.bankstatementtoexcelconverter.com/bank-statement-to-csv",
   },
-};
+}, "/bank-statement-to-csv");
 
 export default function BankStatementToCsvPage() {
   const faqs = [

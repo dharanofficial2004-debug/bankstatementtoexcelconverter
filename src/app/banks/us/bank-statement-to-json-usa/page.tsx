@@ -3,12 +3,13 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import { ArrowRight } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "US Bank Statement to JSON — PDF to JSON API for Developers",
   description: "Convert US bank statement PDFs to structured JSON. Perfect for developers building fintech apps, expense trackers, or accounting integrations. Starts at $1.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-to-json-usa" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/bank-statement-to-json-usa" },
+}, "/banks/us/bank-statement-to-json-usa");
 
 const sampleJson = `[
   {

@@ -11,15 +11,16 @@ import {
   Zap,
   HelpCircle
 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Generic Bank Statement Converter Online (PDF to Excel/CSV) | StatementToExcel",
   description:
     "Convert, preview, and clean PDF statements with our premium online bank statement converter. Safe, fast, and highly accurate table parsing.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/bank-statement-converter",
+    canonical: "https://www.bankstatementtoexcelconverter.com/bank-statement-converter",
   },
-};
+}, "/bank-statement-converter");
 
 export default function BankStatementConverterPage() {
   const faqs = [

@@ -9,16 +9,17 @@ import {
   Lock,
   FileSpreadsheet,
 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Convert US Bank Statement to Excel — #1 American Bank PDF Converter",
   description:
     "The best US bank statement to Excel converter. Supports Chase, Bank of America, Wells Fargo, Citibank, Capital One, and 15 more. Free preview. Starts at $1.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/banks/us/convert-us-bank-statement",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/convert-us-bank-statement",
   },
-};
+}, "/banks/us/convert-us-bank-statement");
 
 const jsonLd = {
   "@context": "https://schema.org",

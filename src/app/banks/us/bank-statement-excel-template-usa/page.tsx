@@ -3,16 +3,17 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import { CheckCircle2, Download } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "US Bank Statement Excel Template — Download & Populate Automatically",
   description:
     "Get a ready-made Excel template for US bank statements. Upload your PDF and our tool populates the template automatically. Works with Chase, BofA, Wells Fargo.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-excel-template-usa",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/bank-statement-excel-template-usa",
   },
-};
+}, "/banks/us/bank-statement-excel-template-usa");
 
 const columns = [
   { col: "A", header: "#", type: "Row number", example: "1, 2, 3 …" },

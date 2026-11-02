@@ -36,15 +36,21 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
+      canonical: `https://www.bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
+      url: `https://www.bankstatementtoexcelconverter.com/banks/in/${params.bank}`,
       siteName: "StatementToExcel",
       locale: "en_IN",
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["https://www.bankstatementtoexcelconverter.com/icon-512.png"],
     },
   };
 }
@@ -186,7 +192,7 @@ export default function BankPage({ params }: BankPageProps) {
     operatingSystem: "Web",
     offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
     description: `Convert ${bank.name} bank statement PDF to Excel or CSV instantly`,
-    url: `https://bankstatementtoexcelconverter.com/banks/in/${bankSlug}`,
+    url: `https://www.bankstatementtoexcelconverter.com/banks/in/${bankSlug}`,
   };
 
   const faqSchema = {
@@ -203,9 +209,9 @@ export default function BankPage({ params }: BankPageProps) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://bankstatementtoexcelconverter.com" },
-      { "@type": "ListItem", position: 2, name: "India", item: "https://bankstatementtoexcelconverter.com/banks/in" },
-      { "@type": "ListItem", position: 3, name: `${bank.name}`, item: `https://bankstatementtoexcelconverter.com/banks/in/${bankSlug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.bankstatementtoexcelconverter.com" },
+      { "@type": "ListItem", position: 2, name: "India", item: "https://www.bankstatementtoexcelconverter.com/banks/in" },
+      { "@type": "ListItem", position: 3, name: `${bank.name}`, item: `https://www.bankstatementtoexcelconverter.com/banks/in/${bankSlug}` },
     ],
   };
 

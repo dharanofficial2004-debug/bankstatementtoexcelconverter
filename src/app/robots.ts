@@ -5,13 +5,20 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/app", "/preview/", "/auth/", "/api/"],
+      disallow: ["/preview/", "/auth/", "/api/"],
     },
     sitemap: [
-      "https://bankstatementtoexcelconverter.com/sitemap.xml",
-      "https://bankstatementtoexcelconverter.com/fr/sitemap.xml",
-      "https://bankstatementtoexcelconverter.com/banks/in/sitemap.xml",
-      "https://bankstatementtoexcelconverter.com/banks/us/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/blog/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/fr/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/de/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/ar-jo/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/ar-bh/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/ar-kw/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/us/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/uk/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/banks/in/sitemap.xml",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/sitemap.xml",
     ],
   };
 }

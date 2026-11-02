@@ -11,13 +11,13 @@ export const metadata: Metadata = {
     "Follow this guide to download your Union Bank statement from mobile or internet banking, then convert the PDF into an Excel spreadsheet.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
+      "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
   },
   openGraph: {
     title: "Download Union Bank Statement to Excel",
     description:
       "Learn how to get your Union Bank statement from mobile or internet banking and convert its PDF into an Excel spreadsheet.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "article",
@@ -58,9 +58,9 @@ export default function UnionBankBlogPost() {
     "@type": "Article",
     headline: "How to Download Union Bank Statement in Excel Format (Step-by-Step)",
     description: "Step-by-step guide to download Union Bank of India statements and convert to Excel.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
-    publisher: { "@type": "Organization", name: "StatementToExcel", url: "https://bankstatementtoexcelconverter.com" },
-    mainEntityOfPage: { "@type": "WebPage", "@id": "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel" },
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel",
+    publisher: { "@type": "Organization", name: "StatementToExcel", url: "https://www.bankstatementtoexcelconverter.com" },
+    mainEntityOfPage: { "@type": "WebPage", "@id": "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel" },
   };
 
   const faqSchema = {
@@ -77,9 +77,9 @@ export default function UnionBankBlogPost() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://bankstatementtoexcelconverter.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://bankstatementtoexcelconverter.com/blog" },
-      { "@type": "ListItem", position: 3, name: "How to Download Union Bank Statement in Excel Format", item: "https://bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.bankstatementtoexcelconverter.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.bankstatementtoexcelconverter.com/blog" },
+      { "@type": "ListItem", position: 3, name: "How to Download Union Bank Statement in Excel Format", item: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-union-bank-statement-in-excel" },
     ],
   };
 

@@ -4,7 +4,7 @@ import { usBanks } from "@/lib/usBanks";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = "https://bankstatementtoexcelconverter.com";
+const BASE_URL = "https://www.bankstatementtoexcelconverter.com";
 
 // All PSEO pages grouped by section
 const ALL_PSEO_URLS: string[] = [

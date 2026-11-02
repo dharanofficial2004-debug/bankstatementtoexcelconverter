@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bankstatementtoexcelconverter.com"),
+  metadataBase: new URL("https://www.bankstatementtoexcelconverter.com"),
   title: {
     default: "Bank Statement to Excel Converter | StatementToExcel",
     template: "%s | StatementToExcel",
@@ -55,22 +55,15 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "StatementToExcel — Convert Bank Statements to Excel Instantly",
-    description:
-      "Convert PDF bank statements into editable Excel spreadsheets instantly. Preview, edit and export to XLSX or CSV online.",
-    url: "https://bankstatementtoexcelconverter.com",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "StatementToExcel — Convert Bank Statements to Excel Instantly",
-    description:
-      "Convert PDF bank statements into editable Excel spreadsheets instantly. Preview, edit and export to XLSX or CSV online.",
   },
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com",
+    canonical: "https://www.bankstatementtoexcelconverter.com",
   },
 };
 
@@ -91,25 +84,25 @@ export default function RootLayout({
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://bankstatementtoexcelconverter.com/#organization",
+        "@id": "https://www.bankstatementtoexcelconverter.com/#organization",
         "name": "StatementToExcel",
-        "url": "https://bankstatementtoexcelconverter.com",
-        "logo": "https://bankstatementtoexcelconverter.com/favicon.ico",
+        "url": "https://www.bankstatementtoexcelconverter.com",
+        "logo": "https://www.bankstatementtoexcelconverter.com/favicon.ico",
       },
       {
         "@type": "WebSite",
-        "@id": "https://bankstatementtoexcelconverter.com/#website",
-        "url": "https://bankstatementtoexcelconverter.com",
+        "@id": "https://www.bankstatementtoexcelconverter.com/#website",
+        "url": "https://www.bankstatementtoexcelconverter.com",
         "name": "StatementToExcel",
         "publisher": {
-          "@id": "https://bankstatementtoexcelconverter.com/#organization",
+          "@id": "https://www.bankstatementtoexcelconverter.com/#organization",
         },
       },
       {
         "@type": "SoftwareApplication",
-        "@id": "https://bankstatementtoexcelconverter.com/#software",
+        "@id": "https://www.bankstatementtoexcelconverter.com/#software",
         "name": "StatementToExcel",
-        "url": "https://bankstatementtoexcelconverter.com",
+        "url": "https://www.bankstatementtoexcelconverter.com",
         "applicationCategory": "FinancialApplication",
         "operatingSystem": "All",
         "description": "Convert PDF bank statements into editable Excel spreadsheets instantly.",
@@ -121,7 +114,7 @@ export default function RootLayout({
           "offerCount": "2",
         },
         "publisher": {
-          "@id": "https://bankstatementtoexcelconverter.com/#organization",
+          "@id": "https://www.bankstatementtoexcelconverter.com/#organization",
         },
       },
     ],

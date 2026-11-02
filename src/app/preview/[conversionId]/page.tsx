@@ -3,7 +3,7 @@ import PreviewWorkspace from "@/components/app/PreviewWorkspace";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/preview" },
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/preview" },
 };
 
 export const dynamic = "force-static";

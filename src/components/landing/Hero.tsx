@@ -1,6 +1,5 @@
 import React, { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 
 interface HeroProps {
@@ -79,37 +78,6 @@ export default function Hero({
           </div>
         </div>
 
-        <div
-          className="mx-auto mt-10 flex max-w-5xl items-center justify-center gap-3 animate-fade-in-up"
-          style={{ animationDelay: "0.4s" }}
-        >
-          <a
-            href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt"
-              width={250}
-              height={54}
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-              unoptimized
-            />
-          </a>
-          <a
-            href="https://nicklaunches.com/products/bank-statement-to-excel-converter/?utm_source=bankstatementtoexcelconverter.com&utm_medium=badge&utm_campaign=featured"
-            target="_blank"
-            rel="noopener"
-          >
-            <Image
-              src="https://nicklaunches.com/badges/featured.png"
-              alt="Bank Statement to Excel Converter on Nick Launches"
-              width={244}
-              height={56}
-              unoptimized
-            />
-          </a>
-        </div>
       </section>
     );
   }
@@ -210,37 +178,6 @@ export default function Hero({
         </div>
       </div>
 
-      <div
-        className="mx-auto mt-10 flex max-w-5xl items-center justify-center gap-3 animate-fade-in-up"
-        style={{ animationDelay: "0.4s" }}
-      >
-        <a
-          href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt"
-            width={250}
-            height={54}
-            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-            unoptimized
-          />
-        </a>
-        <a
-          href="https://nicklaunches.com/products/bank-statement-to-excel-converter/?utm_source=bankstatementtoexcelconverter.com&utm_medium=badge&utm_campaign=featured"
-          target="_blank"
-          rel="noopener"
-        >
-          <Image
-            src="https://nicklaunches.com/badges/featured.png"
-            alt="Bank Statement to Excel Converter on Nick Launches"
-            width={244}
-            height={56}
-            unoptimized
-          />
-        </a>
-      </div>
     </section>
   );
 }

@@ -3,16 +3,17 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import { ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Free Bank Statement Converter USA to Excel",
   description:
     "Convert US bank and credit card statement PDFs to Excel or CSV online. Review transactions, organize financial data, and download your spreadsheet free.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/banks/us/free-bank-statement-converter-usa",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/free-bank-statement-converter-usa",
   },
-};
+}, "/banks/us/free-bank-statement-converter-usa");
 
 const comparisons = [
   { feature: "Free preview of all transactions", us: true, others: false },

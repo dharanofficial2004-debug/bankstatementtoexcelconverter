@@ -4,16 +4,17 @@ import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Business Bank Statement Converter USA — PDF to Excel for Businesses",
   description:
     "Convert US business bank statement PDFs to Excel or CSV. Perfect for bookkeeping, QuickBooks, CPA review, and SBA loan applications. Starts at $1.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/banks/us/business-bank-statement-converter",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/business-bank-statement-converter",
   },
-};
+}, "/banks/us/business-bank-statement-converter");
 
 const bizUseCases = [
   {

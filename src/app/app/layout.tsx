@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     follow: false,
   },
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/app",
+    canonical: "https://www.bankstatementtoexcelconverter.com/app",
   },
 };
 

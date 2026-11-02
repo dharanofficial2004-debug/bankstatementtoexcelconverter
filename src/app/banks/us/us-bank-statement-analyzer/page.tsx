@@ -4,12 +4,13 @@ import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, TrendingUp, TrendingDown, BarChart2, PieChart } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "US Bank Statement Analyzer — Understand Your Spending & Cash Flow",
   description: "Analyze your US bank statement transactions in a live spreadsheet. See total debits, credits, opening and closing balances. Works with all major US banks.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/us-bank-statement-analyzer" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/us-bank-statement-analyzer" },
+}, "/banks/us/us-bank-statement-analyzer");
 
 const insightCards = [
   { icon: TrendingDown, color: "text-red-500 bg-red-50", title: "Total Spending", desc: "Sum of all debit transactions across the statement period" },

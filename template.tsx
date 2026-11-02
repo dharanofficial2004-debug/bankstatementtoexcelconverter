@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   title: "__TITLE__",
   description: "__DESCRIPTION__",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/fr/__SLUG__",
+    canonical: "https://www.bankstatementtoexcelconverter.com/fr/__SLUG__",
     languages: {
-      "fr": "https://bankstatementtoexcelconverter.com/fr/__SLUG__",
-      "en": "https://bankstatementtoexcelconverter.com/__SLUG__",
+      "fr": "https://www.bankstatementtoexcelconverter.com/fr/__SLUG__",
+      "en": "https://www.bankstatementtoexcelconverter.com/__SLUG__",
     },
   },
 };

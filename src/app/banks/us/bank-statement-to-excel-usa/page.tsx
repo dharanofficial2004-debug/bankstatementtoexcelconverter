@@ -4,12 +4,13 @@ import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2, FileSpreadsheet, TrendingUp, Clock, Shield } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Bank Statement to Excel USA — Convert Any US Bank PDF Free",
   description: "Convert any US bank statement PDF to Excel online. Supports Chase, Bank of America, Wells Fargo, Citibank and more. Free preview. Starts at $1.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-to-excel-usa" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/bank-statement-to-excel-usa" },
+}, "/banks/us/bank-statement-to-excel-usa");
 
 const features = [
   { icon: FileSpreadsheet, title: "Native Excel Format", desc: "Downloads as .xlsx — opens in Microsoft Excel, Google Sheets, or LibreOffice without any conversion." },

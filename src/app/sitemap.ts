@@ -1,8 +1,6 @@
 import { MetadataRoute } from "next";
 import fs from "fs";
 import path from "path";
-import { usBanks } from "@/lib/usBanks";
-import guideCatalog from "@/content/seo-guides/catalog.json";
 
 function getRoutes(baseDir: string, currentDir: string = ""): string[] {
   const routes: string[] = [];
@@ -14,17 +12,18 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      // Skip private folders, route groups, api routes, static assets, and separated sitemap folders
+      // Skip private routes, route groups, API routes, and static assets.
       if (
         entry.name.startsWith("_") ||
         entry.name.startsWith("(") ||
         entry.name.startsWith("[") ||
         entry.name === "api" ||
         entry.name === "fonts" ||
+        entry.name === "admin" ||
+        entry.name === "app" ||
         entry.name === "auth" ||
-        (currentDir === "" && entry.name === "fr") ||
-        (currentDir === "" && entry.name === "banks") ||
-        (currentDir === "" && entry.name === "blog")
+        (currentDir === "" &&
+          ["ar-bh", "ar-jo", "ar-kw", "banks", "blog", "de", "fr", "uk", "us"].includes(entry.name))
       ) {
         continue;
       }
@@ -41,8 +40,7 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://bankstatementtoexcelconverter.com";
-  const lastModified = new Date();
+  const baseUrl = "https://www.bankstatementtoexcelconverter.com";
 
   // Try to find the app directory, either in src/app or app/
   const srcAppDir = path.join(process.cwd(), "src", "app");
@@ -50,62 +48,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const appDir = fs.existsSync(srcAppDir) ? srcAppDir : rootAppDir;
 
-  const dynamicRoutes = getRoutes(appDir);
-  const usBankRoutes = [
-    "/banks/us",
-    ...Object.keys(usBanks).map((slug) => `/banks/us/${slug}`),
-  ];
+  const routes = getRoutes(appDir);
 
-  const routes: MetadataRoute.Sitemap = [...dynamicRoutes, ...usBankRoutes].map(
-    (route) => {
-      // Format the URL
-      const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
-      let url =
-        normalizedRoute === ""
-          ? baseUrl
-          : `${baseUrl}${normalizedRoute.startsWith("/") ? "" : "/"}${normalizedRoute}`;
-
-      // These locale landing pages use the www canonical URL.
-      if (
-        normalizedRoute === "pt-br/bancos" ||
-        normalizedRoute === "/pt-br/bancos" ||
-        normalizedRoute === "es/bancos" ||
-        normalizedRoute === "/es/bancos"
-      ) {
-        url = `https://bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
-      }
-
-      // Assign priorities based on route importance
-      if (guideCatalog.some((guide) => guide.route === `/${normalizedRoute.replace(/^\//, "")}`)) {
-        url = `https://www.bankstatementtoexcelconverter.com/${normalizedRoute.replace(/^\//, "")}`;
-      }
-
-      // Assign priorities based on route importance
-      let priority = 0.9;
-      let changeFrequency:
-        | "daily"
-        | "weekly"
-        | "monthly"
-        | "yearly"
-        | "hourly"
-        | "always"
-        | "never" = "weekly";
-
-      if (route === "") {
-        priority = 1.0;
-        changeFrequency = "daily";
-      } else if (route === "pricing") {
-        priority = 0.8;
-      }
-
-      return {
-        url,
-        lastModified,
-        changeFrequency,
-        priority,
-      };
-    },
-  );
-
-  return routes;
+  return routes.map((route) => ({
+    url: route === "" ? baseUrl : `${baseUrl}/${route.replace(/\\/g, "/")}`,
+  }));
 }

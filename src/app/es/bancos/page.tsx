@@ -4,8 +4,9 @@ import { ArrowRight, CheckCircle2, FileSpreadsheet, ListChecks, Upload } from "l
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import FaqSection from "@/components/landing/FaqSection";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 
-const siteUrl = "https://bankstatementtoexcelconverter.com";
+const siteUrl = "https://www.bankstatementtoexcelconverter.com";
 
 export const metadata: Metadata = {
   title: "Convertir Extractos Bancarios PDF a Excel",
@@ -23,8 +24,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${siteUrl}/es/bancos`,
     languages: {
-      es: `${siteUrl}/es/bancos`,
-      "x-default": `${siteUrl}/`,
+      ...converterLandingAlternates,
     },
   },
 };

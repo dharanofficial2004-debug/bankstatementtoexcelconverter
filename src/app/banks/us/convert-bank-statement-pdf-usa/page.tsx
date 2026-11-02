@@ -4,12 +4,13 @@ import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Convert Bank Statement PDF USA — Any US Bank to Excel or CSV",
   description: "Convert any US bank statement PDF to Excel or CSV online. AI-powered extraction supports Chase, Wells Fargo, Citibank, and all major American banks. Starts at $1.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/convert-bank-statement-pdf-usa" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/convert-bank-statement-pdf-usa" },
+}, "/banks/us/convert-bank-statement-pdf-usa");
 
 const whyAI = [
   { title: "Understands US bank formats", body: "Each US bank uses a slightly different PDF layout. Chase uses 'Posting Date', Wells Fargo uses 'Date', Bank of America uses columns differently. Our AI knows them all." },

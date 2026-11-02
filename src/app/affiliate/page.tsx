@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { ArrowUpRight, Link2, Percent, Users } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Affiliate Program — Earn 20% Commission",
   description: "Recommend Bank Statement to Excel Converter and earn 20% commission on every eligible sale. Join our affiliate program on Affitor.",
   alternates: { canonical: "/affiliate" },
-};
+}, "/affiliate");
 
 const steps = [
   { icon: Users, title: "Join the program", description: "Sign up through Affitor to get started with our affiliate program." },

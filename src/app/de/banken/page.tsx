@@ -3,9 +3,9 @@ import Navbar from "@/components/landing/Navbar";
 import VideoDemo from "@/components/landing/VideoDemo";
 import Footer from "@/components/landing/Footer";
 import FaqSection from "@/components/landing/FaqSection";
-import Image from "next/image";
 import Link from "next/link";
 import { CloudUpload, Download, PencilLine, Grid3X3 } from "lucide-react";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 
 export const metadata: Metadata = {
   title: "Kontoauszug in Excel umwandeln | PDF zu Excel & CSV",
@@ -15,13 +15,13 @@ export const metadata: Metadata = {
     title: "Kontoauszug-PDF in Excel und CSV umwandeln",
     description:
       "Extrahieren Sie Buchungen aus Kontoauszugs-PDFs in Excel oder CSV und prüfen Sie die Daten vor dem Export.",
-    url: "https://bankstatementtoexcelconverter.com/de/banken",
+    url: "https://www.bankstatementtoexcelconverter.com/de/banken",
     siteName: "StatementToExcel",
     locale: "de_DE",
     type: "website",
     images: [
       {
-        url: "https://bankstatementtoexcelconverter.com/icon-512.png",
+        url: "https://www.bankstatementtoexcelconverter.com/icon-512.png",
         width: 512,
         height: 512,
         alt: "Kontoauszug in Excel umwandeln",
@@ -29,10 +29,9 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/de/banken",
+    canonical: "https://www.bankstatementtoexcelconverter.com/de/banken",
     languages: {
-      de: "https://bankstatementtoexcelconverter.com/de/banken",
-      "x-default": "https://bankstatementtoexcelconverter.com/",
+      ...converterLandingAlternates,
     },
   },
 };
@@ -217,13 +216,13 @@ export default function GermanBankenPage() {
                 "@type": "ListItem",
                 position: 1,
                 name: "Home",
-                item: "https://bankstatementtoexcelconverter.com/",
+                item: "https://www.bankstatementtoexcelconverter.com/",
               },
               {
                 "@type": "ListItem",
                 position: 2,
                 name: "Deutsch",
-                item: "https://bankstatementtoexcelconverter.com/de/banken",
+                item: "https://www.bankstatementtoexcelconverter.com/de/banken",
               },
               {
                 "@type": "ListItem",
@@ -294,37 +293,6 @@ export default function GermanBankenPage() {
             </div>
           </div>
 
-          <div
-            className="mx-auto mt-10 flex max-w-5xl items-center justify-center gap-3 animate-fade-in-up"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <a
-              href="https://www.producthunt.com/products/statementtoexcel?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-statementtoexcel"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                alt="StatementToExcel - AI-powered PDF Bank Statement to Excel Converter | Product Hunt"
-                width={250}
-                height={54}
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1183682&theme=light&t=1782800408880"
-                unoptimized
-              />
-            </a>
-            <a
-              href="https://nicklaunches.com/products/bank-statement-to-excel-converter/?utm_source=bankstatementtoexcelconverter.com&utm_medium=badge&utm_campaign=featured"
-              target="_blank"
-              rel="noopener"
-            >
-              <Image
-                src="https://nicklaunches.com/badges/featured.png"
-                alt="Bank Statement to Excel Converter on Nick Launches"
-                width={244}
-                height={56}
-                unoptimized
-              />
-            </a>
-          </div>
         </section>
 
         {/* ── Section 1 – Intro ── */}

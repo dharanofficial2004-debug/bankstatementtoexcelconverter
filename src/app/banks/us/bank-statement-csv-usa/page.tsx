@@ -3,16 +3,17 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import { Download } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "US Bank Statement to CSV — Convert PDF to CSV Online Free",
   description:
     "Convert your US bank statement PDF to CSV format online. Perfect for QuickBooks, Excel, Google Sheets, and accounting software. Free preview. Starts at $1.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/banks/us/bank-statement-csv-usa",
+      "https://www.bankstatementtoexcelconverter.com/banks/us/bank-statement-csv-usa",
   },
-};
+}, "/banks/us/bank-statement-csv-usa");
 
 const csvUses = [
   {

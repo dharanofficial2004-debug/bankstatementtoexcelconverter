@@ -35,8 +35,7 @@ function getRoutes(baseDir: string, currentDir: string = ""): string[] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://bankstatementtoexcelconverter.com/banks/us";
-  const lastModified = new Date();
+  const baseUrl = "https://www.bankstatementtoexcelconverter.com/banks/us";
 
   const srcAppDir = path.join(process.cwd(), "src", "app", "banks", "us");
   const rootAppDir = path.join(process.cwd(), "app", "banks", "us");
@@ -49,7 +48,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     (route) => {
       const normalizedRoute = route === "" ? "" : route.replace(/\\/g, "/");
       const url =
-        normalizedRoute === "" ? baseUrl : `${baseUrl}${normalizedRoute}`;
+        normalizedRoute === ""
+          ? baseUrl
+          : `${baseUrl}/${normalizedRoute.replace(/^\/+/, "")}`;
 
       let priority = 0.8;
       let changeFrequency:
@@ -68,7 +69,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
       return {
         url,
-        lastModified,
         changeFrequency,
         priority,
       };

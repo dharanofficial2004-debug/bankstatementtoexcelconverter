@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 import home from "@/content/fr/home.json";
 import excel from "@/content/fr/excel.json";
 import choice from "@/content/fr/choice.json";
@@ -13,7 +14,7 @@ import help from "@/content/fr/help.json";
 
 export const frenchPages = [home, excel, choice, csv, ocr, extract, importGuide, multi, check, cash, help];
 export type FrenchPage = (typeof frenchPages)[number];
-export const frenchOrigin = "https://bankstatementtoexcelconverter.com";
+export const frenchOrigin = "https://www.bankstatementtoexcelconverter.com";
 export function frenchPath(page: FrenchPage) { return `/fr${page.slug ? `/${page.slug}` : ""}`; }
 export function getFrenchPage(id: string): FrenchPage {
   const page = frenchPages.find((item) => item.id === id);
@@ -28,7 +29,13 @@ export function frenchMetadata(id: string): Metadata {
     title: { absolute: page.title },
     description: page.description,
     keywords: [],
-    alternates: { canonical: url, languages: { fr: url } },
+    alternates: {
+      canonical: url,
+      languages:
+        id === "home"
+          ? converterLandingAlternates
+          : { fr: url },
+    },
     robots: { index: true, follow: true },
     openGraph: { title: page.title, description: page.description, url, siteName: "StatementToExcel", locale: "fr_FR", type: "website", images },
     twitter: { card: "summary_large_image", title: page.title, description: page.description, images: images.map((image) => image.url) },

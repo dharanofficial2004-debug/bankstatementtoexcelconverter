@@ -11,15 +11,16 @@ import {
   Zap,
   HelpCircle
 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "PDF Bank Statement to Excel",
   description:
     "Convert a PDF bank statement into an Excel spreadsheet. Check extracted transaction details in the preview, make edits, and export your reviewed file.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/pdf-to-excel-bank-statement",
+    canonical: "https://www.bankstatementtoexcelconverter.com/pdf-to-excel-bank-statement",
   },
-};
+}, "/pdf-to-excel-bank-statement");
 
 export default function PdfToExcelBankStatementPage() {
   const faqs = [

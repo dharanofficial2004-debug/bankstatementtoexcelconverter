@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const base = process.env.FR_AUDIT_BASE || 'http://localhost:3000';
-const origin = 'https://bankstatementtoexcelconverter.com';
+const origin = 'https://www.bankstatementtoexcelconverter.com';
 const before = JSON.parse(fs.readFileSync('docs/seo/fr-before.json', 'utf8'));
 const pages = fs.readdirSync('src/content/fr').filter(f => f.endsWith('.json')).map(f => JSON.parse(fs.readFileSync('src/content/fr/' + f, 'utf8')));
 const decode = s => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ');

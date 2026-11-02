@@ -25,11 +25,29 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bank = usBanks[params.bank];
   if (!bank) return {};
+  const title = `${bank.name} Statement to Excel`;
+  const description = `Convert a ${bank.name} statement PDF to Excel, CSV, or JSON. Review extracted transactions, then export a spreadsheet for bookkeeping, tax preparation, or accounting.`;
+  const url = `https://www.bankstatementtoexcelconverter.com/banks/us/${params.bank}`;
   return {
-    title: `${bank.name} Statement to Excel`,
-    description: `Convert a ${bank.name} statement PDF to Excel, CSV, or JSON. Review extracted transactions, then export a spreadsheet for bookkeeping, tax preparation, or accounting.`,
+    title,
+    description,
     alternates: {
-      canonical: `https://bankstatementtoexcelconverter.com/banks/us/${params.bank}`,
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "StatementToExcel",
+      locale: "en_US",
+      type: "website",
+      images: [`https://www.bankstatementtoexcelconverter.com/icon-512.png`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`https://www.bankstatementtoexcelconverter.com/icon-512.png`],
     },
   };
 }
@@ -50,7 +68,7 @@ export default function USBankPage({ params }: Props) {
     operatingSystem: "Web",
     offers: { "@type": "Offer", price: "1.00", priceCurrency: "USD" },
     description: `Convert ${bank.name} bank statement PDF to Excel or CSV instantly`,
-    url: `https://bankstatementtoexcelconverter.com/banks/us/${slug}`,
+    url: `https://www.bankstatementtoexcelconverter.com/banks/us/${slug}`,
   };
 
   const faqs = [

@@ -4,14 +4,15 @@ import { indianBanks } from "@/lib/indianBanks";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { ArrowRight, Building2 } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Indian Banks: Statement PDF to Excel",
   description: "Find your Indian bank and convert its statement PDF to Excel or CSV. Browse bank-specific guides, review extracted transactions, and export a spreadsheet.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/banks/in",
+    canonical: "https://www.bankstatementtoexcelconverter.com/banks/in",
   },
-};
+}, "/banks/in", "en_IN");
 
 export default function BanksIndexPage() {
   const bankSlugs = Object.keys(indianBanks);

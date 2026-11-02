@@ -10,13 +10,13 @@ export const metadata: Metadata = {
   description:
     "Practical guides on converting bank statement PDFs to Excel and CSV, preparing data for accounting, and avoiding common extraction errors.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com/blog",
+    canonical: "https://www.bankstatementtoexcelconverter.com/blog",
   },
   openGraph: {
     title: "Blog — Bank Statement to Excel & CSV Guides",
     description:
       "Practical guides on converting bank statement PDFs to Excel and CSV, preparing data for accounting, and avoiding common extraction errors.",
-    url: "https://bankstatementtoexcelconverter.com/blog",
+    url: "https://www.bankstatementtoexcelconverter.com/blog",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "website",
@@ -70,13 +70,13 @@ export default function BlogIndexPage() {
     "@context": "https://schema.org",
     "@type": "Blog",
     name: "StatementToExcel Blog",
-    url: "https://bankstatementtoexcelconverter.com/blog",
+    url: "https://www.bankstatementtoexcelconverter.com/blog",
     description:
       "Practical guides on converting bank statement PDFs to Excel and CSV, preparing data for accounting, and avoiding common extraction errors.",
     publisher: {
       "@type": "Organization",
       name: "StatementToExcel",
-      url: "https://bankstatementtoexcelconverter.com",
+      url: "https://www.bankstatementtoexcelconverter.com",
     },
   };
 

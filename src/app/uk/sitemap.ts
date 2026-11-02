@@ -1,13 +1,11 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://bankstatementtoexcelconverter.com";
-  const lastModified = new Date();
+  const baseUrl = "https://www.bankstatementtoexcelconverter.com";
 
   return [
     {
       url: `${baseUrl}/uk/banks`,
-      lastModified,
       changeFrequency: "monthly",
       priority: 0.8,
     },

@@ -22,6 +22,7 @@ import PseoLinks from "@/components/landing/PseoLinks";
 import FaqSection from "@/components/landing/FaqSection";
 import VideoDemo from "@/components/landing/VideoDemo";
 import { CloudUpload, Download, PencilLine } from "lucide-react";
+import { converterLandingAlternates } from "@/lib/localeSeo";
 
 export const metadata: Metadata = {
   title:
@@ -29,20 +30,21 @@ export const metadata: Metadata = {
   description:
     "Convert bank statement PDFs to Excel or CSV instantly. Live editable preview, 99%+ accuracy, works with 350+ banks. No signup required. Free forever.",
   alternates: {
-    canonical: "https://bankstatementtoexcelconverter.com",
+    canonical: "https://www.bankstatementtoexcelconverter.com",
+    languages: converterLandingAlternates,
   },
   openGraph: {
     title:
       "Bank Statement to Excel Converter — Free, No Signup, 99%+ Accuracy",
     description:
       "Convert bank statement PDFs to Excel or CSV instantly. Live editable preview, 99%+ accuracy, works with 350+ banks. No signup required.",
-    url: "https://bankstatementtoexcelconverter.com",
+    url: "https://www.bankstatementtoexcelconverter.com",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "https://bankstatementtoexcelconverter.com/icon-512.png",
+        url: "https://www.bankstatementtoexcelconverter.com/icon-512.png",
         width: 512,
         height: 512,
         alt: "Bank Statement to Excel Converter",

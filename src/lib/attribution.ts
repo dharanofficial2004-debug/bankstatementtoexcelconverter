@@ -17,7 +17,7 @@ export interface TouchAttribution {
 export function sanitizeUrl(raw: unknown): string | null {
   if (typeof raw !== "string" || !raw.trim()) return null;
   try {
-    const url = new URL(raw, "https://bankstatementtoexcelconverter.com");
+    const url = new URL(raw, "https://www.bankstatementtoexcelconverter.com");
     if (!/^https?:$/.test(url.protocol)) return null;
     const sensitiveKeys: string[] = [];
     url.searchParams.forEach((_value, key) => {

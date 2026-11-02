@@ -5,19 +5,16 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title:
-    "How to Download Canara Bank Statement in Excel Format (Step-by-Step)",
-  description:
-    "Learn how to download your Canara Bank statement in Excel format. Step-by-step guide for mobile app and net banking, plus how to convert the PDF to Excel for accounting.",
+  title: "Canara Bank Statement to Excel: Download Guide",
+  description: "Download your Canara statement and convert it to Excel.",
   alternates: {
     canonical:
-      "https://bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
+      "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
   },
   openGraph: {
-    title: "How to Download Canara Bank Statement in Excel Format (Step-by-Step)",
-    description:
-      "Step-by-step guide to download Canara Bank statements in Excel format, plus tips to convert the PDF to a clean spreadsheet.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
+    title: "Canara Bank Statement to Excel: Download Guide",
+    description: "Download your Canara statement and convert it to Excel.",
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
     siteName: "StatementToExcel",
     locale: "en_US",
     type: "article",
@@ -61,11 +58,11 @@ export default function CanaraBlogPost() {
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: "How to Download Canara Bank Statement in Excel Format (Step-by-Step)",
-    description: "Step-by-step guide to download Canara Bank statements in Excel format.",
-    url: "https://bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
-    publisher: { "@type": "Organization", name: "StatementToExcel", url: "https://bankstatementtoexcelconverter.com" },
-    mainEntityOfPage: { "@type": "WebPage", "@id": "https://bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel" },
+    headline: "Canara Bank Statement to Excel: Download Guide",
+    description: "Download your Canara statement and convert it to Excel.",
+    url: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel",
+    publisher: { "@type": "Organization", name: "StatementToExcel", url: "https://www.bankstatementtoexcelconverter.com" },
+    mainEntityOfPage: { "@type": "WebPage", "@id": "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel" },
   };
 
   const faqSchema = {
@@ -82,9 +79,9 @@ export default function CanaraBlogPost() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://bankstatementtoexcelconverter.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://bankstatementtoexcelconverter.com/blog" },
-      { "@type": "ListItem", position: 3, name: "How to Download Canara Bank Statement in Excel Format", item: "https://bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.bankstatementtoexcelconverter.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.bankstatementtoexcelconverter.com/blog" },
+      { "@type": "ListItem", position: 3, name: "How to Download Canara Bank Statement in Excel Format", item: "https://www.bankstatementtoexcelconverter.com/blog/how-to-download-canara-bank-statement-in-excel" },
     ],
   };
 

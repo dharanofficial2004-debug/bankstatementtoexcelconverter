@@ -3,12 +3,13 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import USFooter from "@/components/landing/USFooter";
 import { ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { withPageSocialMetadata } from "@/lib/pageSocialMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageSocialMetadata({
   title: "Import Bank Statements to QuickBooks",
   description: "Convert a US bank statement PDF to CSV, review the transaction details, and prepare the file for import into QuickBooks Online or Desktop.",
-  alternates: { canonical: "https://bankstatementtoexcelconverter.com/banks/us/quickbooks-bank-statement-import" },
-};
+  alternates: { canonical: "https://www.bankstatementtoexcelconverter.com/banks/us/quickbooks-bank-statement-import" },
+}, "/banks/us/quickbooks-bank-statement-import");
 
 const steps = [
   { step: "1", title: "Download your bank statement PDF", body: "Log into your bank's website or app and download the statement PDF for the period you want to import." },
