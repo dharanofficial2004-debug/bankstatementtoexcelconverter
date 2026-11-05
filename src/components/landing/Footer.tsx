@@ -108,10 +108,10 @@ export default function Footer() {
             </p>
             <div className="space-y-3 text-sm text-slate-600">
               <a
-                href="mailto:dharan.official.2004@gmail.com"
+                href="mailto:support@bankstatementtoexcelconverter.com"
                 className="block hover:text-primary-600 transition-colors"
               >
-                dharan.official.2004@gmail.com
+                support@bankstatementtoexcelconverter.com
               </a>
               <Link
                 href="/pdf-to-excel-bank-statement"
