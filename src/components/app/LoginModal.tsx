@@ -24,6 +24,18 @@ interface LoginModalProps {
 
 type Tab = "signup" | "signin";
 
+async function captureSignupCountry(accessToken?: string) {
+  const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  try {
+    const response = await fetch("/api/session", { method: "POST", credentials: "include", headers });
+    if (!response.ok) throw new Error(`Country capture failed with status ${response.status}`);
+    const result = (await response.json()) as { ok?: boolean };
+    if (!result.ok) throw new Error("Country capture was not saved.");
+  } catch (captureError) {
+    console.error("Failed to capture signup country:", captureError);
+  }
+}
+
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const [tab, setTab] = useState<Tab>("signup");
   const [email, setEmail] = useState("");
@@ -89,6 +101,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         void trackAffiliateSignup(data.user.id, data.user.email, data.session?.access_token);
       }
 
+      await captureSignupCountry(data.session?.access_token);
+
       if (data.session) {
         try {
           await supabase.from("user_usage").upsert(
@@ -101,8 +115,9 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (!signInError) {
+        await captureSignupCountry(signInData.session?.access_token);
         trackSignupCompleted({ method: "email" });
         onLoginSuccess();
       } else {
@@ -128,11 +143,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
     setIsLoading(true);
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) {
         setError(authError.message.toLowerCase().includes("invalid") ? "Incorrect email or password." : authError.message);
         return;
       }
+      await captureSignupCountry(data.session?.access_token);
       trackLoginCompleted({ method: "email" });
       onLoginSuccess();
     } catch {

@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
       .from("user_usage")
       .select("user_id, conversions_used, plan, profession, paid_credits, trial_consumed_at");
 
+    // ── Signup country attribution ────────────────────────────────────────────
+    const { data: attributionData } = await supabaseAdmin
+      .from("user_attribution")
+      .select("user_id, acquisition_country");
+
     // ── 3. gemini_attempts — real AI usage per job ────────────────────────────
     const { data: attemptData } = await supabaseAdmin
       .from("gemini_attempts")
@@ -69,6 +74,11 @@ export async function GET(request: NextRequest) {
         paidCredits: Number(u.paid_credits) || 0,
         trialConsumed: Boolean(u.trial_consumed_at),
       };
+    }
+
+    const countryByUser: Record<string, string | null> = {};
+    for (const attribution of attributionData || []) {
+      countryByUser[attribution.user_id] = attribution.acquisition_country;
     }
 
     // Guest lookup by id
@@ -132,6 +142,7 @@ export async function GET(request: NextRequest) {
         sno: idx + 1,
         userId: u.id,
         email: u.email || "No Email",
+        country: countryByUser[u.id] || null,
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at || null,
         conversionsUsed: actualConversions,

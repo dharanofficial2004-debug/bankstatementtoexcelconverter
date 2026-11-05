@@ -62,9 +62,21 @@ export async function POST(request: NextRequest) {
     if (supabaseAdmin && identity.userId) {
       const { data: existing } = await supabaseAdmin
         .from("user_attribution")
-        .select("user_id, first_touch")
+        .select("user_id, first_touch, acquisition_country")
         .eq("user_id", identity.userId)
         .maybeSingle();
+      let acquisitionCountry = touch.acquisition_country;
+      if (identity.guestSessionId) {
+        const { data: guestAttribution } = await supabaseAdmin
+          .from("guest_attribution")
+          .select("first_touch")
+          .eq("guest_session_id", identity.guestSessionId)
+          .maybeSingle();
+        const firstTouch = guestAttribution?.first_touch as { acquisition_country?: unknown } | null;
+        if (typeof firstTouch?.acquisition_country === "string" && firstTouch.acquisition_country) {
+          acquisitionCountry = firstTouch.acquisition_country;
+        }
+      }
       if (!existing) {
         await supabaseAdmin.from("user_attribution").insert({
           user_id: identity.userId,
@@ -72,19 +84,29 @@ export async function POST(request: NextRequest) {
           first_touch: touch,
           last_touch: touch,
           signup_path: touch.signup_path,
-          acquisition_country: touch.acquisition_country,
+          acquisition_country: acquisitionCountry,
           city,
           region,
         });
       } else {
+        const update: Record<string, unknown> = {
+          last_touch: touch,
+          last_captured_at: touch.captured_at,
+          city,
+          region,
+        };
+        if (!existing.acquisition_country && acquisitionCountry) {
+          update.acquisition_country = acquisitionCountry;
+        }
         await supabaseAdmin
           .from("user_attribution")
-          .update({ last_touch: touch, last_captured_at: touch.captured_at, city, region })
+          .update(update)
           .eq("user_id", identity.userId);
       }
     }
     return withIdentityHeaders(NextResponse.json({ ok: true }), setCookie);
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 200 });
+  } catch (error) {
+    console.error("session attribution error:", error);
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

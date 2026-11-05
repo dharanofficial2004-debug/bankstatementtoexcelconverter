@@ -15,6 +15,7 @@ interface AdminUserStat {
   sno: number;
   userId: string;
   email: string;
+  country: string | null;
   createdAt: string;
   lastSignInAt: string | null;
   conversionsUsed: number;
@@ -77,6 +78,9 @@ type Tab = "overview" | "users" | "ai" | "conversions" | "analytics";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 const fmtTime = (d: string) => new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+const formatCountry = (country: string | null) =>
+  country ? countryNames.of(country.toUpperCase()) || country : "";
 
 function exportCsv(data: Record<string, unknown>[], filename: string) {
   if (!data.length) return;
@@ -281,7 +285,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                       className={`px-3 py-1.5 rounded-lg border text-xs font-medium capitalize transition-all ${planFilter === f ? "bg-primary-600 text-white border-primary-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>{f}</button>
                   ))}
                 </div>
-                <button onClick={() => exportCsv(filteredUsers.map(u => ({ sno: u.sno, email: u.email, plan: u.plan, conversions: u.conversionsUsed, paid_credits: u.paidCredits, ai_tokens: u.totalTokens, ai_cost_usd: u.estimatedCostUsd.toFixed(4), signup: fmt(u.createdAt) })), "users_export.csv")}
+                <button onClick={() => exportCsv(filteredUsers.map(u => ({ sno: u.sno, email: u.email, country: formatCountry(u.country), plan: u.plan, conversions: u.conversionsUsed, paid_credits: u.paidCredits, ai_tokens: u.totalTokens, ai_cost_usd: u.estimatedCostUsd.toFixed(4), signup: fmt(u.createdAt) })), "users_export.csv")}
                   className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-all">
                   <Download size={13} /> Export CSV
                 </button>
@@ -293,6 +297,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                     <thead><tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wide">
                       <th className="py-3 px-3 text-left">S.No</th>
                       <th className="py-3 px-3 text-left">Email</th>
+                      <th className="py-3 px-3 text-left">Country</th>
                       <th className="py-3 px-3 text-left">Signup</th>
                       <th className="py-3 px-3 text-left">Last Login</th>
                       <th className="py-3 px-3 text-center">Plan</th>
@@ -305,7 +310,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                     </tr></thead>
                     <tbody className="divide-y divide-slate-50">
                       {filteredUsers.length === 0
-                        ? <tr><td colSpan={11} className="py-10 text-center text-slate-400">No users match filters.</td></tr>
+                        ? <tr><td colSpan={12} className="py-10 text-center text-slate-400">No users match filters.</td></tr>
                         : filteredUsers.map(u => {
                           const planColor = u.plan === "lifetime" ? "bg-violet-50 text-violet-700 border-violet-200" : (u.plan === "payg" || u.plan === "per_conversion") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200";
                           const planLabel = u.plan === "lifetime" ? "Lifetime" : (u.plan === "payg" || u.plan === "per_conversion") ? "PAYG" : "Free";
@@ -313,6 +318,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                             <tr key={u.userId} className="hover:bg-slate-50/50 transition-colors">
                               <td className="py-3 px-3 text-slate-400">{u.sno}</td>
                               <td className="py-3 px-3 font-semibold text-slate-900">{u.email}</td>
+                              <td className="py-3 px-3 text-slate-500">{formatCountry(u.country) || <span className="text-slate-300">Unknown</span>}</td>
                               <td className="py-3 px-3 text-slate-500 whitespace-nowrap"><div className="flex items-center gap-1"><Calendar size={11} className="text-slate-300" />{fmt(u.createdAt)}</div></td>
                               <td className="py-3 px-3 text-slate-500 whitespace-nowrap"><div className="flex items-center gap-1"><Clock size={11} className="text-slate-300" />{u.lastSignInAt ? fmt(u.lastSignInAt) : "Never"}</div></td>
                               <td className="py-3 px-3 text-center"><span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${planColor}`}>{planLabel}</span></td>
