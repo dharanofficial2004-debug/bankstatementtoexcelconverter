@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     // ── 6. guest_sessions — for guest AI usage attribution ───────────────────
     const { data: guestData } = await supabaseAdmin
       .from("guest_sessions")
-      .select("id, linked_user_id, trial_used, created_at, country_code, city");
+      .select("id, linked_user_id, trial_used, created_at, country_code, city, region");
 
     // ── 7. analytics_events — funnel + geo + page views ──────────────────────
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
@@ -82,10 +82,37 @@ export async function GET(request: NextRequest) {
     }
 
     // Guest lookup by id
-    const guestMap: Record<string, { linkedUserId: string | null; trialUsed: boolean }> = {};
+    const guestMap: Record<string, {
+      linkedUserId: string | null;
+      trialUsed: boolean;
+      country: string | null;
+      city: string | null;
+      region: string | null;
+    }> = {};
+    const locationByLinkedUser: Record<string, { country: string | null; city: string | null }> = {};
     for (const g of guestData || []) {
-      guestMap[g.id] = { linkedUserId: g.linked_user_id, trialUsed: g.trial_used };
+      guestMap[g.id] = {
+        linkedUserId: g.linked_user_id,
+        trialUsed: g.trial_used,
+        country: g.country_code,
+        city: g.city,
+        region: g.region,
+      };
+      if (g.linked_user_id && !locationByLinkedUser[g.linked_user_id]) {
+        locationByLinkedUser[g.linked_user_id] = { country: g.country_code, city: g.city };
+      }
     }
+    const guestSessions = (guestData || [])
+      .map(g => ({
+        id: g.id,
+        country: g.country_code,
+        city: g.city,
+        region: g.region,
+        createdAt: g.created_at,
+        trialUsed: Boolean(g.trial_used),
+        linked: Boolean(g.linked_user_id),
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     // Payments per user
     const paymentMap: Record<string, { totalPaid: number; plan: string; lastPayment: string }> = {};
@@ -142,7 +169,7 @@ export async function GET(request: NextRequest) {
         sno: idx + 1,
         userId: u.id,
         email: u.email || "No Email",
-        country: countryByUser[u.id] || null,
+        country: countryByUser[u.id] || locationByLinkedUser[u.id]?.country || null,
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at || null,
         conversionsUsed: actualConversions,
@@ -196,6 +223,12 @@ export async function GET(request: NextRequest) {
         const u = authUsers.find(x => x.id === j.user_id);
         email = u?.email || j.user_id;
       }
+      const guest = j.guest_session_id
+        ? guestMap[j.guest_session_id as string]
+        : j.owner_type === "guest"
+          ? guestMap[j.owner_id as string]
+          : null;
+      const linkedUserLocation = j.user_id ? locationByLinkedUser[j.user_id] : null;
       return {
         id: j.id,
         email,
@@ -203,6 +236,8 @@ export async function GET(request: NextRequest) {
         filename: j.filename,
         extractionKind: j.extraction_kind,
         createdAt: j.created_at,
+        country: guest?.country || (j.user_id ? countryByUser[j.user_id] : null) || linkedUserLocation?.country || null,
+        city: guest?.city || linkedUserLocation?.city || null,
       };
     });
 
@@ -249,6 +284,7 @@ export async function GET(request: NextRequest) {
         freeUsers: authUsers.length - Object.keys(paymentMap).length,
       },
       users: userList,
+      guestSessions,
       aiUsageLogs,
       recentJobs,
       analytics: {

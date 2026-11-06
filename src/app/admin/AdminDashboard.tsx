@@ -7,6 +7,7 @@ import {
   FileSpreadsheet, Users, Cpu, DollarSign, RefreshCw, LogOut,
   Search, Calendar, Zap, Clock, ShieldCheck, Loader2, Activity,
   BarChart2, CreditCard, Download, Filter, Home, Globe,
+  UserRound,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -32,6 +33,16 @@ interface AdminUserStat {
   aiCalls: number;
 }
 
+interface AdminGuestSession {
+  id: string;
+  country: string | null;
+  city: string | null;
+  region: string | null;
+  createdAt: string;
+  trialUsed: boolean;
+  linked: boolean;
+}
+
 interface AiUsageLog {
   jobId: string;
   ownerType: string;
@@ -53,6 +64,8 @@ interface RecentJob {
   filename: string | null;
   extractionKind: string | null;
   createdAt: string;
+  country: string | null;
+  city: string | null;
 }
 
 interface AdminSummary {
@@ -72,7 +85,7 @@ interface AnalyticsData {
   eventsPerDay: { date: string; count: number }[];
 }
 
-type Tab = "overview" | "users" | "ai" | "conversions" | "analytics";
+type Tab = "overview" | "users" | "guests" | "ai" | "conversions" | "analytics";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -101,6 +114,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
   const [users, setUsers] = useState<AdminUserStat[]>([]);
+  const [guestSessions, setGuestSessions] = useState<AdminGuestSession[]>([]);
   const [aiLogs, setAiLogs] = useState<AiUsageLog[]>([]);
   const [jobs, setJobs] = useState<RecentJob[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -118,6 +132,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
       if (data.success) {
         setSummary(data.summary);
         setUsers(data.users || []);
+        setGuestSessions(data.guestSessions || []);
         setAiLogs(data.aiUsageLogs || []);
         setJobs(data.recentJobs || []);
         setAnalytics(data.analytics || null);
@@ -146,6 +161,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "overview", label: "Overview", icon: <Home size={16} /> },
     { id: "users", label: "Users", icon: <Users size={16} /> },
+    { id: "guests", label: "Guest Sessions", icon: <UserRound size={16} /> },
     { id: "ai", label: "AI Usage", icon: <Cpu size={16} /> },
     { id: "conversions", label: "Conversions", icon: <Activity size={16} /> },
     { id: "analytics", label: "Analytics", icon: <Globe size={16} /> },
@@ -248,13 +264,15 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead><tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-semibold uppercase">
-                      <th className="py-3 px-4 text-left">S.No</th><th className="py-3 px-4 text-left">Email</th><th className="py-3 px-4 text-left">File</th><th className="py-3 px-4 text-center">Status</th><th className="py-3 px-4 text-left">Date</th>
+                      <th className="py-3 px-4 text-left">S.No</th><th className="py-3 px-4 text-left">Email</th><th className="py-3 px-4 text-left">Country</th><th className="py-3 px-4 text-left">City</th><th className="py-3 px-4 text-left">File</th><th className="py-3 px-4 text-center">Status</th><th className="py-3 px-4 text-left">Date</th>
                     </tr></thead>
                     <tbody className="divide-y divide-slate-50">
                       {jobs.slice(0, 10).map((j, i) => (
                         <tr key={j.id} className="hover:bg-slate-50/50">
                           <td className="py-2.5 px-4 text-slate-400">{i + 1}</td>
                           <td className="py-2.5 px-4 font-medium text-slate-800">{j.email}</td>
+                          <td className="py-2.5 px-4 text-slate-500">{formatCountry(j.country) || <span className="text-slate-300">Unknown</span>}</td>
+                          <td className="py-2.5 px-4 text-slate-500">{j.city || <span className="text-slate-300">Unknown</span>}</td>
                           <td className="py-2.5 px-4 text-slate-500 truncate max-w-[180px]">{j.filename || "—"}</td>
                           <td className="py-2.5 px-4 text-center">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${j.status === "ready" ? "bg-emerald-50 text-emerald-700" : j.status === "failed" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700"}`}>{j.status}</span>
@@ -340,6 +358,59 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
                 </div>
               </div>
             </>
+          )}
+
+          {/* ── GUEST SESSIONS ────────────────────────────────────────────── */}
+          {tab === "guests" && (
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 className="font-bold text-slate-900 text-sm">Guest Sessions</h2>
+                  <p className="text-xs text-slate-500 mt-1">{guestSessions.length} sessions recorded</p>
+                </div>
+                <button
+                  onClick={() => exportCsv(guestSessions.map(g => ({
+                    country: formatCountry(g.country) || "Unknown",
+                    city: g.city || "",
+                    region: g.region || "",
+                    created_at: fmtTime(g.createdAt),
+                    trial_used: g.trialUsed,
+                    linked_to_account: g.linked,
+                  })), "guest_sessions_export.csv")}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-all"
+                >
+                  <Download size={13} /> Export CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wide">
+                    <th className="py-3 px-4 text-left">S.No</th>
+                    <th className="py-3 px-4 text-left">Country</th>
+                    <th className="py-3 px-4 text-left">City</th>
+                    <th className="py-3 px-4 text-left">Region</th>
+                    <th className="py-3 px-4 text-left">Created</th>
+                    <th className="py-3 px-4 text-center">Trial</th>
+                    <th className="py-3 px-4 text-center">Session</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {guestSessions.length === 0
+                      ? <tr><td colSpan={7} className="py-10 text-center text-slate-400">No guest sessions recorded.</td></tr>
+                      : guestSessions.map((guest, index) => (
+                        <tr key={guest.id} className="hover:bg-slate-50/50">
+                          <td className="py-3 px-4 text-slate-400">{index + 1}</td>
+                          <td className="py-3 px-4 text-slate-700">{formatCountry(guest.country) || <span className="text-slate-300">Unknown</span>}</td>
+                          <td className="py-3 px-4 text-slate-500">{guest.city || "—"}</td>
+                          <td className="py-3 px-4 text-slate-500">{guest.region || "—"}</td>
+                          <td className="py-3 px-4 text-slate-500 whitespace-nowrap">{fmtTime(guest.createdAt)}</td>
+                          <td className="py-3 px-4 text-center text-slate-500">{guest.trialUsed ? "Used" : "Not used"}</td>
+                          <td className="py-3 px-4 text-center text-slate-500">{guest.linked ? "Linked" : "Guest"}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {/* ── AI USAGE ──────────────────────────────────────────────────── */}
