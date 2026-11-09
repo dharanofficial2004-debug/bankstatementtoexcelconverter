@@ -122,8 +122,7 @@ export default function SpanishBanksPage() {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Inicio", item: `${siteUrl}/` },
-      { "@type": "ListItem", position: 2, name: "Español" },
-      { "@type": "ListItem", position: 3, name: "Conversor de Extractos Bancarios", item: `${siteUrl}/es/bancos` },
+      { "@type": "ListItem", position: 2, name: "Conversor de Extractos Bancarios", item: `${siteUrl}/es/bancos` },
     ],
   };
 
