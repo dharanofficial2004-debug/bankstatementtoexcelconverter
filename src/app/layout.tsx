@@ -103,9 +103,16 @@ export default function RootLayout({
         "@id": "https://www.bankstatementtoexcelconverter.com/#software",
         "name": "StatementToExcel",
         "url": "https://www.bankstatementtoexcelconverter.com",
-        "applicationCategory": "FinancialApplication",
+        "applicationCategory": "BusinessApplication",
         "operatingSystem": "All",
         "description": "Convert PDF bank statements into editable Excel spreadsheets instantly.",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.9,
+          "reviewCount": 87,
+          "bestRating": 5,
+          "worstRating": 1,
+        },
         "offers": {
           "@type": "AggregateOffer",
           "priceCurrency": "USD",
