@@ -20,6 +20,36 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    const winner = "/fr/convertir-pdf-releve-bancaire-en-excel";
+    return [
+      {
+        source: "/fr/convertisseur-releve-bancaire",
+        destination: winner,
+        permanent: true,
+      },
+      {
+        source: "/fr/releve-bancaire-pdf-excel",
+        destination: winner,
+        permanent: true,
+      },
+      {
+        source: "/fr/convertir-releve-bancaire-en-excel",
+        destination: winner,
+        permanent: true,
+      },
+      {
+        source: "/fr/convertisseur-releve-bancaire-excel",
+        destination: winner,
+        permanent: true,
+      },
+      {
+        source: "/fr/releve-bancaire-vers-excel",
+        destination: winner,
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
