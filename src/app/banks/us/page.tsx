@@ -4,7 +4,7 @@ import { ArrowRight, Building2, CheckCircle2, ChevronDown, FileSpreadsheet, File
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { usBanks } from "@/lib/usBanks";
-import { LIFETIME_PRICE_USD, PER_CONVERSION_PRICE_INR, PER_CONVERSION_PRICE_USD, formatUSD } from "@/lib/pricing";
+import { LIFETIME_PRICE_USD, PER_CONVERSION_PRICE_USD, formatUSD } from "@/lib/pricing";
 
 const pageUrl = "https://www.bankstatementtoexcelconverter.com/banks/us";
 const title = "US Bank Statement to Excel Converter | Excel & CSV";
@@ -170,7 +170,7 @@ export default function USBanksIndexPage() {
         </section>
 
         <section id="pricing" className="px-4 py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl rounded-3xl border border-primary-200 bg-gradient-to-br from-primary-50 via-white to-primary-50 p-6 shadow-sm sm:p-12"><h2 className={headingClass}>One free conversion, then choose a plan</h2><div className="mx-auto mt-7 max-w-3xl space-y-4 leading-7 text-slate-600"><p>The free plan includes one statement conversion, an editable preview, and Excel or CSV export. You can begin without signing in, but the app asks you to sign in to download. Additional documents require an available conversion credit or an eligible paid plan.</p><p>The current pay-per-conversion option is displayed at {formatUSD(PER_CONVERSION_PRICE_USD)} per credit. A lifetime option is displayed at {formatUSD(LIFETIME_PRICE_USD)}, subject to availability. These are plan prices, not page-count tiers: the current order flow charges a fixed amount for the selected plan.</p><p>Checkout charges are in Indian rupees; a conversion credit is currently ₹{PER_CONVERSION_PRICE_INR}. The displayed dollar amount is a reference, and your card issuer's exchange rate or fees may differ. Check the checkout total and <Link href="/pricing" className={linkClass}>current plan details</Link> before paying.</p></div><div className="mt-7 text-center"><UploadCta /></div></div>
+          <div className="mx-auto max-w-5xl rounded-3xl border border-primary-200 bg-gradient-to-br from-primary-50 via-white to-primary-50 p-6 shadow-sm sm:p-12"><h2 className={headingClass}>One free conversion, then choose a plan</h2><div className="mx-auto mt-7 max-w-3xl space-y-4 leading-7 text-slate-600"><p>The free plan includes one statement conversion, an editable preview, and Excel or CSV export. You can begin without signing in, but the app asks you to sign in to download. Additional documents require an available conversion credit or an eligible paid plan.</p><p>The current pay-per-conversion option is {formatUSD(PER_CONVERSION_PRICE_USD)} per credit. A lifetime option is {formatUSD(LIFETIME_PRICE_USD)}, subject to availability. These are plan prices, not page-count tiers: the order flow charges a fixed amount in USD for the selected plan.</p><p>Checkout charges are in US dollars. Your card issuer may apply currency conversion or fees depending on your account. Check the checkout total and <Link href="/pricing" className={linkClass}>current plan details</Link> before paying.</p></div><div className="mt-7 text-center"><UploadCta /></div></div>
         </section>
 
         <section id="faq" className="bg-slate-50 px-4 py-12 sm:py-16">

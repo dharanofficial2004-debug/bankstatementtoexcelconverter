@@ -182,12 +182,12 @@ export function trackPaymentInitiated(params: {
     traffic_source: detectTrafficSource(),
     plan: params.plan,
     value: params.value,
-    currency: params.currency ?? "INR",
+    currency: params.currency ?? "USD",
   });
 
   // GA4 ecommerce begin_checkout
   gtag("event", "begin_checkout", {
-    currency: params.currency ?? "INR",
+    currency: params.currency ?? "USD",
     value: params.value,
     items: [{ item_id: params.plan, item_name: params.plan, price: params.value, quantity: 1 }],
   });
@@ -205,7 +205,7 @@ export function trackPaymentSuccess(params: {
     traffic_source: detectTrafficSource(),
     plan: params.plan,
     value: params.value,
-    currency: params.currency ?? "INR",
+    currency: params.currency ?? "USD",
     transaction_id: params.transaction_id ?? "",
   });
 
@@ -213,7 +213,7 @@ export function trackPaymentSuccess(params: {
   gtag("event", "purchase", {
     transaction_id: params.transaction_id ?? `txn_${Date.now()}`,
     value: params.value,
-    currency: params.currency ?? "INR",
+    currency: params.currency ?? "USD",
     items: [{ item_id: params.plan, item_name: params.plan, price: params.value, quantity: 1 }],
   });
 }

@@ -3,10 +3,10 @@ import { authenticate } from "@/lib/authServer";
 import { supabaseAdmin } from "@/lib/supabaseServer";
 import { validAffitorClickId } from "@/lib/affitor-server";
 import {
-  LIFETIME_PRICE_INR,
-  PER_CONVERSION_PRICE_INR,
+  LIFETIME_PRICE_USD,
+  PER_CONVERSION_PRICE_USD,
   LIFETIME_OFFER_LIMIT,
-  inrToPaisa,
+  priceToSmallestUnit,
 } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const priceINR = plan === "lifetime" ? LIFETIME_PRICE_INR : PER_CONVERSION_PRICE_INR;
+    const priceUSD = plan === "lifetime" ? LIFETIME_PRICE_USD : PER_CONVERSION_PRICE_USD;
     const filename = plan === "lifetime" ? "Lifetime Access" : "Per Conversion Credit";
     const documentSize = "Plan";
 
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
         Authorization: `Basic ${razorpayAuth}`,
       },
       body: JSON.stringify({
-        amount: inrToPaisa(priceINR),
-        currency: "INR",
+        amount: priceToSmallestUnit(priceUSD),
+        currency: "USD",
         receipt: `receipt_${Date.now()}_${auth.ctx.userId.slice(0, 8)}`,
         notes: {
           plan,
@@ -119,8 +119,8 @@ export async function POST(request: NextRequest) {
         characters: 0,
         size_score: 0,
         document_size: documentSize,
-        price: priceINR,
-        currency: "INR",
+        price: priceUSD,
+        currency: "USD",
         payment_status: "created",
         razorpay_order_id: razorpayOrder.id,
         plan,
@@ -141,11 +141,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orderId: razorpayOrder.id,
-      amount: inrToPaisa(priceINR),
-      currency: "INR",
+      amount: priceToSmallestUnit(priceUSD),
+      currency: "USD",
       paymentRecordId: paymentRecord.id,
       plan,
-      priceINR,
+      priceUSD,
     });
   } catch (error) {
     console.error("Payment create-order error:", error);

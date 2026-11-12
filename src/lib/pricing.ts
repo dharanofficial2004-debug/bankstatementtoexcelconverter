@@ -1,9 +1,5 @@
 export type PlanType = "free" | "lifetime" | "payg";
 
-export const LIFETIME_PRICE_INR = 9600;         // ≈ $100 USD — used by Razorpay (INR only)
-export const PER_CONVERSION_PRICE_INR = 192;    // ≈ $2 USD  — used by Razorpay (INR only)
-
-// Display-only USD prices (shown to users in the UI)
 export const LIFETIME_PRICE_USD = 100;
 export const PER_CONVERSION_PRICE_USD = 2;
 
@@ -14,10 +10,6 @@ export const PLAN_NAMES: Record<PlanType, string> = {
   lifetime: "Lifetime",
   payg: "Pay per Conversion",
 };
-
-export function inrToPaisa(amountINR: number): number {
-  return Math.round(amountINR * 100);
-}
 
 /** @deprecated — kept for legacy compatibility, do not use in UI */
 export function formatINR(amountINR: number): string {
