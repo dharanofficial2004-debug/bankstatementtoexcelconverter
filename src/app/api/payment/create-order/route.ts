@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticate } from "@/lib/authServer";
+import { authenticate, getUsage } from "@/lib/authServer";
 import { supabaseAdmin } from "@/lib/supabaseServer";
 import { validAffitorClickId } from "@/lib/affitor-server";
 import {
@@ -45,6 +45,16 @@ export async function POST(request: NextRequest) {
         { success: false, error: auth.response.status === 401 ? "Authentication required." : "Invalid session." },
         { status: auth.response.status || 401 }
       );
+    }
+
+    if (plan === "lifetime") {
+      const usage = await getUsage(auth.ctx.userId);
+      if (usage.plan === "monthly" || usage.plan === "monthly_pending") {
+        return NextResponse.json(
+          { success: false, error: "End your monthly subscription before purchasing Lifetime Access." },
+          { status: 409 }
+        );
+      }
     }
 
     const priceUSD = plan === "lifetime" ? LIFETIME_PRICE_USD : PER_CONVERSION_PRICE_USD;

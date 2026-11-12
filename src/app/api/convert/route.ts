@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const limits = extractionLimits(ent, kind);
 
     // Reject if no entitlement at all (trial finished, no credits, not lifetime)
-    if (ent.plan !== "lifetime" && ent.paidCredits <= 0 && ent.trialFinished) {
+    if (ent.plan !== "lifetime" && ent.plan !== "monthly" && ent.paidCredits <= 0 && ent.trialFinished) {
       return withIdentityHeaders(
         NextResponse.json({ ok: false, error: customerMessage("trial_complete"), code: "trial_complete" }, { status: 402 }),
         setCookie

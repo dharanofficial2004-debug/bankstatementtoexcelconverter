@@ -13,7 +13,7 @@ import {
 } from "./processing-constants";
 
 export interface Entitlement {
-  plan: "guest_trial" | "free" | "lifetime" | "payg";
+  plan: "guest_trial" | "free" | "lifetime" | "monthly" | "monthly_pending" | "payg";
   canExtract: boolean;
   canConvert: boolean;
   trialAvailable: boolean;
@@ -81,9 +81,9 @@ export async function describeEntitlement(actor: Actor): Promise<Entitlement> {
   }
 
   const usage = await getUsage(actor.userId);
-  if (actor.isAdmin || usage.plan === "lifetime") {
+  if (actor.isAdmin || usage.plan === "lifetime" || usage.plan === "monthly") {
     return {
-      plan: usage.plan === "lifetime" ? "lifetime" : "free",
+      plan: usage.plan === "monthly" ? "monthly" : usage.plan === "lifetime" ? "lifetime" : "free",
       canExtract: true,
       canConvert: true,
       trialAvailable: false,
@@ -185,7 +185,7 @@ export async function createReservationAndExtraction(params: {
       : "paid_credit"
     : "trial";
   const reservationKind =
-    params.entitlement.plan === "lifetime" || params.actor.isAdmin
+    params.entitlement.plan === "lifetime" || params.entitlement.plan === "monthly" || params.actor.isAdmin
       ? "lifetime"
       : params.entitlement.plan === "payg"
         ? "paid_credit"

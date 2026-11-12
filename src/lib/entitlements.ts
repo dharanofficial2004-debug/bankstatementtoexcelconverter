@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "./supabaseServer";
 import type { RequestIdentity } from "./identity";
+import { getLatestUserSubscription, getMonthlyPlanStatus } from "./subscriptions";
 
 export const TRIAL_TEXT_PAGES = 3;
 export const TRIAL_OCR_PAGES = 1;
@@ -13,7 +14,7 @@ export type ExtractionKind = "text" | "ocr";
 
 export interface EntitlementView {
   ownerType: "user" | "guest";
-  plan: "free" | "lifetime" | "payg";
+  plan: "free" | "lifetime" | "monthly" | "monthly_pending" | "payg";
   paidCredits: number;
   conversionsUsed: number;
   trialAvailable: boolean;
@@ -41,7 +42,11 @@ export async function loadEntitlement(identity: RequestIdentity): Promise<Entitl
       .eq("user_id", identity.userId)
       .maybeSingle();
     const planRaw = (data?.plan as string) || "free";
-    const plan = planRaw === "lifetime" || planRaw === "payg" ? planRaw : "free";
+    const storedPlan = planRaw === "lifetime" || planRaw === "payg" ? planRaw : "free";
+    const subscription = await getLatestUserSubscription(identity.userId);
+    const monthlyPlan = getMonthlyPlanStatus(subscription);
+    const plan =
+      storedPlan === "lifetime" ? storedPlan : monthlyPlan ?? storedPlan;
     const conversionsUsed = Number(data?.conversions_used) || 0;
     const paidCredits = Number(data?.paid_credits) || 0;
     const trialFinished = conversionsUsed > 0 || Boolean(data?.trial_consumed_at);
@@ -50,11 +55,11 @@ export async function loadEntitlement(identity: RequestIdentity): Promise<Entitl
       plan,
       paidCredits,
       conversionsUsed,
-      trialAvailable: plan === "lifetime" || paidCredits > 0 || !trialFinished,
-      trialFinished: trialFinished && plan !== "lifetime" && paidCredits <= 0,
+      trialAvailable: plan === "lifetime" || plan === "monthly" || paidCredits > 0 || !trialFinished,
+      trialFinished: trialFinished && plan !== "lifetime" && plan !== "monthly" && paidCredits <= 0,
       label:
-        plan === "lifetime"
-          ? "Lifetime access"
+        plan === "lifetime" || plan === "monthly"
+          ? plan === "lifetime" ? "Lifetime access" : "Monthly unlimited access"
           : paidCredits > 0
             ? `${paidCredits} conversion credit${paidCredits === 1 ? "" : "s"} remaining`
             : trialFinished
@@ -94,7 +99,7 @@ export async function loadEntitlement(identity: RequestIdentity): Promise<Entitl
 }
 
 export function extractionLimits(ent: EntitlementView, kind: ExtractionKind) {
-  if (ent.plan === "lifetime" || ent.paidCredits > 0) {
+  if (ent.plan === "lifetime" || ent.plan === "monthly" || ent.paidCredits > 0) {
     return { maxPages: PAID_MAX_PAGES, maxChars: PAID_MAX_CHARS, kind, isTrial: false };
   }
   if (kind === "ocr") {

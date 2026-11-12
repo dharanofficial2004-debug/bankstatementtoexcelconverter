@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
       conversions_used: usage.conversionsUsed,
       plan: usage.plan,
       paid_credits: usage.paidCredits,
+      subscription_status: usage.subscriptionStatus,
+      subscription_current_end: usage.subscriptionCurrentEnd,
+      subscription_cancel_at_cycle_end: usage.subscriptionCancelAtCycleEnd,
     });
   } catch (err) {
     console.error("usage/get unexpected error:", err);

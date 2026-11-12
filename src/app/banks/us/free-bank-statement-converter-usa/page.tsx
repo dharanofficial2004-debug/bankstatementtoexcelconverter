@@ -41,7 +41,7 @@ export default function Page() {
             Free Bank Statement Converter USA
           </h1>
           <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto">
-            Upload your Chase, Bank of America, or Wells Fargo PDF and preview every transaction for free. No account needed. Pay only when you&apos;re ready to download — starting at $1.
+            Upload your Chase, Bank of America, or Wells Fargo PDF and preview every transaction for free. No account needed. Choose a monthly unlimited or one-time lifetime plan when you&apos;re ready to convert more statements.
           </p>
           <Link
             href="/app"

@@ -26,7 +26,7 @@ export const CUSTOMER_ERRORS = {
   save_progress: "Save your progress with a free account.",
   credit_restored: "Your credit was restored.",
   signup_to_download: "Sign in to download your file.",
-  upgrade_to_continue: "Your free trial is finished — upgrade to continue.",
+  upgrade_to_continue: "Your free trial is finished — choose a paid plan to continue.",
   choose_another: "Choose another PDF.",
   password_needed: "This PDF is password protected.",
 } as const;

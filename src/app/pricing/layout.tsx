@@ -5,7 +5,7 @@ export const metadata: Metadata = withPageSocialMetadata(
   {
     title: "Pricing",
     description:
-      "See StatementToExcel pricing. Preview bank statement conversions for free, then choose pay-per-conversion or a lifetime plan.",
+      "See StatementToExcel pricing. Start with a free conversion, choose monthly unlimited access, or purchase lifetime access.",
     alternates: {
       canonical: "https://www.bankstatementtoexcelconverter.com/pricing",
     },

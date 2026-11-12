@@ -10,10 +10,12 @@ import { Check, X, Sparkles, Zap, Clock, ShieldCheck } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { startPlanCheckout } from "@/lib/checkout";
 import {
+  LIFETIME_PRICE_USD,
   LIFETIME_OFFER_LIMIT,
+  MONTHLY_PRICE_USD,
 } from "@/lib/pricing";
 
-type Plan = "lifetime" | "per_conversion";
+type Plan = "lifetime" | "monthly";
 
 export default function PricingPage() {
   const { showToast } = useToast();
@@ -24,8 +26,13 @@ export default function PricingPage() {
   const [offerSoldOut, setOfferSoldOut] = useState(false);
   const [offerRemaining, setOfferRemaining] = useState(LIFETIME_OFFER_LIMIT);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionCancelAtCycleEnd, setSubscriptionCancelAtCycleEnd] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const isLifetime = userPlan === "lifetime";
+  const isMonthly = userPlan === "monthly";
+  const isMonthlyPending = userPlan === "monthly_pending";
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) return;
@@ -33,6 +40,8 @@ export default function PricingPage() {
     const loadUser = async (accessToken?: string) => {
       if (!accessToken) {
         setUserPlan("free");
+        setSubscriptionStatus(null);
+        setSubscriptionCancelAtCycleEnd(false);
         return;
       }
       try {
@@ -41,6 +50,8 @@ export default function PricingPage() {
         });
         const d = await res.json();
         if (d && typeof d.plan === "string") setUserPlan(d.plan);
+        setSubscriptionStatus(typeof d?.subscription_status === "string" ? d.subscription_status : null);
+        setSubscriptionCancelAtCycleEnd(d?.subscription_cancel_at_cycle_end === true);
       } catch {
         // ignore
       }
@@ -54,7 +65,13 @@ export default function PricingPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
-      if (session) loadUser(session.access_token);
+      if (session) {
+        loadUser(session.access_token);
+      } else {
+        setUserPlan("free");
+        setSubscriptionStatus(null);
+        setSubscriptionCancelAtCycleEnd(false);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -78,13 +95,23 @@ export default function PricingPage() {
     async (plan: Plan) => {
       const result = await startPlanCheckout(plan, {
         onProcessing: setIsProcessing,
-        onSuccess: () => {
-          showToast(
-            plan === "lifetime"
-              ? "Lifetime access unlocked! 🎉"
-              : "Credit added! You can now convert your files.",
-            "success"
-          );
+        onSubscriptionCreated: () => {
+          setUserPlan("monthly_pending");
+          setSubscriptionStatus("created");
+        },
+        onSuccess: (details) => {
+            if (plan === "monthly") {
+              setUserPlan(details?.subscriptionActive ? "monthly" : "monthly_pending");
+              setSubscriptionStatus(details?.subscriptionStatus ?? "authenticated");
+              showToast(
+                details?.subscriptionActive
+                  ? "Your monthly unlimited plan is active."
+                  : "Your payment is being confirmed. Monthly access will activate shortly.",
+                "success"
+              );
+              return;
+            }
+            showToast("Lifetime access unlocked! 🎉", "success");
         },
         onError: (msg) => showToast(msg, "error"),
       });
@@ -95,6 +122,50 @@ export default function PricingPage() {
     },
     [showToast]
   );
+
+  const handleCancelSubscription = async () => {
+    if (!supabase) {
+      showToast("Please sign in again to manage your subscription.", "error");
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        showToast("Please sign in again to manage your subscription.", "error");
+        return;
+      }
+
+      const response = await fetch("/api/payment/cancel-subscription", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Could not cancel your subscription.");
+      }
+
+      if (result.cancelAtCycleEnd) {
+        setSubscriptionCancelAtCycleEnd(true);
+        showToast(
+          "Your monthly plan will remain active until the end of the current billing period.",
+          "success"
+        );
+      } else {
+        setUserPlan("free");
+        setSubscriptionCancelAtCycleEnd(false);
+        showToast("Your monthly subscription has been cancelled.", "success");
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Could not cancel your subscription.",
+        "error"
+      );
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   const handleBuy = async (plan: Plan) => {
     if (!isAuthenticated) {
@@ -127,7 +198,7 @@ export default function PricingPage() {
               Simple, transparent pricing
             </h1>
             <p className="text-lg text-slate-500 max-w-xl mx-auto">
-              Start with a free conversion. Pay only when you need to convert more statements.
+              Start with a free conversion, then choose monthly unlimited or lifetime access.
             </p>
           </div>
 
@@ -140,6 +211,17 @@ export default function PricingPage() {
               </p>
             </div>
           )}
+
+          <div className="mb-8 rounded-xl border border-primary-200 bg-primary-50 px-5 py-4 text-center text-base font-semibold text-slate-800 sm:text-lg">
+            Questions or issues with a payment? Email our support team at{" "}
+            <a
+              href="mailto:support@bankstatementtoexcelconverter.com"
+              className="font-bold text-primary-700 underline underline-offset-2"
+            >
+              support@bankstatementtoexcelconverter.com
+            </a>
+            .
+          </div>
 
           {/* Plans */}
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
@@ -191,7 +273,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-2">
-                <span className="text-4xl font-extrabold text-slate-900">$100</span>
+                <span className="text-4xl font-extrabold text-slate-900">${LIFETIME_PRICE_USD}</span>
                 <span className="text-sm text-slate-500 ml-1">one-time</span>
               </div>
               <p className="text-xs text-slate-400 mb-8">
@@ -210,16 +292,23 @@ export default function PricingPage() {
               ) : (
                 <button
                   onClick={() => handleBuy("lifetime")}
-                  disabled={isProcessing || offerSoldOut}
+                  disabled={isProcessing || offerSoldOut || isMonthly || isMonthlyPending}
                   className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <Sparkles size={16} />
-                  {isProcessing ? "Processing..." : offerSoldOut ? "Sold Out" : "Get Lifetime Access"}
+                  {isProcessing
+                    ? "Processing..."
+                    : offerSoldOut
+                      ? "Sold Out"
+                      : isMonthly || isMonthlyPending
+                        ? "Monthly Plan Must End First"
+                        : "Get Lifetime Access"}
                 </button>
               )}
 
               <div className="space-y-3">
                 <Feature included>Unlimited conversions forever</Feature>
+                <Feature included>Desktop app access — coming soon</Feature>
                 <Feature included>Export Excel / CSV / JSON</Feature>
                 <Feature included>All banks supported</Feature>
                 <Feature included>No hidden fees</Feature>
@@ -232,41 +321,81 @@ export default function PricingPage() {
               </p>
             </div>
 
-            {/* Pay Per Conversion Plan */}
+            {/* Monthly Unlimited Plan */}
             <div className="flex flex-col bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-slate-900 mb-1">Pay Per Conversion</h3>
-                <p className="text-sm text-slate-500">Pay only when you need it</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Monthly Unlimited</h3>
+                <p className="text-sm text-slate-500">Unlimited conversions while subscribed</p>
               </div>
 
               <div className="mb-8">
-                <span className="text-4xl font-extrabold text-slate-900">$2</span>
-                <span className="text-sm text-slate-500 ml-1">/ per file</span>
+                <span className="text-4xl font-extrabold text-slate-900">${MONTHLY_PRICE_USD}</span>
+                <span className="text-sm text-slate-500 ml-1">/ month</span>
               </div>
 
-              <button
-                onClick={() => handleBuy("per_conversion")}
-                disabled={isProcessing || isLifetime}
-                className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLifetime ? (
-                  <>
-                    <Check size={16} />
-                    Included in Lifetime ✓
-                  </>
-                ) : (
-                  <>
-                    <Zap size={16} />
-                    {isProcessing
-                      ? "Processing..."
-                      : `Pay $2 & Convert`}
-                  </>
-                )}
-              </button>
+              {isLifetime ? (
+                <div className="w-full mb-8 rounded-xl bg-success-50 border border-success-200 px-4 py-3.5 text-center">
+                  <p className="text-sm font-bold text-success-700">
+                    <Check size={16} className="inline mr-1" />
+                    Included in Lifetime Access
+                  </p>
+                </div>
+              ) : isMonthly || isMonthlyPending ? (
+                <div className="w-full mb-8 rounded-xl bg-primary-50 border border-primary-200 px-4 py-3.5 text-center">
+                  <p className="text-sm font-bold text-primary-700">
+                    {isMonthly
+                      ? "Monthly plan active"
+                      : subscriptionStatus === "created"
+                        ? "Monthly checkout not completed"
+                        : subscriptionStatus === "authenticated"
+                          ? "Payment confirmation pending"
+                        : "Monthly subscription needs attention"}
+                  </p>
+                  {isMonthly && subscriptionCancelAtCycleEnd ? (
+                    <p className="text-xs text-primary-700/80 mt-1">
+                      Your plan will end after the current billing period.
+                    </p>
+                  ) : (
+                    <div className="mt-1 flex justify-center gap-4">
+                      {isMonthlyPending &&
+                        (subscriptionStatus === "created" || subscriptionStatus === "pending") && (
+                        <button
+                          onClick={() => handleBuy("monthly")}
+                          disabled={isProcessing}
+                          className="text-xs font-semibold text-primary-700 underline underline-offset-2 hover:text-primary-800 disabled:opacity-60"
+                        >
+                          Resume checkout
+                        </button>
+                      )}
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={isCancelling}
+                        className="text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-800 disabled:opacity-60"
+                      >
+                        {isCancelling
+                          ? "Cancelling..."
+                          : isMonthly
+                            ? "Cancel subscription"
+                            : "Cancel pending subscription"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleBuy("monthly")}
+                  disabled={isProcessing}
+                  className="btn-primary w-full text-sm mb-8 gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <Zap size={16} />
+                  {isProcessing ? "Processing..." : "Get Monthly Unlimited"}
+                </button>
+              )}
 
               <div className="space-y-3">
-                <Feature included>Pay only when you convert</Feature>
-                <Feature included>No subscription needed</Feature>
+                <Feature included>Unlimited conversions every month</Feature>
+                <Feature included>Automatic monthly billing</Feature>
+                <Feature included>Cancel anytime</Feature>
                 <Feature included>Export Excel / CSV / JSON</Feature>
                 <Feature included>All banks supported</Feature>
               </div>

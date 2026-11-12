@@ -116,7 +116,7 @@ export default function Page() {
                 icon: DollarSign,
                 color: "bg-green-50 text-green-600",
                 title: "Starts at $1",
-                desc: "No subscription. Pay only per document, starting at $1.",
+                desc: "Choose monthly unlimited access or one-time lifetime access.",
               },
               {
                 icon: Lock,

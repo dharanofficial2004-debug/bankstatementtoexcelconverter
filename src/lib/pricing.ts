@@ -1,6 +1,9 @@
-export type PlanType = "free" | "lifetime" | "payg";
+export type PlanType = "free" | "lifetime" | "monthly" | "payg";
 
-export const LIFETIME_PRICE_USD = 100;
+export const LIFETIME_PRICE_USD = 109;
+export const MONTHLY_PRICE_USD = 59;
+// Razorpay subscriptions are limited to a ten-year billing term.
+export const MONTHLY_SUBSCRIPTION_TOTAL_CYCLES = 120;
 export const PER_CONVERSION_PRICE_USD = 2;
 
 export const LIFETIME_OFFER_LIMIT = 40;
@@ -8,6 +11,7 @@ export const LIFETIME_OFFER_LIMIT = 40;
 export const PLAN_NAMES: Record<PlanType, string> = {
   free: "Free",
   lifetime: "Lifetime",
+  monthly: "Monthly",
   payg: "Pay per Conversion",
 };
 

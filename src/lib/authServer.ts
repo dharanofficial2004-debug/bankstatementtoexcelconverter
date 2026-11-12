@@ -2,6 +2,7 @@ import "server-only";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "./supabaseServer";
+import { getLatestUserSubscription, getMonthlyPlanStatus } from "./subscriptions";
 
 export interface AuthedContext {
   userId: string;
@@ -12,9 +13,12 @@ export interface AuthedContext {
 
 export interface UsageContext {
   conversionsUsed: number;
-  plan: "free" | "lifetime" | "payg";
+  plan: "free" | "lifetime" | "monthly" | "monthly_pending" | "payg";
   paidCredits: number;
   trialConsumed: boolean;
+  subscriptionStatus: string | null;
+  subscriptionCurrentEnd: string | null;
+  subscriptionCancelAtCycleEnd: boolean;
 }
 
 export type AuthResult =
@@ -133,7 +137,15 @@ export async function requireAdmin(request: NextRequest): Promise<AuthResult> {
  */
 export async function getUsage(userId: string): Promise<UsageContext> {
   if (!supabaseAdmin) {
-    return { conversionsUsed: 0, plan: "free", paidCredits: 0, trialConsumed: false };
+    return {
+      conversionsUsed: 0,
+      plan: "free",
+      paidCredits: 0,
+      trialConsumed: false,
+      subscriptionStatus: null,
+      subscriptionCurrentEnd: null,
+      subscriptionCancelAtCycleEnd: false,
+    };
   }
   const { data, error } = await supabaseAdmin
     .from("user_usage")
@@ -141,21 +153,28 @@ export async function getUsage(userId: string): Promise<UsageContext> {
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (error || !data) {
-    return { conversionsUsed: 0, plan: "free", paidCredits: 0, trialConsumed: false };
+  if (error) {
+    console.error("[authServer] Failed to load usage:", error.message);
   }
 
-  const planRaw = (data.plan ?? "free") as string;
-  const plan: UsageContext["plan"] =
+  const planRaw = (data?.plan ?? "free") as string;
+  const storedPlan: UsageContext["plan"] =
     planRaw === "lifetime" || planRaw === "payg" ? planRaw : "free";
-  const conversionsUsed = Number(data.conversions_used) || 0;
-  const trialConsumed = Boolean(data.trial_consumed) || conversionsUsed >= 1;
+  const subscription = await getLatestUserSubscription(userId);
+  const monthlyPlan = getMonthlyPlanStatus(subscription);
+  const plan: UsageContext["plan"] =
+    storedPlan === "lifetime" ? storedPlan : monthlyPlan ?? storedPlan;
+  const conversionsUsed = Number(data?.conversions_used) || 0;
+  const trialConsumed = Boolean(data?.trial_consumed) || conversionsUsed >= 1;
 
   return {
     conversionsUsed,
     plan,
-    paidCredits: Number(data.paid_credits) || 0,
+    paidCredits: Number(data?.paid_credits) || 0,
     trialConsumed,
+    subscriptionStatus: subscription?.status ?? null,
+    subscriptionCurrentEnd: subscription?.current_end ?? null,
+    subscriptionCancelAtCycleEnd: subscription?.cancel_at_cycle_end ?? false,
   };
 }
 
@@ -163,7 +182,7 @@ export async function getUsage(userId: string): Promise<UsageContext> {
  * Authorize that the user may perform a conversion (start a new parse).
  * Rules:
  *  - admin: always ok
- *  - plan === "lifetime": ok
+ *  - plan === "lifetime" or "monthly": ok
  *  - conversionsUsed === 0: ok (free tier)
  *  - paidCredits > 0: ok (will be consumed atomically)
  *  - otherwise: blocked (requires payment)
@@ -181,7 +200,9 @@ export async function authorizeConversion(
   if (ctx.isAdmin) return { ok: true, shouldConsumeCredit: false };
 
   const usage = await getUsage(ctx.userId);
-  if (usage.plan === "lifetime") return { ok: true, shouldConsumeCredit: false };
+  if (usage.plan === "lifetime" || usage.plan === "monthly") {
+    return { ok: true, shouldConsumeCredit: false };
+  }
   if (usage.conversionsUsed === 0) return { ok: true, shouldConsumeCredit: false };
   if (usage.paidCredits > 0) return { ok: true, shouldConsumeCredit: true };
 
@@ -189,8 +210,7 @@ export async function authorizeConversion(
     ok: false,
     response: NextResponse.json(
       {
-        error:
-          "No conversions remaining. Please purchase credits or upgrade to lifetime access.",
+        error: "No conversions remaining. Please choose a paid plan to continue.",
       },
       { status: 402 }
     ),

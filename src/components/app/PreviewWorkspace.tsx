@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/Toast";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { Sheet, Transaction } from "@/lib/types";
 import { calculateConversionSummary } from "@/lib/conversionSession";
+import { Modal } from "@/components/ui/Modal";
+import { LIFETIME_PRICE_USD, MONTHLY_PRICE_USD } from "@/lib/pricing";
 
 const Spreadsheet = dynamic(() => import("./Spreadsheet"), { ssr: false });
 
@@ -34,7 +36,7 @@ interface JobResult {
 }
 
 interface AccountUsage {
-  plan: "free" | "lifetime" | "payg";
+  plan: "free" | "lifetime" | "monthly" | "monthly_pending" | "payg";
   paid_credits: number;
 }
 
@@ -71,6 +73,12 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [accountInitial, setAccountInitial] = useState("");
   const [accountUsage, setAccountUsage] = useState<AccountUsage | null>(null);
+  const [accountUsageLoaded, setAccountUsageLoaded] = useState(false);
+  const [showTrialOffer, setShowTrialOffer] = useState(false);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
+  const offerShownForConversion = useRef<string | null>(null);
+  const downloadCompletedForConversion = useRef<string | null>(null);
+  const downloadOfferShownForConversion = useRef<string | null>(null);
 
   const active = useMemo(() => sheets.find((s) => s.id === activeSheetId) ?? null, [sheets, activeSheetId]);
   const transactions = useMemo(() => active?.transactions ?? [], [active]);
@@ -79,6 +87,7 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
     if (!isSupabaseConfigured() || !supabase) {
       setIsSignedIn(false);
       setAccountUsage(null);
+      setAccountUsageLoaded(true);
       return;
     }
 
@@ -87,8 +96,10 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
       if (!mounted) return;
       setIsSignedIn(Boolean(session));
       setAccountInitial(session?.user.email?.trim().charAt(0).toUpperCase() ?? "");
+      setAccountUsageLoaded(false);
       if (!session) {
         setAccountUsage(null);
+        setAccountUsageLoaded(true);
         return;
       }
 
@@ -98,11 +109,13 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
         });
         if (!response.ok) return;
         const usage = await response.json() as AccountUsage;
-        if (mounted && ["free", "lifetime", "payg"].includes(usage.plan)) {
+        if (mounted && ["free", "lifetime", "monthly", "monthly_pending", "payg"].includes(usage.plan)) {
           setAccountUsage(usage);
         }
       } catch {
         if (mounted) setAccountUsage(null);
+      } finally {
+        if (mounted) setAccountUsageLoaded(true);
       }
     };
 
@@ -117,11 +130,47 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
     };
   }, []);
 
+  const isFreeTrial = !isSignedIn ||
+    (accountUsage?.plan === "free" && accountUsage.paid_credits <= 0);
+
+  useEffect(() => {
+    if (
+      !accountUsageLoaded ||
+      jobStatus !== "ready" ||
+      sheets.length === 0 ||
+      !isFreeTrial ||
+      offerShownForConversion.current === conversionId
+    ) {
+      return;
+    }
+
+    offerShownForConversion.current = conversionId;
+    setShowTrialOffer(true);
+  }, [accountUsageLoaded, conversionId, isFreeTrial, jobStatus, sheets.length]);
+
+  useEffect(() => {
+    if (
+      !hasDownloaded ||
+      !accountUsageLoaded ||
+      !isFreeTrial ||
+      downloadOfferShownForConversion.current === conversionId
+    ) {
+      return;
+    }
+
+    downloadOfferShownForConversion.current = conversionId;
+    setShowTrialOffer(true);
+  }, [accountUsageLoaded, conversionId, hasDownloaded, isFreeTrial]);
+
   const planLabel = accountUsage?.plan === "lifetime"
     ? "Lifetime plan"
+    : accountUsage?.plan === "monthly"
+      ? "Monthly unlimited plan"
     : accountUsage?.plan === "payg" && accountUsage.paid_credits > 0
       ? `${accountUsage.paid_credits} ${accountUsage.paid_credits === 1 ? "conversion" : "conversions"} left`
-      : "Free plan";
+      : accountUsage?.plan === "monthly_pending"
+        ? "Monthly plan pending"
+        : "Free plan";
 
   // ── Load result from server when job is ready ────────────────────────────
   const loadResult = useCallback(async () => {
@@ -256,6 +305,10 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
       link.click();
       URL.revokeObjectURL(url);
       showToast("Downloaded successfully ✓", "success");
+      if (downloadCompletedForConversion.current !== conversionId) {
+        downloadCompletedForConversion.current = conversionId;
+        setHasDownloaded(true);
+      }
     } catch {
       showToast("Couldn't connect to export your file. Check your connection and try again.", "error");
     }
@@ -416,6 +469,48 @@ export default function PreviewWorkspace({ conversionId }: { conversionId: strin
           )}
         </div>
       </main>
+
+      <Modal
+        isOpen={showTrialOffer}
+        onClose={() => setShowTrialOffer(false)}
+        className="max-w-2xl"
+      >
+        <div className="text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary-700">
+            {hasDownloaded ? "Download complete" : "Your free preview is ready"}
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900">
+            {hasDownloaded ? "Ready for your next statement?" : "Need to convert the rest of your statement?"}
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+            {hasDownloaded
+              ? "Your preview file is ready. The plans below include unlimited conversions for future statements."
+              : "The free trial extracts up to 3 text pages, or 1 scanned page. The plans below include unlimited conversions."}
+          </p>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 p-5">
+            <p className="text-sm font-semibold text-slate-700">Monthly Unlimited</p>
+            <p className="mt-2 text-3xl font-extrabold text-slate-900">
+              ${MONTHLY_PRICE_USD}<span className="text-sm font-medium text-slate-500"> / month</span>
+            </p>
+            <p className="mt-2 text-sm text-slate-600">Unlimited conversions while subscribed. Cancel anytime.</p>
+          </div>
+
+          <div className="rounded-2xl border-2 border-primary-500 bg-primary-50/50 p-5">
+            <p className="text-sm font-semibold text-slate-700">Lifetime Access</p>
+            <p className="mt-2 text-3xl font-extrabold text-slate-900">
+              ${LIFETIME_PRICE_USD}<span className="text-sm font-medium text-slate-500"> one-time</span>
+            </p>
+            <p className="mt-2 text-sm text-slate-600">Pay once for unlimited conversions, forever.</p>
+          </div>
+        </div>
+
+        <p className="mt-5 text-center text-xs text-slate-500">
+          Close this message anytime to continue using your preview.
+        </p>
+      </Modal>
 
       {showLogin && (
         <LoginModal

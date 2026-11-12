@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export type PlanType = "lifetime" | "per_conversion";
+export type PlanType = "lifetime" | "monthly" | "per_conversion";
 
 const RAZORPAY_CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 let razorpayScriptPromise: Promise<void> | null = null;
@@ -50,7 +50,8 @@ export async function startPlanCheckout(
   plan: PlanType,
   handlers: {
     onProcessing: (processing: boolean) => void;
-    onSuccess: () => void;
+    onSubscriptionCreated?: () => void;
+    onSuccess: (details?: { subscriptionActive?: boolean; subscriptionStatus?: string }) => void;
     onError: (message: string) => void;
   }
 ): Promise<{ needsAuth: boolean }> {
@@ -76,46 +77,82 @@ export async function startPlanCheckout(
 
     await loadRazorpay();
 
-    const createOrderRes = await fetch("/api/payment/create-order", {
+    const isMonthly = plan === "monthly";
+    const createOrderRes = await fetch(
+      isMonthly ? "/api/payment/create-subscription" : "/api/payment/create-order",
+      {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ plan }),
-    });
+      body: JSON.stringify(isMonthly ? {} : { plan }),
+      }
+    );
 
     const orderData = await createOrderRes.json();
     if (!orderData.success) {
       throw new Error(orderData.error || "Failed to create payment order");
     }
+    if (isMonthly && typeof orderData.subscriptionId !== "string") {
+      throw new Error("Failed to create a monthly subscription.");
+    }
+    if (isMonthly) handlers.onSubscriptionCreated?.();
 
-    const options = {
+    const options: Record<string, unknown> = {
       key: razorpayKeyId,
-      amount: orderData.amount,
-      currency: orderData.currency,
       name: "StatementToExcel",
-      description: plan === "lifetime" ? "Lifetime Access ($100)" : "Per Conversion Credit ($2)",
-      order_id: orderData.orderId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      handler: async function (response: any) {
+      description:
+        plan === "lifetime"
+          ? "Lifetime Access ($109)"
+          : isMonthly
+            ? "Monthly Unlimited ($59/month)"
+            : "Per Conversion Credit ($2)",
+      prefill: { email: session.user.email || "" },
+      theme: { color: "#2563EB" },
+      modal: {
+        ondismiss: function () {
+          onProcessing(false);
+        },
+      },
+      handler: async function (response: {
+        razorpay_order_id?: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }) {
         try {
-          const verifyRes = await fetch("/api/payment/verify", {
+          const verifyRes = await fetch(
+            isMonthly ? "/api/payment/verify-subscription" : "/api/payment/verify",
+            {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${session.access_token}`,
             },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              payment_record_id: orderData.paymentRecordId,
-            }),
-          });
+            body: JSON.stringify(
+              isMonthly
+                ? {
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }
+                : {
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    payment_record_id: orderData.paymentRecordId,
+                  }
+            ),
+            }
+          );
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
-            onSuccess();
+            onSuccess({
+              subscriptionActive: isMonthly && verifyData.active === true,
+              subscriptionStatus:
+                isMonthly && typeof verifyData.subscriptionStatus === "string"
+                  ? verifyData.subscriptionStatus
+                  : undefined,
+            });
           } else {
             onError(verifyData.error || "Payment verification failed");
           }
@@ -125,14 +162,14 @@ export async function startPlanCheckout(
           onProcessing(false);
         }
       },
-      prefill: { email: session.user.email || "" },
-      theme: { color: "#2563EB" },
-      modal: {
-        ondismiss: function () {
-          onProcessing(false);
-        },
-      },
     };
+    if (isMonthly) {
+      options.subscription_id = orderData.subscriptionId;
+    } else {
+      options.amount = orderData.amount;
+      options.currency = orderData.currency;
+      options.order_id = orderData.orderId;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rzp = new window.Razorpay(options);

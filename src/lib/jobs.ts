@@ -31,7 +31,7 @@ export async function authorizeExtraction(
   console.log("[jobs] entitlement:", { plan: ent.plan, paidCredits: ent.paidCredits, trialFinished: ent.trialFinished, trialAvailable: ent.trialAvailable });
   const limits = extractionLimits(ent, kind);
 
-  if (ent.plan !== "lifetime" && ent.paidCredits <= 0 && ent.trialFinished) {
+  if (ent.plan !== "lifetime" && ent.plan !== "monthly" && ent.paidCredits <= 0 && ent.trialFinished) {
     console.log("[jobs] trial_complete — no entitlement");
     return { ok: false as const, code: "trial_complete" as const };
   }
@@ -47,7 +47,7 @@ export async function authorizeExtraction(
   }
 
   let reservationKind: "trial" | "payg" | "lifetime" = "lifetime";
-  if (ent.plan === "lifetime" || identity.isAdmin) {
+  if (ent.plan === "lifetime" || ent.plan === "monthly" || identity.isAdmin) {
     reservationKind = "lifetime";
   } else if (ent.paidCredits > 0) {
     reservationKind = "payg";
