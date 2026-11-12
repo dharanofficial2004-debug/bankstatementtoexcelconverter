@@ -2,11 +2,48 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export type PlanType = "lifetime" | "per_conversion";
 
+const RAZORPAY_CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+let razorpayScriptPromise: Promise<void> | null = null;
+
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Razorpay: any;
   }
+}
+
+function loadRazorpay(): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Razorpay checkout is only available in a browser."));
+  }
+
+  if (typeof window.Razorpay === "function") {
+    return Promise.resolve();
+  }
+
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = RAZORPAY_CHECKOUT_SCRIPT;
+      script.async = true;
+      script.onload = () => {
+        if (typeof window.Razorpay === "function") {
+          resolve();
+        } else {
+          reject(new Error("Razorpay checkout loaded but could not be initialized."));
+        }
+      };
+      script.onerror = () => {
+        reject(new Error("Failed to load Razorpay checkout. Check your connection and try again."));
+      };
+      document.body.appendChild(script);
+    }).catch((error: unknown) => {
+      razorpayScriptPromise = null;
+      throw error;
+    });
+  }
+
+  return razorpayScriptPromise;
 }
 
 export async function startPlanCheckout(
@@ -32,6 +69,13 @@ export async function startPlanCheckout(
   onProcessing(true);
 
   try {
+    const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!razorpayKeyId) {
+      throw new Error("Razorpay is not configured. Set NEXT_PUBLIC_RAZORPAY_KEY_ID.");
+    }
+
+    await loadRazorpay();
+
     const createOrderRes = await fetch("/api/payment/create-order", {
       method: "POST",
       headers: {
@@ -47,7 +91,7 @@ export async function startPlanCheckout(
     }
 
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key: razorpayKeyId,
       amount: orderData.amount,
       currency: orderData.currency,
       name: "StatementToExcel",
