@@ -1,5 +1,13 @@
 # StatementToExcel - Bank Statement to Excel Converter
 
+## Important pages
+
+- [Home](https://www.bankstatementtoexcelconverter.com/)
+- [Product dashboard](https://www.bankstatementtoexcelconverter.com/app)
+- [Pricing](https://www.bankstatementtoexcelconverter.com/pricing)
+- [Bank statement to Excel](https://www.bankstatementtoexcelconverter.com/bank-statement-to-excel)
+- [Bank statement to CSV](https://www.bankstatementtoexcelconverter.com/bank-statement-to-csv)
+
 StatementToExcel is a secure web application that allows users to instantly convert PDF bank statements into structured, editable spreadsheets. Users can preview, edit, and export their transactions directly to Excel (XLSX) or CSV.
 
 - **Canonical URL:** https://www.bankstatementtoexcelconverter.com

@@ -266,6 +266,7 @@ export default function HomePage() {
 
       <Navbar />
 
+      <main>
       {/* ── Hero ── */}
       <Hero
         badgeText="Trusted by accountants, CFOs, and small business owners"
@@ -819,6 +820,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </main>
       <Footer />
     </div>
   );
